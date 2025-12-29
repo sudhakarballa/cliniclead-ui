@@ -12,7 +12,18 @@ export const Profile = () => {
     const { user, email } = userProfile || new UserProfile();
     const doLogout = async () => {
         setIsLoggedIn(false);
-        navigate("/login", { replace: true });
+        
+        // Check if we're on a subdomain and need to redirect to main application
+        const config = (window as any).config;
+        
+        if (config?.EnableSubdomainRedirect) {
+            // Redirect to main application login page
+            const redirectUrl = config.RedirectUri + (config.HomePage || '') + '/login';
+            window.location.href = redirectUrl;
+        } else {
+            // Local development or already on main domain
+            navigate("/login", { replace: true });
+        }
     };
     return (
         <Dropdown className="headerprofile">

@@ -26,11 +26,16 @@ import { GiStairsGoal } from "react-icons/gi";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 
+// Icon wrapper functions to ensure proper typing
+const IconWrapper = ({ Icon, ...props }: { Icon: any; [key: string]: any }): JSX.Element => {
+  return <Icon {...props} />;
+};
+
 interface MenuItemConfig {
   key: string;
   title: string;
   path: string;
-  icon: React.ReactNode;
+  icon: JSX.Element;
   permission: string;
   displayName?: string;
 }
@@ -38,7 +43,7 @@ interface MenuItemConfig {
 interface SubMenuConfig {
   key: string;
   title: string;
-  icon: React.ReactNode;
+  icon: JSX.Element;
   permission: string;
   items: MenuItemConfig[];
 }
@@ -235,28 +240,28 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "Stages",
       title: "Add Pipeline",
       path: "/Stages",
-      icon: <HiOutlineFunnel key={selectedNavItem} color={selectedNavItem === "Stages" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={HiOutlineFunnel} key={selectedNavItem} color={selectedNavItem === "Stages" ? activeNavColor : "black"} />,
       permission: "Stages"
     },
     {
       key: "pipeline",
       title: "Sales Stage",
       path: "/pipeline",
-      icon: <GiStairsGoal key={selectedNavItem} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "black"}} />,
+      icon: <IconWrapper Icon={GiStairsGoal} key={selectedNavItem} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "black"}} />,
       permission: "pipeline"
     },
     {
       key: "Activities",
       title: "Activities",
       path: "/Activities",
-      icon: <RxActivityLog color={selectedNavItem === "Activities" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RxActivityLog} color={selectedNavItem === "Activities" ? activeNavColor : "black"} />,
       permission: "Activities"
     },
     {
       key: "Person",
       title: "Persons",
       path: "/Person",
-      icon: <RiContactsBookFill color={selectedNavItem === "Person" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RiContactsBookFill} color={selectedNavItem === "Person" ? activeNavColor : "black"} />,
       permission: "Person"
     },
     {
@@ -264,14 +269,14 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Settings",
       displayName: "Manage User",
       path: "/users",
-      icon: <IoSettings color={selectedNavItem === "Settings" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={IoSettings} color={selectedNavItem === "Settings" ? activeNavColor : "black"} />,
       permission: "users"
     },
     {
       key: "Reporting",
       title: "Reporting",
       path: "/Reporting",
-      icon: <RiDashboard2Fill color={selectedNavItem === "Reporting" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RiDashboard2Fill} color={selectedNavItem === "Reporting" ? activeNavColor : "black"} />,
       permission: "Reporting"
     }
   ];
@@ -280,14 +285,14 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     {
       key: "Campaigns",
       title: "Campaigns",
-      icon: <MdCampaign color={campaignSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={MdCampaign} color={campaignSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
       permission: "Template",
       items: [
         {
           key: "Template",
           title: "Template",
           path: "/Template",
-          icon: <HiTemplate color={selectedNavItem === "Template" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={HiTemplate} color={selectedNavItem === "Template" ? activeNavColor : "black"} />,
           permission: "Template"
         }
       ]
@@ -295,35 +300,35 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     {
       key: "Admin",
       title: "Admin",
-      icon: <RiAdminFill color={adminSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RiAdminFill} color={adminSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
       permission: "Admin",
       items: [
         {
           key: "Clinic",
           title: "Clinic",
           path: "/Clinic",
-          icon: <FaClinicMedical color={selectedNavItem === "Clinic" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={FaClinicMedical} color={selectedNavItem === "Clinic" ? activeNavColor : "black"} />,
           permission: "Clinic"
         },
         {
           key: "Source",
           title: "Source",
           path: "/Source",
-          icon: <BiGitBranch color={selectedNavItem === "Source" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={BiGitBranch} color={selectedNavItem === "Source" ? activeNavColor : "black"} />,
           permission: "Source"
         },
         {
           key: "Treatment",
           title: "Treatment",
           path: "/Treatment",
-          icon: <FaNotesMedical color={selectedNavItem === "Treatment" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={FaNotesMedical} color={selectedNavItem === "Treatment" ? activeNavColor : "black"} />,
           permission: "Treatment"
         },
         {
           key: "PipeLineType",
           title: "Pipeline Type",
           path: "/PipeLineType",
-          icon: <FaProjectDiagram color={selectedNavItem === "PipeLineType" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={FaProjectDiagram} color={selectedNavItem === "PipeLineType" ? activeNavColor : "black"} />,
           permission: "PipeLineType"
         }
       ]
@@ -460,7 +465,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title="Tenants" 
           component={<Link to="/Tenant" />} 
           onClick={() => setSelectedNavItem("Tenant")} 
-          icon={<FaBuilding color={selectedNavItem === "Tenant" ? activeNavColor : "black"} />}
+          icon={<IconWrapper Icon={FaBuilding} color={selectedNavItem === "Tenant" ? activeNavColor : "black"} />}
           rootStyles={{
             ['.' + 'ps-menu-button']: {
               color: 'black !important',

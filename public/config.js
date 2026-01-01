@@ -1,7 +1,7 @@
 window.config = {
  //ServicesBaseURL: "https://localhost:7182/api",
  ServicesBaseURL: "https://api.cliniclead.app/api",
-  SMSServiceURL:"https://www.y1crm.com/PLMSDev/send-sms",
+  SMSServiceURL:"https://cliniclead.app/api/send-sms",
   DefaultStages: [
     "Qualified",
     "Conact Made",
@@ -9,15 +9,15 @@ window.config = {
     "Proposal Made",
     "Negotiations Started",
   ],
-  HomePage:"/PLMSUI",
-  RedirectUri:"http://localhost:3000",
+  HomePage:"/",
+  RedirectUri:"https://cliniclead.app",
   UseMockService: false,
   DisableDropdownAPI: true,
   DisableDotDigitalAPI: true,
   CampaignSections: ["Assets", "Tasks"],
   ClientId: "58f8d840-1215-4e4f-8901-da06f1dba5ac",
   DateFormat: "MM/DD/YYYY",
-  FrontendBaseURL: "http://localhost:3000/PLMSUI",
+  FrontendBaseURL: "https://cliniclead.app",
   NavItemsForUser: [
     {
       Role: 0,
@@ -90,7 +90,7 @@ window.config = {
     maxSessionTimeoutMinutes: 1440
   },
   TenantSubdomains: {
-    1: "transformus.cliniclead.app",
+    1: "signatureclinic.cliniclead.app",
     2: "transformus.cliniclead.app"
     // Add more tenants as needed: tenantId: "subdomain.cliniclead.app"
   },

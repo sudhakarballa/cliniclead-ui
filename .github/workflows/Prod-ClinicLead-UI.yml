@@ -1,0 +1,33 @@
+name: Deploy React App to Azure Linux
+
+on:
+   workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: y1crm-web-prod
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build React App
+      run: npm run build
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEB_PUBLISH_PROFILE_UI_PROD }}
+        package: build

@@ -1,4 +1,4 @@
-name: Deploy React App to Azure Linux
+name: Prod-ClinicLead-UI Linux
 
 on:
    workflow_dispatch:

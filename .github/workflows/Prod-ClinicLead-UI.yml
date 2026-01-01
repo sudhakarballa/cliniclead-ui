@@ -2,6 +2,11 @@ name: Prod-ClinicLead-UI Linux
 
 on:
    workflow_dispatch:
+      inputs:
+         branch:
+           description: "Branch to deploy"
+           required: true
+           default: "main"
 
 env:
   AZURE_WEBAPP_NAME: cliniclead-ui-prod
@@ -13,6 +18,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+       with:
+          ref: ${{ github.event.inputs.branch }}
 
     - name: Setup Node
       uses: actions/setup-node@v4

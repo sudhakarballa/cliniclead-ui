@@ -23,14 +23,14 @@ const SentEmailsList = (props: params) => {
   
   const { index, email, selectedIndex, emailsList, accounts, ...others } = props;
   const { subject, sender, toRecipients, sentDateTime, body } = email;
-  const divRef = useRef();
+  const divRef = useRef<HTMLDivElement>(null);
   
   const [attachments, setAttachments]=useState(email?.attachments);
   const accountEmail = accounts.length>0 ? accounts[0].username : null;
 
   useEffect(() => {
-    if (divRef) {
-      (divRef.current as any).innerHTML = body?.content;
+    if (divRef.current) {
+      divRef.current.innerHTML = body?.content;
     }
   }, [props]);
 
@@ -68,7 +68,7 @@ const SentEmailsList = (props: params) => {
           </Accordion.Header>
           <Accordion.Body>
             <div
-              ref={divRef as any}
+              ref={divRef}
               style={{ maxHeight: "200px", overflow: "auto" }}
             ></div>
             <div>

@@ -1,6 +1,6 @@
 import { faGrip, faEllipsisV, faAdd, faBars, faDownload, faEnvelope, faPhone, faChartSimple } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Grid } from "@mui/material";
+import { Button } from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import axios, { AxiosError } from "axios";
 import { saveAs } from "file-saver";
@@ -1276,14 +1276,14 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
           >
             <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
              
-              <Grid
-                container
-                spacing={2}
-                justifyContent="space-between"
-                alignItems="center"
-                flexDirection="column"
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}
               >
-                <Grid item>
+                <div>
                   <div
                     className="p-4 border rounded shadow bg-white"
                     style={{ maxWidth: "400px" }}
@@ -1324,7 +1324,7 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                       Send SMS
                     </button>
                   </div>
-                </Grid>
+                </div>
 {selectedRows.length === 0 && (
   <div style={{ marginTop: 24 }}>
     <h4 style={{ marginBottom: 12 }}>Export Deals</h4>
@@ -1388,7 +1388,7 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
   </div>
 )} 
 
-              </Grid>
+              </div>
             </div>
           </div>
         </Drawer>

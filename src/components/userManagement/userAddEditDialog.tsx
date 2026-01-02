@@ -41,7 +41,25 @@ const UsersAddEditDialog: React.FC<any> = (props) => {
   const userTenantId = (userProfile as any)?.tenant?.[0]?.id || null;
   
 
+const numberRequired = (msg: string) =>
+  Yup.number()
+    .transform((val, orig) => (orig === '' || orig === null ? undefined : val))
+    .typeError(msg)
+    .required(msg);
+
+  const validationSchema = Yup.object().shape({
+    firstName: Yup.string().required("Required"),
+    lastName: Yup.string().required("Required"),
+    userName: Yup.string().required("Required"),
+    email: Yup.string().email("Invalid email").required("Required"),
+    phoneNumber: Yup.string().required("Required"),
+    roleId: numberRequired("Role is required"),
+    isActive: Yup.boolean().default(true),
+    tenantId: numberRequired("Tenant is required"),
+  });
+
 type UserFormValues = InferType<typeof validationSchema>;
+
   // Controls for the form fields
   const controlsList: IControl[] = [
     {
@@ -114,31 +132,20 @@ type UserFormValues = InferType<typeof validationSchema>;
       ...Util.buildValidations(list),
     });
   };
-const numberRequired = (msg: string) =>
-  Yup.number()
-    .transform((val, orig) => (orig === '' || orig === null ? undefined : val))
-    .typeError(msg)
-    .required(msg);
-
-  const validationSchema = Yup.object().shape({
-    firstName: Yup.string().required("Required"),
-    lastName: Yup.string().required("Required"),
-    userName: Yup.string().required("Required"),
-    email: Yup.string().email("Invalid email").required("Required"),
-    phoneNumber: Yup.string().required("Required"),
-    roleId: numberRequired("Role is required"),
-    isActive: Yup.boolean().notRequired(),
-    tenantId: numberRequired("Tenant is required"),
-  });
 
 
 const methods = useForm<UserFormValues>({
   resolver: yupResolver(validationSchema),
   defaultValues: {
-    roleId: '',                // empty select
-    tenantId: '',          // empty select
+    firstName: '',
+    lastName: '',
+    userName: '',
+    email: '',
+    phoneNumber: '',
+    roleId: 0,
+    tenantId: 0,
     isActive: true,
-  } as any,
+  },
 });
 
 

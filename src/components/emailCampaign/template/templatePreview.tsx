@@ -8,9 +8,9 @@ type params = {
 const TemplatePreview = (props: params) => {
   const { setHieghtWidth, ...others } = props;
 
-  const headerRef = useRef();
-  const bodyRef = useRef();
-  const footerRef = useRef();
+  const headerRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   const [selectedItem, setSelectedItem] = useState<EmailTemplate>(
     props.selectedItem
   );
@@ -20,12 +20,18 @@ const TemplatePreview = (props: params) => {
   }, [props]);
 
   useEffect(() => {
-    (headerRef.current as any).innerHTML =
-      selectedItem.header.content ?? "Your Sample Header";
-    (bodyRef.current as any).innerHTML =
-      selectedItem.body.content ?? "Your Sample Body";
-    (footerRef.current as any).innerHTML =
-      selectedItem.footer.content ?? "Your Sample Footer";
+    if (headerRef.current) {
+      headerRef.current.innerHTML =
+        selectedItem.header.content ?? "Your Sample Header";
+    }
+    if (bodyRef.current) {
+      bodyRef.current.innerHTML =
+        selectedItem.body.content ?? "Your Sample Body";
+    }
+    if (footerRef.current) {
+      footerRef.current.innerHTML =
+        selectedItem.footer.content ?? "Your Sample Footer";
+    }
   }, [selectedItem]);
 
   return (
@@ -41,19 +47,19 @@ const TemplatePreview = (props: params) => {
         <div
           className="email-header"
           style={{ textAlign: selectedItem?.header?.position, backgroundColor: selectedItem?.header?.backGroundColor}}
-          ref={headerRef as any}
+          ref={headerRef}
         ></div>
         <div
           className="email-body"
           style={{ textAlign: selectedItem?.body?.position, backgroundColor: selectedItem?.body?.backGroundColor }}
-          ref={bodyRef as any}
+          ref={bodyRef}
         >
           Body
         </div>
         <div
           className="email-footer"
           style={{ textAlign: selectedItem?.footer?.position, backgroundColor: selectedItem?.footer?.backGroundColor }}
-          ref={footerRef as any}
+          ref={footerRef}
         >
           footer
         </div>

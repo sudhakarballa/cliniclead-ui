@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@material-ui/core';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { EnhancedTable } from '../styledTable';
 import { HorizontalBarChart } from '../charts/horizontalBarChart';
 import { ReportingService } from '../../../services/reportingService';
@@ -52,8 +52,8 @@ export const UserPerformanceReport: React.FC = () => {
     <Box>
       <Typography variant="h5" gutterBottom>User Performance</Typography>
       
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <HorizontalBarChart 
@@ -63,9 +63,9 @@ export const UserPerformanceReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12}>
+        <div style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Performance Details</Typography>
@@ -83,8 +83,8 @@ export const UserPerformanceReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Box>
   );
 };

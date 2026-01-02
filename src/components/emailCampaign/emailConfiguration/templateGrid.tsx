@@ -1,6 +1,7 @@
-import { Grid, CardActionArea, makeStyles } from "@material-ui/core";
+import { CardActionArea } from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import Paper from "@mui/material/Paper";
-import { experimentalStyled as styled } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { EmailTemplate } from "../../../models/emailTemplate";
@@ -12,15 +13,6 @@ import Card from "@mui/material/Card";
 import TemplatePreview from "../template/templatePreview";
 import { Spinner } from "react-bootstrap";
 import TemplatePreviewDialog from "./templatePreviewDialog";
-
-
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-  ...theme.typography.body2,
-  padding: theme.spacing(2),
-  textAlign: "center",
-  color: theme.palette.text.secondary,
-}));
 
 const useStyles = makeStyles({
   selected: {
@@ -75,9 +67,9 @@ export const TemplateGrid = (props: params) => {
           <Spinner />
         </div>
       ) : (
-        <Grid container spacing={2}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
           {rowData.map((template) => (
-            <Grid key={template.id} item xs={12} sm={6} md={4} lg={3}>
+            <div key={template.id} style={{ flex: '1 1 calc(25% - 12px)', minWidth: '250px' }}>
               <Card
                 className={
                   (template.id === selectedId ? classes.selected : null) as any
@@ -118,9 +110,9 @@ export const TemplateGrid = (props: params) => {
                   </CardContent>
                 </CardActionArea>
               </Card>
-            </Grid>
+            </div>
           ))}
-        </Grid>
+        </div>
       )}
       {showPreview && (
         <TemplatePreviewDialog

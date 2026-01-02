@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@material-ui/core';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { EnhancedTable } from '../styledTable';
 import { PolarAreaChart } from '../charts/polarAreaChart';
 import { ReportingService } from '../../../services/reportingService';
@@ -42,8 +42,8 @@ export const LeadSourceReport: React.FC = () => {
     <Box>
       <Typography variant="h5" gutterBottom>Lead Source Analysis</Typography>
       
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+        <div style={{ flex: '1 1 calc(50% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <PolarAreaChart 
@@ -52,9 +52,9 @@ export const LeadSourceReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12} md={6}>
+        <div style={{ flex: '1 1 calc(50% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Summary</Typography>
@@ -63,9 +63,9 @@ export const LeadSourceReport: React.FC = () => {
               <Typography>Best Source: {data.sort((a, b) => b.conversionRate - a.conversionRate)[0]?.sourceName}</Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12}>
+        <div style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Source Performance</Typography>
@@ -83,8 +83,8 @@ export const LeadSourceReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Box>
   );
 };

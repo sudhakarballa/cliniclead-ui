@@ -30,7 +30,7 @@ const NoteDetails = (props: params) => {
     const { userProfile } = useAuthContext();
     const { index, selectedIndex, ...others } = props;
     const [note, setNote] = useState(props.note);
-    const divRef = useRef();
+    const divRef = useRef<HTMLDivElement>(null);
     const userObj = userProfile || new UserProfile();
     const utility: Utility = JSON.parse(
         LocalStorageUtil.getItemObject(Constants.UTILITY) as any
@@ -45,13 +45,13 @@ const NoteDetails = (props: params) => {
     const noteSvc = new NotesService(ErrorBoundary);
     const [comment, setComment] = useState(new Comment());
     const [defaultComment, setDefaultComment]=useState(null);
-    const commentRef = useRef();
+    const commentRef = useRef<HTMLTextAreaElement>(null);
     const [commentError, setCommentError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (divRef) {
-            (divRef.current as any).innerHTML = note?.noteDetails;
+        if (divRef.current) {
+            divRef.current.innerHTML = note?.noteDetails;
         }
     }, [props])
 
@@ -85,7 +85,9 @@ const NoteDetails = (props: params) => {
             if (res) {
                 toast.success("Comment added successfully");
                 setDefaultComment(null);
-                (commentRef.current as any).value = null;
+                if (commentRef.current) {
+                    commentRef.current.value = "";
+                }
                 setComment({ ...comment, comment: "" });
                 getnote();
             }
@@ -107,7 +109,7 @@ const NoteDetails = (props: params) => {
                 <span className='accoheader-date'>{moment(note?.createdDate).format("MM-DD-YYYY hh:mm:ss a")}</span>
             </Accordion.Header>
             <Accordion.Body>
-                    <div className='notecomment-text' ref={divRef as any}></div>
+                    <div className='notecomment-text' ref={divRef}></div>
                     <div className="editstage-delete">
                         <button className="editstage-deletebtn" onClick={(e: any) => { props.setDialogIsOpen(true); props.setSelectedNoteItem(note as any) }}><FontAwesomeIcon icon={faEdit} /></button>
                         <button className="editstage-deletebtn" onClick={(e: any) => { props.setShowDeleteDialog(true); props.setSelectedNoteId(note?.noteID as any) }}><FontAwesomeIcon icon={faTrash} /></button>
@@ -125,7 +127,7 @@ const NoteDetails = (props: params) => {
                     <div className='noteUserComment pt-4'>
                         <div className='userEditComment noteuser'><FontAwesomeIcon icon={faUser} /> {userObj?.user}</div>
                         <div className='noteUserCommentTextarea'>
-                            <textarea className='form-control pt-4' ref={commentRef as any} value={comment.comment || ""} onChange={(e: any) => { setComment({ ...comment, comment: e.target.value }); setCommentError(""); }} style={{ minHeight: "150px"}} />
+                            <textarea className='form-control pt-4' ref={commentRef} value={comment.comment || ""} onChange={(e: any) => { setComment({ ...comment, comment: e.target.value }); setCommentError(""); }} style={{ minHeight: "150px"}} />
                             {commentError && <div className='text-danger pt-2'>{commentError}</div>}
                         </div>
                         <button 

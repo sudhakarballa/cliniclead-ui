@@ -1,4 +1,4 @@
-import { Title } from "@material-ui/icons";
+import { Title } from "@mui/icons-material";
 import styled from '@xstyled/styled-components';
 import { useEffect, useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";

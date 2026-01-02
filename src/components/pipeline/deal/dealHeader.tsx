@@ -1,4 +1,4 @@
-import SettingsIcon from "@material-ui/icons/Settings";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DealAddEditDialog } from "./dealAddEditDialog";

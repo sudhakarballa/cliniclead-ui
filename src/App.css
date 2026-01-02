@@ -4347,45 +4347,7 @@ select:focus,
   z-index: 999999 !important;
 }
 
-/* Sticky Actions column for DataGrid - only when needed */
-@media (max-width: 1400px) {
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+6)) .MuiDataGrid-columnHeader[data-field="actions"],
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+6)) .MuiDataGrid-cell[data-field="actions"] {
-    position: sticky !important;
-    right: 0 !important;
-    background-color: inherit !important;
-    z-index: 10 !important;
-    border-left: 1px solid rgba(224, 224, 224, 1) !important;
-  }
 
-  /* Ensure even/odd row colors are maintained for sticky Actions column */
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+6)) .MuiDataGrid-row.even .MuiDataGrid-cell[data-field="actions"] {
-    background-color: #f5f5f5 !important;
-  }
-
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+6)) .MuiDataGrid-row.odd .MuiDataGrid-cell[data-field="actions"] {
-    background-color: white !important;
-  }
-}
-
-@media (max-width: 1200px) {
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+4)) .MuiDataGrid-columnHeader[data-field="actions"],
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+4)) .MuiDataGrid-cell[data-field="actions"] {
-    position: sticky !important;
-    right: 0 !important;
-    background-color: inherit !important;
-    z-index: 10 !important;
-    border-left: 1px solid rgba(224, 224, 224, 1) !important;
-  }
-
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+4)) .MuiDataGrid-row.even .MuiDataGrid-cell[data-field="actions"] {
-    background-color: #f5f5f5 !important;
-  }
-
-  .MuiDataGrid-root:has(.MuiDataGrid-columnHeaders .MuiDataGrid-columnHeader:nth-child(n+4)) .MuiDataGrid-row.odd .MuiDataGrid-cell[data-field="actions"] {
-    background-color: white !important;
-  }
-}
 
 /* Force dropdowns in modal dialogs to open upward */
 .modal .rs-picker-menu,

@@ -15,7 +15,7 @@ import { TaskAddEdit } from '../pipeline/deal/activities/tasks/taskAddEdit';
 let isLoadingTemplates = false;
 
 const TasksList = () => {
-    const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+    const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([] as unknown as GridRowSelectionModel);
     const [selectAllChecked, setSelectAllChecked] = useState(false);
     const [rowData, setRowData] = useState<Array<Tasks>>([]);
     const [groupEmailDialogOpen, setGroupEmailDialogOpen] = useState(false); 
@@ -118,10 +118,10 @@ const TasksList = () => {
     // Toggle all rows selection
     const toggleSelectAll = () => {
         if (selectAllChecked) {
-            setSelectedRows([]); // Clear selection if already selected
+            setSelectedRows([] as unknown as GridRowSelectionModel); // Clear selection if already selected
         } else {
             const allRowIds = rowData.map(row => row.taskId); // Use `id` instead of `taskId`
-            setSelectedRows(allRowIds);
+            setSelectedRows(allRowIds as unknown as GridRowSelectionModel);
         }
         setSelectAllChecked(!selectAllChecked); // Toggle checkbox state
     };
@@ -213,7 +213,7 @@ const TasksList = () => {
             <GroupEmailDialog
                 open={groupEmailDialogOpen}
                 onClose={closeGroupEmailDialog}
-                selectedRecipients={selectedRows.map(id => {
+                selectedRecipients={(selectedRows as unknown as any[]).map((id: any) => {
                   const person = rowData.find(row => row.taskId === id); // Ensure the ID is correctly matched
                   return person ? person.email : '';
               })}

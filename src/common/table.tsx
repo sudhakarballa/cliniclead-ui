@@ -1,12 +1,12 @@
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import React, { useEffect, useState } from "react";
 
 import {
   Button,
   Grid
-} from "@material-ui/core";
+} from "@mui/material";
 import { alpha, styled } from "@mui/material/styles";
 import {
   DataGrid,
@@ -80,7 +80,7 @@ export interface TableColumnMetadata {
   sort?: string;
   componentName?: string;
   type?: string;
-  renderCell?: (params: GridCellParams) => JSX.Element;
+  renderCell?: (params: GridCellParams) => React.ReactElement;
 }
 
 export interface TableListProps {
@@ -153,7 +153,7 @@ export interface ViewEditProps {
 const Table: React.FC<TableListProps> = (props) => {
   const [rowData, setRowData] = useState(props.rowData ?? []);
   const [columnMetaData, setColumnMetaRowData] = useState(props.columnMetaData);
-  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([] as unknown as GridRowSelectionModel);
   // State for column options dropdown
   const [columnOptionsAnchorEl, setColumnOptionsAnchorEl] = useState<null | HTMLElement>(null);
   const [columnOptionsOpen, setColumnOptionsOpen] = useState(false);
@@ -511,12 +511,7 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
 
   return (
     <Grid
-      item
-      xs={12}
-      sm={12}
-      md={12}
-      lg={12}
-      xl={12}
+      container
       style={{ padding: "0px", backgroundColor: "#ffffff" }}
     >
       {dialogIsOpen && (

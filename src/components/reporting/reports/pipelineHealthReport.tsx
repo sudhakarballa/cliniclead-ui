@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@material-ui/core';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { RadarChart } from '../charts/radarChart';
 import { ReportingService } from '../../../services/reportingService';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -43,8 +43,8 @@ export const PipelineHealthReport: React.FC = () => {
     <Box>
       <Typography variant="h5" gutterBottom>Pipeline Health</Typography>
       
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+        <div style={{ flex: '2 1 calc(66% - 12px)', minWidth: '400px' }}>
           <Card>
             <CardContent>
               <RadarChart 
@@ -53,9 +53,9 @@ export const PipelineHealthReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12} md={4}>
+        <div style={{ flex: '1 1 calc(33% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Health Metrics</Typography>
@@ -81,27 +81,27 @@ export const PipelineHealthReport: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12}>
+        <div style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Stage Distribution</Typography>
-              <Grid container spacing={2}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                 {data.stageDistribution.map((stage, index) => (
-                  <Grid item xs={12} sm={6} md={2} key={index}>
+                  <div key={index} style={{ flex: '1 1 calc(16.66% - 14px)', minWidth: '150px' }}>
                     <Box textAlign="center" p={2} border={1} borderColor="grey.300" borderRadius={1}>
                       <Typography variant="h5" color="primary">{stage.dealCount}</Typography>
                       <Typography variant="body2">{stage.stageName}</Typography>
                       <Typography variant="caption">{stage.percentage}%</Typography>
                     </Box>
-                  </Grid>
+                  </div>
                 ))}
-              </Grid>
+              </div>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Box>
   );
 };

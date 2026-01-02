@@ -1,8 +1,9 @@
 
 
 import * as React from "react";
-import { Paper, Popper, Typography } from "@material-ui/core";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import { Paper, Popper, Typography } from "@mui/material";
+import { makeStyles, createStyles } from "@mui/styles";
+import { Theme } from "@mui/material/styles";
 import { GridCellParams, GridRowModel } from "@mui/x-data-grid"
 import { Link } from "react-router-dom";
 

@@ -5,7 +5,7 @@ import ErrorFallback from "./errorFallBack";
 import Table from "./table";
 import { Spinner } from "react-bootstrap";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
-import PluseIcon from "@material-ui/icons/Add"; // Add icon
+import PluseIcon from "@mui/icons-material/Add"; // Add icon
 import GroupEmailDialog from "../components/GroupEmailDialog";
 import { EmailTemplateService } from "../services/emailTemplateService"; // Import the EmailTemplateService
 import { EmailTemplate } from "../models/emailTemplate"; // Import EmailTemplate model
@@ -144,7 +144,7 @@ const ItemCollection: React.FC<params> = (props) => {
   const [pageSize, setPagesize] = useState(
     props.pageSize ? props.pageSize : null
   );
-  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([] as unknown as GridRowSelectionModel);
   const [rowData, setRowData] = useState(props.rowData ? props.rowData : null);
   const [isLoading, setIsloading] = useState(
     props.isLoading ? props.isLoading : (props.rowData === null || props.rowData === undefined)
@@ -713,7 +713,7 @@ if (exportFormat === "csv") {
       size="small"
       style={toolbarButtonStyle}
       onClick={(e: any) => setDrawerOpen(true)}
-      disabled={selectedRows.length > 0 && isLoading}
+      disabled={Array.isArray(selectedRows) && (selectedRows as unknown as any[]).length > 0 && isLoading}
     >
       Export
     </Button>
@@ -753,7 +753,7 @@ if (exportFormat === "csv") {
               openGroupEmailDialog();
               setMoreActionsAnchor(null);
             }}
-            disabled={selectedRows.length === 0}
+            disabled={(selectedRows as unknown as any[]).length === 0}
             sx={{
               py: 1,
               px: 2,
@@ -768,8 +768,8 @@ if (exportFormat === "csv") {
               }
             }}
           >
-            <Email fontSize="small" color={selectedRows.length === 0 ? 'disabled' : 'primary'} />
-            <span style={{ fontSize: 14, fontWeight: 500 }}>Send Email ({selectedRows.length})</span>
+            <Email fontSize="small" color={(selectedRows as unknown as any[]).length === 0 ? 'disabled' : 'primary'} />
+            <span style={{ fontSize: 14, fontWeight: 500 }}>Send Email ({(selectedRows as unknown as any[]).length})</span>
           </MenuItem>
         )}
         {canExport && (
@@ -914,7 +914,7 @@ if (exportFormat === "csv") {
             <GroupEmailDialog
               open={groupEmailDialogOpen}
               onClose={() => setGroupEmailDialogOpen(false)}
-              selectedRecipients={selectedRows.map((id) => {
+              selectedRecipients={(selectedRows as unknown as any[]).map((id) => {
                 const item = props.rowData?.find(
                   (row: { personID: number; email: string }) =>
                     row.personID === id
@@ -942,7 +942,7 @@ if (exportFormat === "csv") {
             >
               <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
                 <div
-                  hidden={selectedRows.length > 0}
+                  hidden={(selectedRows as unknown as any[]).length > 0}
                   style={{ marginBottom: "24px" }}
                 >
                   <h4>Columns</h4>
@@ -965,9 +965,10 @@ if (exportFormat === "csv") {
                     </Button>
                   </Grid> */}
 
-                 <Grid item xs={12}>
-  <h4>Export Format</h4>
-  <div style={{ marginBottom: "16px" }}>
+                 <Grid container spacing={2}>
+                  <div>
+                    <h4>Export Format</h4>
+                    <div style={{ marginBottom: "16px" }}>
     <label style={{ marginRight: "16px" }}>
       <input
         type="radio"
@@ -988,17 +989,17 @@ if (exportFormat === "csv") {
       />{" "}
       Excel (XLSX)
     </label>
-  </div>
-
-  <Button
-    variant="contained"
-    fullWidth
-    hidden={selectedRows.length > 0}
-    onClick={(e: any) => handleExportToExcel()}
-  >
-    Export
-  </Button>
-</Grid>
+                    </div>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      hidden={(selectedRows as unknown as any[]).length > 0}
+                      onClick={(e: any) => handleExportToExcel()}
+                    >
+                      Export
+                    </Button>
+                  </div>
+                </Grid>
                 </Grid>
               </div>
             </div>

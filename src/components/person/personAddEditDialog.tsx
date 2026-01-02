@@ -41,16 +41,16 @@ const PersonAddEditDialog: React.FC<ViewEditProps> = (props) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const phoneRegex = /^\+?[0-9\s\-()]{7,20}$/;
     const controlsList: IControl[] = [
-        { key: "Person Name", value: "personName", isRequired: true, isControlInNewLine: true, elementSize: 12 },
-        { key: "First Name", value: "firstName", isRequired: true, isControlInNewLine: true, elementSize: 12 },
-        { key: "Last Name", value: "lastName", isRequired: true, isControlInNewLine: true, elementSize: 12 },
-        { key: "Email Address", value: "email", isRequired: true, isControlInNewLine: true, elementSize: 12, regex1: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, errMsg1: "Please enter a valid email address" },
-        { key: "Phone Number", type: ElementType.textbox,inputMode: "tel",value: "phone", isRequired: true, isControlInNewLine: true, elementSize: 12, regex1: phoneRegex, errMsg1: "Please enter a valid phone number" },
-        { key: "Organization", value: "organizationID", isRequired: true, isControlInNewLine: true, elementSize: 12, type: ElementType.dropdown, options: organizations.map(org => ({ key: org.name, value: org.value })) },
-        { key: "Label", value: "labelID", isRequired: true, isControlInNewLine: true, elementSize: 12, type: ElementType.dropdown, options: labels.map(label => ({ key: label.name, value: label.value })) },
-        { key: "Owner", value: "userID", isRequired: true, isControlInNewLine: true, elementSize: 12, type: ElementType.dropdown, options: owners.map(owner => ({ key: owner.name, value: owner.value })) },
-        { key: "Source", value: "sourceID", isRequired: true, isControlInNewLine: true, elementSize: 12, type: ElementType.dropdown, options: sources.map(source => ({ key: source.name, value: source.value })) },
-        { key: "Visibility Group", value: "visibilityGroupID", isRequired: true, isControlInNewLine: true, elementSize: 12, type: ElementType.dropdown, options: visibilityGroups.map(group => ({ key: group.name, value: group.value })) }
+        { key: "First Name", value: "firstName", isRequired: true, sidebyItem: "Last Name", type: ElementType.textbox },
+        { key: "Last Name", value: "lastName", isRequired: true, isSideByItem: true, type: ElementType.textbox },
+        { key: "Person Name", value: "personName", isRequired: true, sidebyItem: "Email Address", type: ElementType.textbox },
+        { key: "Email Address", value: "email", isRequired: true, isSideByItem: true, type: ElementType.textbox, regex1: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, errMsg1: "Please enter a valid email address" },
+        { key: "Phone Number", type: ElementType.textbox, inputMode: "tel", value: "phone", isRequired: true, sidebyItem: "Organization", regex1: phoneRegex, errMsg1: "Please enter a valid phone number" },
+        { key: "Organization", value: "organizationID", isRequired: true, isSideByItem: true, type: ElementType.dropdown, options: organizations.map(org => ({ key: org.name, value: org.value })) },
+        { key: "Label", value: "labelID", isRequired: true, sidebyItem: "Owner", type: ElementType.dropdown, options: labels.map(label => ({ key: label.name, value: label.value })) },
+        { key: "Owner", value: "userID", isRequired: true, isSideByItem: true, type: ElementType.dropdown, options: owners.map(owner => ({ key: owner.name, value: owner.value })) },
+        { key: "Source", value: "sourceID", isRequired: true, sidebyItem: "Visibility Group", type: ElementType.dropdown, options: sources.map(source => ({ key: source.name, value: source.value })) },
+        { key: "Visibility Group", value: "visibilityGroupID", isRequired: true, isSideByItem: true, type: ElementType.dropdown, options: visibilityGroups.map(group => ({ key: group.name, value: group.value })) }
     ];
 
   const getValidationsSchema = (list: Array<any>) => {
@@ -252,25 +252,30 @@ const PersonAddEditDialog: React.FC<ViewEditProps> = (props) => {
             <AddEditDialog
                 dialogIsOpen={dialogIsOpen}
                 header={`${selectedItem.userId > 0 ? 'Edit' : 'Add'} Person`}
-                dialogSize={"m"}
+                dialogSize={"lg"}
                 onSave={handleSubmit(onSubmit)}
                 closeDialog={oncloseDialog}
                 onClose={oncloseDialog}
                 saveButtonProps={{ disabled: isSubmitting }}
             >
-                <div className="modelformfiledrow row">
-                    <div>
-                        <div className="modelformbox ps-2 pe-2">
-                            <GenerateElements
-                                controlsList={controlsList}
-                                selectedItem={selectedItem}
-                                getListofItemsForDropdown={getListofItemsForDropdown}
-                                onChange={onChange}
-                            />
-                            <br />
+                        <div className='modelformfiledrow row'>
+                            <div>
+                                <div className='modelformbox ps-2 pe-2'
+                                     onKeyDown={(e: React.KeyboardEvent) => {
+                                       if (e.key === 'Enter') {
+                                         e.preventDefault();
+                                       }
+                                     }}>
+                                    <GenerateElements
+                                        controlsList={controlsList}
+                                        selectedItem={selectedItem}
+                                        getListofItemsForDropdown={getListofItemsForDropdown}
+                                        onChange={onChange}
+                                    />
+                                    <br />
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
             </AddEditDialog>
         </FormProvider>
     );

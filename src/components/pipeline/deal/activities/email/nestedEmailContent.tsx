@@ -5,11 +5,11 @@ type params = {
 };
 const NestedEmailContent = (props: params) => {
   const { body, ...others } = props;
-  const divRef = useRef();
+  const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (divRef) {
-      (divRef.current as any).innerHTML = body;
+    if (divRef.current) {
+      divRef.current.innerHTML = body;
     }
   }, [props]);
 
@@ -23,7 +23,7 @@ const NestedEmailContent = (props: params) => {
           color: "#444444",
         }}
       >
-        <div ref={divRef as any}></div>
+        <div ref={divRef}></div>
       </span>
       <br />
     </div>

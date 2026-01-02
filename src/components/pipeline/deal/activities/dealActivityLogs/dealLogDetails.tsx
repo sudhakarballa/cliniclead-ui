@@ -21,7 +21,7 @@ const DealActivityDetails = (props: params) => {
   
   const { userProfile } = useAuthContext();
   const { index, selectedIndex, log, ...others } = props;
-  const divRef = useRef();
+  const divRef = useRef<HTMLDivElement>(null);
   const userObj = userProfile || new UserProfile();
   const utility: Utility = JSON.parse(
     LocalStorageUtil.getItemObject(Constants.UTILITY) as any
@@ -44,8 +44,8 @@ const DealActivityDetails = (props: params) => {
   };
 
   useEffect(() => {
-    if (divRef) {
-      (divRef.current as any).innerHTML = log?.eventDescription;
+    if (divRef.current) {
+      divRef.current.innerHTML = log?.eventDescription;
     }
   }, [props]);
 
@@ -68,7 +68,7 @@ const DealActivityDetails = (props: params) => {
         </Accordion.Header>
         <Accordion.Body>
           <div
-            ref={divRef as any}
+            ref={divRef}
             style={{ maxHeight: "200px", overflow: "auto" }}
           ></div>
         </Accordion.Body>

@@ -1,4 +1,4 @@
-import { Box } from "@material-ui/core";
+import { Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { BarChart } from "./charts/barChart";
 import { GirdElement } from "./gridElement";

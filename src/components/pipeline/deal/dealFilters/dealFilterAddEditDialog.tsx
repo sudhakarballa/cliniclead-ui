@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import React, { useEffect, useState } from "react";
 import Picker from "react-datepicker";
 import { ErrorBoundary } from "react-error-boundary";

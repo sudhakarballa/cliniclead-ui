@@ -33,7 +33,7 @@ export const DatePickerWithValidation = (props: params) => {
                 disabled={disable}
                 minDate={new Date()}
                 {...register(item.value)}
-                onChange={(date) => 
+                onChange={(date: Date | null) => 
                     {
                         
                         onChange(date as any)
@@ -61,7 +61,7 @@ export const DATEPICKER = (props: params) => {
                         disabled={disable}
                         className="form-control"
                         minDate={new Date()}
-                        onChange={(date) => onChange(date as any)}
+                        onChange={(date: Date | null) => onChange(date as any)}
                     /> :
                     <>
                         <DatePickerWithValidation {...props} />

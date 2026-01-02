@@ -19,12 +19,12 @@ type TenantFormData = {
   isActive: boolean;
   connectionString: string;
   tenantKey: string;
-  theamCode?: string;
-  logo?: string;
-  emailCLinetId?: string;
-  port?: string;
-  smtpUsername?: string;
-  smtpPassword?: string;
+  theamCode: string;
+  logo: string;
+  emailCLinetId: string;
+  port: string;
+  smtpUsername: string;
+  smtpPassword: string;
 };
 
 const TenantDialog: React.FC<ViewEditProps> = (props) => {
@@ -136,12 +136,12 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
     name: Yup.string().required("Tenant Name is required"),
     connectionString: Yup.string().required("Connection String is required"),
     tenantKey: Yup.string().required("Tenant Key is required"),
-    theamCode: Yup.string().optional(),
-    logo: Yup.string().optional(),
-    emailCLinetId: Yup.string().optional(),
-    port: Yup.string().optional(),
-    smtpUsername: Yup.string().optional(),
-    smtpPassword: Yup.string().optional(),
+    theamCode: Yup.string().default(''),
+    logo: Yup.string().default(''),
+    emailCLinetId: Yup.string().default(''),
+    port: Yup.string().default(''),
+    smtpUsername: Yup.string().default(''),
+    smtpPassword: Yup.string().default(''),
     isActive: Yup.boolean().default(true)
   });
 
@@ -163,7 +163,10 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
     defaultValues
   };
 
-  const methods = useForm<TenantFormData>(formOptions);
+  const methods = useForm<TenantFormData>({
+    resolver: yupResolver(validationSchema),
+    defaultValues
+  });
   const { handleSubmit, unregister, register, resetField, setValue, setError, watch } = methods;
 
   const oncloseDialog = () => {

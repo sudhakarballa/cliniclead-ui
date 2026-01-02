@@ -10,11 +10,11 @@ import ItemCollection from "../../common/itemCollection";
 import { Person } from "../../models/person";
 import { personService } from "../../services/personService";
 import { Button, TextField, Popover, Box } from "@mui/material"; // Add Popover and Box
-import EditIcon from "@material-ui/icons/Edit";
+import EditIcon from "@mui/icons-material/Edit";
 import { toast } from "react-toastify";
 import PersonAddEditDialog from "../person/personAddEditDialog";
 import React from "react";
-import PluseIcon from "@material-ui/icons/Add"; // Add this for button icon
+import PluseIcon from "@mui/icons-material/Add"; // Add this for button icon
 import GroupEmailDialog from "../GroupEmailDialog";
 import { TemplateGrid } from "../emailCampaign/emailConfiguration/templateGrid";
 import { EmailTemplate, EmailItemProps } from "../../models/emailTemplate";
@@ -26,7 +26,7 @@ import "./personList.css";
 
 const PersonList = () => {
   const MemoizedPersonAddEditDialog = React.memo(PersonAddEditDialog);
-  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([] as unknown as GridRowSelectionModel);
   const [selectAllChecked, setSelectAllChecked] = useState(false);
   const [rowData, setRowData] = useState<Array<Person>>([]);
   const [loadRowData, setLoadRowData] = useState<boolean>(false);
@@ -61,13 +61,7 @@ const PersonList = () => {
       setSelectedRows(newSelection); // Updates the state in PersonList
     }
 
-  // Define the types for props
-  type GroupEmailDialogProps = {
-    open: boolean;
-    onClose: () => void;
-    selectedRecipients: string[]; // Array of email strings
-    selectedTemplate: any; // Add the selectedTemplate prop
-  };
+
   // Fetch templates on mount
   useEffect(() => {
     templateSvc
@@ -84,11 +78,11 @@ const PersonList = () => {
     console.log("Select All Toggled");
     if (selectAllChecked) {
       console.log("Deselecting all rows");
-      setSelectedRows([]);
+      setSelectedRows([] as unknown as GridRowSelectionModel);
     } else {
       const allRowIds = rowData.map((row) => row.personID);
       console.log("Selecting all rows: ", allRowIds);
-      setSelectedRows(allRowIds);
+      setSelectedRows(allRowIds as unknown as GridRowSelectionModel);
     }
     setSelectAllChecked(!selectAllChecked);
   };
@@ -496,7 +490,7 @@ const PersonList = () => {
         setGroupEmailDialogOpen(true);
       } catch (error) {
         console.error("Login failed", error);
-        toast.error("Unable to login into email account, please reach out to administrator")
+        toast.error("Unable to login into email account, please reach out to administrator");
       }
     } else {
       setGroupEmailDialogOpen(true);
@@ -524,13 +518,13 @@ const PersonList = () => {
           <GroupEmailDialog
             open={groupEmailDialogOpen}
             onClose={closeGroupEmailDialog}
-            selectedRecipients={selectedRows.map((id) => {
+            selectedRecipients={(selectedRows as unknown as any[]).map((id: any) => {
               const item = rowData.find((row: { personID: number; email: string }) => row.personID === id);
               return item ? item.email : '';
-            })}
-            selectedTemplate={selectedTemplate} // Correctly typed
-            templates={templates} // Pass the list of templates here
-            onTemplateSelect={handleTemplateSelect} // Pass the handler here
+            }).filter(email => email)}
+            selectedTemplate={selectedTemplate}
+            templates={templates}
+            onTemplateSelect={handleTemplateSelect}
           />
         )}
 

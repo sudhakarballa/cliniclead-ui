@@ -1,6 +1,7 @@
 import { colors } from "@atlaskit/theme";
 import { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
+import { FaPlus, FaPlay } from "react-icons/fa";
 import { DealList } from "./dealList";
 import { PipeLine } from "../../../models/pipeline";
 
@@ -39,8 +40,8 @@ export const DealStage = (props: params) => {
                                 <div className="pdstage-head">
                                     <div className="pdstagehead-title" title={title}>{title}</div>
                                     <div className="pdstagehead-btns">
-                                        <button className='' onClick={(e:any)=>onDealAddClick(stageID)}><i className="rs-icon rs-icon-plus"></i></button>
-                                        <button className={deals?.length==0 ? 'disabled' : ''} disabled={deals?.length==0} onClick={(e:any)=>onStageExpand(stageID)}><i className="rs-icon rs-icon-arrow-right"></i></button>
+                                        <button className='' onClick={(e:any)=>onDealAddClick(stageID)}><FaPlus /></button>
+                                        <button className={deals?.length==0 ? 'disabled' : ''} disabled={deals?.length==0} onClick={(e:any)=>onStageExpand(stageID)}><FaPlay /></button>
                                     </div>
                                 </div>
                                 <div className="pdstage-summary">

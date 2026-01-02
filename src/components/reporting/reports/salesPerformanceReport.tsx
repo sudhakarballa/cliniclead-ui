@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@material-ui/core';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { LineChart } from '../charts/lineChart';
 import { BarChart } from '../charts/barChart';
 import { ReportingService } from '../../../services/reportingService';
@@ -41,8 +41,8 @@ export const SalesPerformanceReport: React.FC = () => {
     <Box>
       <Typography variant="h5" gutterBottom>Sales Performance</Typography>
       
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+        <div style={{ flex: '1 1 calc(50% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <LineChart 
@@ -52,9 +52,9 @@ export const SalesPerformanceReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12} md={6}>
+        <div style={{ flex: '1 1 calc(50% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <LineChart 
@@ -64,34 +64,34 @@ export const SalesPerformanceReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12}>
+        <div style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Performance Summary</Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={3}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ flex: '1 1 calc(25% - 12px)', minWidth: '150px' }}>
                   <Typography variant="h4" color="primary">${totalRevenue.toLocaleString()}</Typography>
                   <Typography variant="body2">Total Revenue</Typography>
-                </Grid>
-                <Grid item xs={3}>
+                </div>
+                <div style={{ flex: '1 1 calc(25% - 12px)', minWidth: '150px' }}>
                   <Typography variant="h4" color="primary">{totalWon}</Typography>
                   <Typography variant="body2">Deals Won</Typography>
-                </Grid>
-                <Grid item xs={3}>
+                </div>
+                <div style={{ flex: '1 1 calc(25% - 12px)', minWidth: '150px' }}>
                   <Typography variant="h4" color="secondary">{totalLost}</Typography>
                   <Typography variant="body2">Deals Lost</Typography>
-                </Grid>
-                <Grid item xs={3}>
+                </div>
+                <div style={{ flex: '1 1 calc(25% - 12px)', minWidth: '150px' }}>
                   <Typography variant="h4" color="primary">{avgConversion}%</Typography>
                   <Typography variant="body2">Avg Conversion</Typography>
-                </Grid>
-              </Grid>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Box>
   );
 };

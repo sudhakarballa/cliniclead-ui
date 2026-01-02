@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@material-ui/core';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { AreaChart } from '../charts/areaChart';
 import { ReportingService } from '../../../services/reportingService';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -37,8 +37,8 @@ export const DealConversionReport: React.FC = () => {
     <Box>
       <Typography variant="h5" gutterBottom>Deal Conversion Funnel</Typography>
       
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+        <div style={{ flex: '2 1 calc(66% - 12px)', minWidth: '400px' }}>
           <Card>
             <CardContent>
               <AreaChart 
@@ -48,9 +48,9 @@ export const DealConversionReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12} md={4}>
+        <div style={{ flex: '1 1 calc(33% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Summary</Typography>
@@ -78,8 +78,8 @@ export const DealConversionReport: React.FC = () => {
               </CardContent>
             </Card>
           </Box>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Box>
   );
 };

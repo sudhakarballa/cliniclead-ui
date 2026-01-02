@@ -1,47 +1,43 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableRow, withStyles } from '@material-ui/core';
+import { Table, TableBody, TableCell, TableHead, TableRow, styled } from '@mui/material';
 
-const StyledTableCell = withStyles((theme) => ({
-  head: {
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  '&.MuiTableCell-head': {
     backgroundColor: '#3f51b5',
     color: theme.palette.common.white,
     fontWeight: 'bold',
     fontSize: 14,
     padding: '16px',
   },
-  body: {
+  '&.MuiTableCell-body': {
     fontSize: 13,
     padding: '12px 16px',
     borderBottom: '1px solid #e0e0e0',
   },
-}))(TableCell);
+}));
 
-const StyledTableRow = withStyles((theme) => ({
-  root: {
-    '&:nth-of-type(odd)': {
-      backgroundColor: '#f8f9fa',
-    },
-    '&:nth-of-type(even)': {
-      backgroundColor: '#ffffff',
-    },
-    '&:hover': {
-      backgroundColor: '#e3f2fd !important',
-      cursor: 'pointer',
-    },
-    transition: 'background-color 0.2s ease',
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: '#f8f9fa',
   },
-}))(TableRow);
+  '&:nth-of-type(even)': {
+    backgroundColor: '#ffffff',
+  },
+  '&:hover': {
+    backgroundColor: '#e3f2fd !important',
+    cursor: 'pointer',
+  },
+  transition: 'background-color 0.2s ease',
+}));
 
-const StyledTable = withStyles({
-  root: {
+const StyledTable = styled(Table)({
+  borderRadius: '8px',
+  overflow: 'hidden',
+  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  '& .MuiTableContainer-root': {
     borderRadius: '8px',
-    overflow: 'hidden',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    '& .MuiTableContainer-root': {
-      borderRadius: '8px',
-    }
-  },
-})(Table);
+  }
+});
 
 interface StyledTableProps {
   headers: string[];

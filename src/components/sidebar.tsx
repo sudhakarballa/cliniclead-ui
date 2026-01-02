@@ -15,7 +15,7 @@ import { RxActivityLog } from "react-icons/rx";
 import { Menu, MenuItem, Sidebar, SubMenu } from "react-pro-sidebar";
 import { Link } from "react-router-dom";
 import { Header } from "rsuite";
-import "rsuite/dist/styles/rsuite-default.css";
+import "rsuite/dist/rsuite.min.css";
 import logo from "../../src/resources/images/Clinic-Lead-White.png";
 import logoicon from "../../src/resources/images/Clinic-Lead-White-Icon.png";
 import Util from "../others/util";
@@ -27,7 +27,7 @@ import { useAuthContext } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 // Icon wrapper functions to ensure proper typing
-const IconWrapper = ({ Icon, ...props }: { Icon: any; [key: string]: any }): JSX.Element => {
+const IconWrapper = ({ Icon, ...props }: { Icon: any; [key: string]: any }): React.ReactElement => {
   return <Icon {...props} />;
 };
 
@@ -35,7 +35,8 @@ interface MenuItemConfig {
   key: string;
   title: string;
   path: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
+  iconComponent: any;
   permission: string;
   displayName?: string;
 }
@@ -43,7 +44,7 @@ interface MenuItemConfig {
 interface SubMenuConfig {
   key: string;
   title: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   permission: string;
   items: MenuItemConfig[];
 }
@@ -90,22 +91,25 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     const path = fullPath.replace(/^\/plmsui/, '') || '/';
     console.log('Cleaned path:', path);
     
-    // Force clear Stages selection if not on stages page
-    if (selectedNavItem === 'Stages' && !path.startsWith('/stages')) {
+    // Clear selection for root path
+    if (path === '/' || path === '') {
       setSelectedNavItem('');
+      setExpandedSubMenu(null);
+      return;
     }
     
     // Check for deal-related paths first
     if (path.includes('deal') || path.startsWith('/deal')) {
       console.log('Setting pipeline as selected');
       setSelectedNavItem('pipeline');
+      setExpandedSubMenu(null);
       return;
     }
     
     // Sort routes by length (longest first) to match most specific routes first
     const sortedRoutes = Object.entries(pathToNavMap).sort(([a], [b]) => b.length - a.length);
     
-    const navItem = sortedRoutes.find(([route]) => {
+    const matchedRoute = sortedRoutes.find(([route]) => {
       // Exact match
       if (path === route) return true;
       // Match with trailing slash
@@ -113,16 +117,20 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       // Match with route parameters (e.g., /source/123)
       if (path.startsWith(route + '/') && route !== '/') return true;
       return false;
-    })?.[1] || '';
+    });
+    
+    const navItem = matchedRoute?.[1] || '';
     
     console.log('Selected nav item:', navItem);
-    // Force update even if it's the same value to ensure proper state reset
+    
+    // Always update the selected nav item
     setSelectedNavItem(navItem);
+    
     // Reset expanded submenu when navigating to non-submenu items
     if (navItem && !adminSubMenu.includes(navItem) && !campaignSubMenu.includes(navItem)) {
       setExpandedSubMenu(null);
     }
-  }, [location.pathname, selectedNavItem]);
+  }, [location.pathname]);
 
   useEffect(() => {
     const updateSubMenuIcon = (selector: string, isActive: boolean) => {
@@ -240,14 +248,16 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "Stages",
       title: "Add Pipeline",
       path: "/Stages",
-      icon: <IconWrapper Icon={HiOutlineFunnel} key={selectedNavItem} color={selectedNavItem === "Stages" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={HiOutlineFunnel} color={selectedNavItem === "Stages" ? activeNavColor : "black"} />,
+      iconComponent: HiOutlineFunnel,
       permission: "Stages"
     },
     {
       key: "pipeline",
       title: "Sales Stage",
       path: "/pipeline",
-      icon: <IconWrapper Icon={GiStairsGoal} key={selectedNavItem} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "black"}} />,
+      icon: <IconWrapper Icon={GiStairsGoal} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "black"}} />,
+      iconComponent: GiStairsGoal,
       permission: "pipeline"
     },
     {
@@ -255,6 +265,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Activities",
       path: "/Activities",
       icon: <IconWrapper Icon={RxActivityLog} color={selectedNavItem === "Activities" ? activeNavColor : "black"} />,
+      iconComponent: RxActivityLog,
       permission: "Activities"
     },
     {
@@ -262,6 +273,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Persons",
       path: "/Person",
       icon: <IconWrapper Icon={RiContactsBookFill} color={selectedNavItem === "Person" ? activeNavColor : "black"} />,
+      iconComponent: RiContactsBookFill,
       permission: "Person"
     },
     {
@@ -270,6 +282,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       displayName: "Manage User",
       path: "/users",
       icon: <IconWrapper Icon={IoSettings} color={selectedNavItem === "Settings" ? activeNavColor : "black"} />,
+      iconComponent: IoSettings,
       permission: "users"
     },
     {
@@ -277,6 +290,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Reporting",
       path: "/Reporting",
       icon: <IconWrapper Icon={RiDashboard2Fill} color={selectedNavItem === "Reporting" ? activeNavColor : "black"} />,
+      iconComponent: RiDashboard2Fill,
       permission: "Reporting"
     }
   ];
@@ -293,6 +307,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title: "Template",
           path: "/Template",
           icon: <IconWrapper Icon={HiTemplate} color={selectedNavItem === "Template" ? activeNavColor : "black"} />,
+          iconComponent: HiTemplate,
           permission: "Template"
         }
       ]
@@ -308,6 +323,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title: "Clinic",
           path: "/Clinic",
           icon: <IconWrapper Icon={FaClinicMedical} color={selectedNavItem === "Clinic" ? activeNavColor : "black"} />,
+          iconComponent: FaClinicMedical,
           permission: "Clinic"
         },
         {
@@ -315,6 +331,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title: "Source",
           path: "/Source",
           icon: <IconWrapper Icon={BiGitBranch} color={selectedNavItem === "Source" ? activeNavColor : "black"} />,
+          iconComponent: BiGitBranch,
           permission: "Source"
         },
         {
@@ -322,6 +339,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title: "Treatment",
           path: "/Treatment",
           icon: <IconWrapper Icon={FaNotesMedical} color={selectedNavItem === "Treatment" ? activeNavColor : "black"} />,
+          iconComponent: FaNotesMedical,
           permission: "Treatment"
         },
         {
@@ -329,6 +347,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title: "Pipeline Type",
           path: "/PipeLineType",
           icon: <IconWrapper Icon={FaProjectDiagram} color={selectedNavItem === "PipeLineType" ? activeNavColor : "black"} />,
+          iconComponent: FaProjectDiagram,
           permission: "PipeLineType"
         }
       ]
@@ -361,9 +380,9 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       <Menu style={{ paddingTop: "58px" }}>
         {getMainMenuItems().map(item => (
           <MenuItem 
-            key={item.key}
+            key={`${item.key}-${selectedNavItem}`}
             hidden={!Util.isAuthorized(item.permission)} 
-            icon={item.icon}
+            icon={<IconWrapper Icon={item.iconComponent} color={selectedNavItem === item.key ? activeNavColor : "black"} />}
             title={item.title} 
             component={<Link to={item.path} />}
             onClick={() => setSelectedNavItem(item.key)}
@@ -375,10 +394,6 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
               },
               ['.' + 'ps-menu-label']: {
                 color: 'inherit !important'
-              },
-              ['.' + 'ps-menu-icon svg']: {
-                color: selectedNavItem === item.key ? `${activeNavColor} !important` : 'black !important',
-                fill: selectedNavItem === item.key ? `${activeNavColor} !important` : 'black !important'
               }
             }}
           >
@@ -481,7 +496,9 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       {/* Portal-based collapsed submenu flyout */}
       {collapsed && collapsedSubmenu && createPortal(
         <div
-          ref={el => submenuRefs.current[collapsedSubmenu.key] = el}
+          ref={(el) => {
+            submenuRefs.current[collapsedSubmenu.key] = el;
+          }}
           style={{
             position: 'fixed',
             left: '64px',

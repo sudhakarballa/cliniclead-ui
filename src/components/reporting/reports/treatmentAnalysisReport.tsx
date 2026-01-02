@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@material-ui/core';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { EnhancedTable } from '../styledTable';
 import { DoughnutChart } from '../charts/doughnutChart';
 import { ReportingService } from '../../../services/reportingService';
@@ -42,8 +42,8 @@ export const TreatmentAnalysisReport: React.FC = () => {
     <Box>
       <Typography variant="h5" gutterBottom>Treatment Analysis</Typography>
       
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+        <div style={{ flex: '1 1 calc(50% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <DoughnutChart 
@@ -52,9 +52,9 @@ export const TreatmentAnalysisReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12} md={6}>
+        <div style={{ flex: '1 1 calc(50% - 12px)', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Summary</Typography>
@@ -63,9 +63,9 @@ export const TreatmentAnalysisReport: React.FC = () => {
               <Typography>Avg Deal Value: ${(totalValue / totalDeals).toFixed(0)}</Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </div>
         
-        <Grid item xs={12}>
+        <div style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Treatment Performance</Typography>
@@ -83,8 +83,8 @@ export const TreatmentAnalysisReport: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Box>
   );
 };

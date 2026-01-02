@@ -29,22 +29,22 @@ const TaskDetails = (props: params) => {
     const { userProfile } = useAuthContext();
     const { index, selectedIndex, ...others } = props;
     const [task, setTask] = useState<any>(props.task);
-    const divRef = useRef();
+    const divRef = useRef<HTMLDivElement>(null);
     const userObj = userProfile || new UserProfile();
     const [showcomments, setShowComments] = useState(false);
     const commentSvc = new CommentsService(ErrorBoundary);
     const taskSvc = new TaskService(ErrorBoundary);
     const [comment, setComment] = useState(new Comment());
     const [defaultComment, setDefaultComment]=useState(null);
-    const commentRef = useRef();
+    const commentRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(()=>{
         setTask(props.task as any);
     },[props])
 
     useEffect(() => {
-        if (divRef) {
-            (divRef.current as any).innerHTML = task?.taskDetails;
+        if (divRef.current) {
+            divRef.current.innerHTML = task?.taskDetails;
         }
     }, [props])
 
@@ -65,7 +65,9 @@ const TaskDetails = (props: params) => {
             if (res) {
                 toast.success("Comment added successfully");
                 setDefaultComment(null);
-                (commentRef.current as any).value=null;
+                if (commentRef.current) {
+                    commentRef.current.value = "";
+                }
                 gettask();
             }
         }).catch(err => {
@@ -84,7 +86,7 @@ const TaskDetails = (props: params) => {
                 <span className='accoheader-date'>{moment(task.createdDate).format("MM-DD-YYYY hh:mm:ss a")}</span>
             </Accordion.Header>
             <Accordion.Body>
-                <div ref={divRef as any} style={{ maxHeight: "200px", overflow: 'auto' }}></div>
+                <div ref={divRef} style={{ maxHeight: "200px", overflow: 'auto' }}></div>
                 <div className="editstage-delete">
                     <button className="editstage-deletebtn" onClick={(e: any) => { props.setDialogIsOpen(true); props.setSelectedTaskItem(task as any) }}><FontAwesomeIcon icon={faEdit} /></button>
                     <button className="editstage-deletebtn" onClick={(e: any) => { props.setShowDeleteDialog(true); props.setSelectedTaskItem(task as any) ; props.setSelectedTaskId(task.taskId as any) }}><FontAwesomeIcon icon={faTrash} /></button>
@@ -99,7 +101,7 @@ const TaskDetails = (props: params) => {
                             loadComments={(e:any)=>gettask()} />
                         ))}
                     <FontAwesomeIcon icon={faUser} /> {userObj?.user}
-                    <textarea className='form-control pt-4' ref={commentRef as any} defaultValue={defaultComment as any} onChange={(e: any) => setComment({ ...comment, comment: e.target.value })} style={{ minHeight: "150px", maxWidth: "600px" }} />
+                    <textarea className='form-control pt-4' ref={commentRef} defaultValue={defaultComment as any} onChange={(e: any) => setComment({ ...comment, comment: e.target.value })} style={{ minHeight: "150px", maxWidth: "600px" }} />
                     <br />
                     <button type="button" className="btn btn-secondary" onClick={(e: any) => saveComment()}>Save</button>
                 </div>

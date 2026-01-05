@@ -37,8 +37,15 @@ const UsersAddEditDialog: React.FC<any> = (props) => {
   const userSvc = new UserService(ErrorBoundary);
   const [organizations, setOrganizations] = useState<Array<any>>([]);
   const { userProfile } = useAuthContext();
-  const isMasterAdmin = localStorage.getItem('IS_MASTER_ADMIN') === 'true';
+
+  debugger
+  const isMasterAdmin = Util.isMasterAdmin();
   const userTenantId = (userProfile as any)?.tenant?.[0]?.id || null;
+  
+  // Debug logging
+  console.log('UserAddEditDialog - isMasterAdmin:', isMasterAdmin);
+  console.log('UserAddEditDialog - tenants received:', tenants);
+  console.log('UserAddEditDialog - roles received:', roles);
   
 
 const numberRequired = (msg: string) =>
@@ -106,8 +113,12 @@ type UserFormValues = InferType<typeof validationSchema>;
       elementSize: 12,
       isRequired: true,
       isSideByItem: true,
-    },
-    ...(isMasterAdmin ? [{
+    }
+  ];
+
+  // Add tenant field for master admin
+  if (isMasterAdmin) {
+    controlsList.push({
       key: "Tenant",
       value: "tenantId",
       elementSize: 12,
@@ -115,17 +126,19 @@ type UserFormValues = InferType<typeof validationSchema>;
       options: tenants,
       isRequired: true,
       sidebyItem: "Active",
-    }] : []),
-    {
-      key: "Active",
-      value: "isActive",
-      elementSize: 12,
-      type: ElementType.checkbox,
-      defaultValue: true,
-      isSideByItem: isMasterAdmin,
-      isControlInNewLine: !isMasterAdmin,
-    }
-  ];
+    });
+  }
+
+  // Add Active field
+  controlsList.push({
+    key: "Active",
+    value: "isActive",
+    elementSize: 12,
+    type: ElementType.checkbox,
+    defaultValue: true,
+    isSideByItem: isMasterAdmin,
+    isControlInNewLine: !isMasterAdmin,
+  });
 
   const getValidationsSchema = (list: Array<any>) => {
     return Yup.object().shape({

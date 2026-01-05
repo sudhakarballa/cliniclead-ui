@@ -57,7 +57,7 @@ function AppContent() {
         LocalStorageUtil.setItem(Constants.ACCESS_TOKEN, loginData.token);
         LocalStorageUtil.setItem(Constants.User_Name, loginData.user);
         LocalStorageUtil.setItem(Constants.TOKEN_EXPIRATION_TIME, convertTZ(loginData.expires));
-        LocalStorageUtil.setItem('IS_MASTER_ADMIN', loginData.isMasterAdmin.toString());
+        Util.setUserRole(loginData.role || (loginData.isMasterAdmin ? 0 : 1));
         console.log('✅ LocalStorage populated');
         
         // Set AuthContext

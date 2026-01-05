@@ -27,7 +27,7 @@ const UsersList = () => {
   const [isResendClicked, setIsResendClicked] = useState(false);
   const [tenants, setTenants] = useState<Array<any>>([]);
   const [roles, setRoles] = useState<Array<any>>([]);
-  const isMasterAdmin = localStorage.getItem('IS_MASTER_ADMIN') === 'true';
+  const isMasterAdmin = Util.isMasterAdmin();
 
   const columnMetaData = [
     { columnName: "firstName", columnHeaderName: "FirstName", width: 150 },
@@ -53,9 +53,13 @@ const UsersList = () => {
     if (isMasterAdmin) {
       Promise.all([
         userSvc.getOrganizations().catch(() => []),
-        tenantSvc.getItems().catch(() => [])
+        tenantSvc.getItems().catch((err) => {
+          console.error('Error fetching tenants:', err);
+          return [];
+        })
       ])
         .then((res) => {
+          console.log('Fetched tenants for master admin:', res[1]); // Debug log
           setRoles(hardcodedRoles);
           LocalStorageUtil.setItemObject("userRoles", JSON.stringify(hardcodedRoles));
           LocalStorageUtil.setItemObject("organizations", JSON.stringify(res[0] || []));

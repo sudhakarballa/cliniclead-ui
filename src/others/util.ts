@@ -50,6 +50,11 @@ export default class Util {
     
     return role;
   }
+
+  public static isMasterAdmin(): boolean {
+    const role = this.getUserRole();
+    return role === 0; // Role 0 = Master Admin
+  }
   
   private static clearSession(): void {
     alert('Session expired due to security violation. Please login again.');

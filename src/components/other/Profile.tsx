@@ -18,7 +18,8 @@ export const Profile = () => {
         
         if (config?.EnableSubdomainRedirect) {
             // Redirect to main application login page
-            const redirectUrl = config.RedirectUri + (config.HomePage || '') + '/login';
+            const homePage = config.HomePage || '';
+            const redirectUrl = config.RedirectUri + (homePage === '/' ? '' : homePage) + '/login';
             window.location.href = redirectUrl;
         } else {
             // Local development or already on main domain

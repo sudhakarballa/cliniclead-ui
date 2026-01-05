@@ -208,7 +208,6 @@ const TemplatesAddEditDialog: React.FC<ViewEditProps> = (props) => {
           <AddEditDialog
             dialogIsOpen={dialogIsOpen}
             dialogSize={"xl"}
-            isFullscreen={true} 
             header={selectedItem && selectedItem.id > 0 ? 'Edit Template' : 'Add Template'}
             onSave={handleSubmit(onSubmit)}
             closeDialog={oncloseDialog}
@@ -220,7 +219,7 @@ const TemplatesAddEditDialog: React.FC<ViewEditProps> = (props) => {
                   <Spinner />
                 </div>
               ) : (
-                <div className="row d-flex" hidden={isLoading}>
+                <div className="row d-flex" hidden={isLoading} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
                   <div className="col-6 addemailconf1-col6">
                     {
                       <>

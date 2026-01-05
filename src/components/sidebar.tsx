@@ -123,7 +123,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     
     console.log('Selected nav item:', navItem);
     
-    // Always update the selected nav item
+    // Always update the selected nav item and clear any previous selection
     setSelectedNavItem(navItem);
     
     // Reset expanded submenu when navigating to non-submenu items
@@ -476,6 +476,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
         })}
 
         <MenuItem 
+          key={`tenant-${selectedNavItem}`}
           hidden={userRole !== 0} 
           title="Tenants" 
           component={<Link to="/Tenant" />} 

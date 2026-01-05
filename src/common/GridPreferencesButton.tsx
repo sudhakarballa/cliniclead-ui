@@ -3,6 +3,7 @@ import { Button, ButtonGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { GridPreferences, useGridPreferences } from '../hooks/useGridPreferences';
+import Util from '../others/util';
 
 interface GridPreferencesButtonProps {
   gridName: string;
@@ -22,7 +23,7 @@ const GridPreferencesButton: React.FC<GridPreferencesButtonProps> = ({
   const { preferences, savePreferences, resetPreferences, isLoading } = useGridPreferences(gridName);
   const [hasError, setHasError] = React.useState(false);
   
-  const isMasterAdmin = localStorage.getItem('IS_MASTER_ADMIN') === 'true';
+  const isMasterAdmin = Util.isMasterAdmin();
 
   if (isMasterAdmin) {
     return null;

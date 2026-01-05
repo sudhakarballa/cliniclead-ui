@@ -5,7 +5,6 @@ import SecureStorageUtil from './secureStorageUtil';
      // List of sensitive keys that should be encrypted
      private static readonly SENSITIVE_KEYS = [
          'ACCESS_TOKEN',
-         'IS_MASTER_ADMIN',
          'USER_LOGGED_IN',
          'USER_PERMISSIONS',
          'SESSION_DATA'

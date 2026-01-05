@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { GridPreferences, useGridPreferences } from '../hooks/useGridPreferences';
 import { DeleteDialog } from './deleteDialog';
+import Util from '../others/util';
 
 interface SimpleGridPreferencesButtonProps {
   gridName?: string;
@@ -27,7 +28,7 @@ const SimpleGridPreferencesButton: React.FC<SimpleGridPreferencesButtonProps> = 
   const { savePreferences, resetPreferences, updatePreferences, isLoading } = useGridPreferences(gridName);
   const [showResetDialog, setShowResetDialog] = useState(false);
   
-  const isMasterAdmin = localStorage.getItem('IS_MASTER_ADMIN') === 'true';
+  const isMasterAdmin = Util.isMasterAdmin();
 
   if (isMasterAdmin) {
     return null;

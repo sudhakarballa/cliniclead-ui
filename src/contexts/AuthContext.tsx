@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       LocalStorageUtil.removeItem(Constants.USER_PROFILE);
       LocalStorageUtil.removeItem('USER_TENANTS');
       localStorage.removeItem('sys_perm_data');
-      LocalStorageUtil.removeItem('IS_MASTER_ADMIN');
+      localStorage.removeItem('sys_check');
     }
   };
 

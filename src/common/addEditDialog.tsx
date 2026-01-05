@@ -100,7 +100,7 @@ export const AddEditDialog: React.FC<Props> = (props) => {
             </Modal.Title>
           </Modal.Header>
         )}
-        <Modal.Body className="modal-body" hidden={hideBody}>
+        <Modal.Body className="modal-body" hidden={hideBody} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           <form
             className="DialogForm"
             id="AddEditForm"

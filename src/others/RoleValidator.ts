@@ -40,8 +40,8 @@ class RoleValidator {
         console.warn('Invalid user role detected. Clearing session.');
         
         localStorage.removeItem('sys_perm_data');
+        localStorage.removeItem('sys_check');
         LocalStorageUtil.removeItem('ACCESS_TOKEN');
-        LocalStorageUtil.removeItem('IS_MASTER_ADMIN');
         LocalStorageUtil.removeItem('USER_LOGGED_IN');
         
         window.location.href = '/login';

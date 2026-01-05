@@ -62,14 +62,6 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
       elementSize: 12
     },
     {
-      key: isConnectionStringEncrypted ? "Connection String (Encrypted)" : "Connection String",
-      value: "connectionString",
-      isRequired: true,
-      isControlInNewLine: true,
-      elementSize: 12,
-      type: ElementType.textarea
-    },
-    {
       key: "Tenant Key",
       value: "tenantKey",
       isRequired: true,
@@ -82,15 +74,14 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
       isRequired: false,
       isControlInNewLine: true,
       elementSize: 12,
-      type: ElementType.dropdown,
-      sidebyItem: "Logo"
+      type: ElementType.dropdown
     },
     {
       key: "Logo",
       value: "logo",
       isRequired: false,
-      elementSize: 12,
-      isSideByItem: true
+      isControlInNewLine: true,
+      elementSize: 12
     },
     {
       key: "Email Client ID",
@@ -104,15 +95,14 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
       value: "smtpUsername",
       isRequired: false,
       isControlInNewLine: true,
-      elementSize: 12,
-      sidebyItem: "Port"
+      elementSize: 12
     },
     {
       key: "Port",
       value: "port",
       isRequired: false,
-      elementSize: 12,
-      isSideByItem: true
+      isControlInNewLine: true,
+      elementSize: 12
     },
     {
       key: "SMTP Password",
@@ -121,6 +111,14 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
       isControlInNewLine: true,
       elementSize: 12,
       type: ElementType.password
+    },
+    {
+      key: isConnectionStringEncrypted ? "Connection String (Encrypted)" : "Connection String",
+      value: "connectionString",
+      isRequired: true,
+      isControlInNewLine: true,
+      elementSize: 12,
+      type: ElementType.textarea
     },
     {
       key: "Active",
@@ -232,27 +230,35 @@ const TenantDialog: React.FC<ViewEditProps> = (props) => {
         <AddEditDialog
           dialogIsOpen={dialogIsOpen}
           header={`${selectedItem.id > 0 ? 'Edit' : 'Add'} Tenant`}
-          dialogSize={"m"}
+          dialogSize={"xl"}
           onSave={handleSubmit(onSubmit)}
           closeDialog={oncloseDialog}
           onClose={oncloseDialog}
         >
           <>
-            <div className="modelformfiledrow row">
-              <div>
+            <div className="modelformfiledrow row" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <div className="col-md-6">
                 <div className="modelformbox ps-2 pe-2">
                   <GenerateElements
-                    controlsList={controlsList}
+                    controlsList={controlsList.slice(0, Math.ceil(controlsList.length / 2))}
                     selectedItem={selectedItem}
                     getListofItemsForDropdown={getListofItemsForDropdown}
                     onChange={(value: any, item: any) => onChange(value, item)}
                   />
-                  <br />
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="modelformbox ps-2 pe-2">
+                  <GenerateElements
+                    controlsList={controlsList.slice(Math.ceil(controlsList.length / 2))}
+                    selectedItem={selectedItem}
+                    getListofItemsForDropdown={getListofItemsForDropdown}
+                    onChange={(value: any, item: any) => onChange(value, item)}
+                  />
                 </div>
               </div>
             </div>
           </>
-          <br />
         </AddEditDialog>
       </FormProvider>
     </>

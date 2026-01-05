@@ -1,7 +1,6 @@
 import { padding } from "@xstyled/styled-components";
 import React, { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 type params = {
@@ -29,15 +28,14 @@ const RitechTextEditorWithValidation = (props: params) => {
 
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<ReactQuill>(null); // Reference for Quill editor
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null); // Store cursor position
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const menuWrapperRef = useRef<HTMLDivElement>(null);
   const {
     register,
     formState: { errors },
   } = useFormContext();
 
-  // Close dropdown if clicking outside
   useEffect(() => {
   function handleClickOutside(e: MouseEvent) {
     if (menuWrapperRef.current && !menuWrapperRef.current.contains(e.target as Node)) {
@@ -50,59 +48,42 @@ const RitechTextEditorWithValidation = (props: params) => {
   }
 }, [showDropdown]);
 
-  // Store cursor position before opening dropdown
   const handleAtClick = () => {
-    const quill = quillRef.current?.getEditor();
-    if (quill) {
-      const range = quill.getSelection();
-      if (range) {
-        setCursorPosition(range.index); // Save cursor position
-      }
+    if (textareaRef.current) {
+      setCursorPosition(textareaRef.current.selectionStart);
     }
   };
-  // Function to insert text at stored cursor position
+
   const insertTextAtCursor = (text: string) => {
-    const quill = quillRef.current?.getEditor();
-    if (quill && cursorPosition !== null) {
-      const currentContent = quill.getText(); // Get current content
-      const updatedContent =
-        currentContent.slice(0, cursorPosition) +
-        text +
-        " " +
-        currentContent.slice(cursorPosition);
-
-      quill.clipboard.dangerouslyPasteHTML(cursorPosition, text);
-      quill.setSelection((cursorPosition + text?.length + 1) as any); // Move cursor after inserted text
-      setCursorPosition(null); // Reset stored position
+    if (textareaRef.current && cursorPosition !== null) {
+      const currentValue = textareaRef.current.value;
+      const newValue = currentValue.slice(0, cursorPosition) + text + " " + currentValue.slice(cursorPosition);
+      onChange(newValue);
+      setCursorPosition(null);
     }
-    setShowDropdown(false); // Close dropdown
+    setShowDropdown(false);
   };
-  
-  const modules = {
-    toolbar: [
-      [{ 'font': [] }],
-      [{ 'size': [] }],
-      [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }], // Allow background colors
-      [{ 'bold': true }, { 'italic': true }, { 'underline': true }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      ['link'],
-      ['image'],
-      [{ 'indent': '-1' }, { 'indent': '+1' }]
-    ]
-  };
-
 
   return (
     <>
       <br hidden={hideSpace} />
       <div style={{ position: 'relative' }}>
-        <ReactQuill
-          ref={quillRef}
-          modules={modules}
-          onFocus={(e: any) => handleAtClick()}
-          onChange={(e: any) => props.onChange(e)}
-          value={value}
+        <textarea
+          ref={textareaRef}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={handleAtClick}
+          style={{
+            width: '100%',
+            minHeight: '120px',
+            padding: '12px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontFamily: 'inherit',
+            fontSize: '14px',
+            resize: 'vertical'
+          }}
+          placeholder="Enter note details..."
         />
       </div>
 
@@ -119,7 +100,6 @@ const RitechTextEditorWithValidation = (props: params) => {
       <b>Select From Template</b>  @
       </div>
 
-      {/* Dropdown - Show when @ is clicked */}
       {showDropdown && (
         <div className="selectformtemplate"
           ref={dropdownRef}
@@ -131,7 +111,6 @@ const RitechTextEditorWithValidation = (props: params) => {
             width: "200px",
             zIndex: 10,
             boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-            
           }}
         >
           <option disabled style={{padding: "8px", cursor: "pointer", borderBottom: "1px solid #eee", color: "#000000"}}>Select From Template</option>
@@ -144,7 +123,7 @@ const RitechTextEditorWithValidation = (props: params) => {
                 borderBottom: "1px solid #eee",
               }}
               onClick={(e) => {
-                insertTextAtCursor(option.value); // Append selected option to editor
+                insertTextAtCursor(option.value);
               }}
             >
               {option.name}
@@ -181,10 +160,10 @@ const RichTextEditor = (props: params) => {
   } = props;
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<ReactQuill>(null); // Reference for Quill editor
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null); // Store cursor position
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const menuWrapperRef = useRef<HTMLDivElement>(null);
-  // Close dropdown if clicking outside
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -195,44 +174,29 @@ const RichTextEditor = (props: params) => {
       }
     }
 
-    // Add event listener when dropdown is open
     if (showDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      // Remove event listener when component unmounts or dropdown closes
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showDropdown]);
 
-  // Store cursor position before opening dropdown
   const handleAtClick = () => {
-    const quill = quillRef.current?.getEditor();
-    if (quill) {
-      const range = quill.getSelection();
-      if (range) {
-        setCursorPosition(range.index); // Save cursor position
-      }
+    if (textareaRef.current) {
+      setCursorPosition(textareaRef.current.selectionStart);
     }
   };
 
-  // Function to insert text at stored cursor position
   const insertTextAtCursor = (text: string) => {
-    const quill = quillRef.current?.getEditor();
-    if (quill && cursorPosition !== null) {
-      const currentContent = quill.getText(); // Get current content
-      const updatedContent =
-        currentContent.slice(0, cursorPosition) +
-        text +
-        " " +
-        currentContent.slice(cursorPosition);
-
-      quill.clipboard.dangerouslyPasteHTML(cursorPosition, text);
-      quill.setSelection((cursorPosition + text?.length + 1) as any); // Move cursor after inserted text
-      setCursorPosition(null); // Reset stored position
+    if (textareaRef.current && cursorPosition !== null) {
+      const currentValue = textareaRef.current.value;
+      const newValue = currentValue.slice(0, cursorPosition) + text + " " + currentValue.slice(cursorPosition);
+      onChange(newValue);
+      setCursorPosition(null);
     }
-    setShowDropdown(false); // Close dropdown
+    setShowDropdown(false);
   };
 
   return (
@@ -241,11 +205,22 @@ const RichTextEditor = (props: params) => {
         <>
           <br hidden={hideSpace} />
           <div style={{ position: 'relative' }}>
-            <ReactQuill
-              ref={quillRef}
-              onFocus={(e: any) => handleAtClick()}
-              onChange={(e: any) => props.onChange(e)}
-              value={value}
+            <textarea
+              ref={textareaRef}
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+              onFocus={handleAtClick}
+              style={{
+                width: '100%',
+                minHeight: '120px',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontFamily: 'inherit',
+                fontSize: '14px',
+                resize: 'vertical'
+              }}
+              placeholder="Enter note details..."
             />
           </div>
           <br hidden={hideSpace} />
@@ -263,7 +238,6 @@ const RichTextEditor = (props: params) => {
            <b>Select From Template</b>  @
           </div>
 
-          {/* Dropdown - Show when @ is clicked */}
           {showDropdown && (
             <div className="selectformtemplate"
               ref={dropdownRef}
@@ -275,11 +249,10 @@ const RichTextEditor = (props: params) => {
                 width: "150px",
                 zIndex: 20000,
                 boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                 /* 👇 makes it scrollable */
-        maxHeight: 280,
-        overflowY: 'auto',
-        overscrollBehavior: 'contain',
-        WebkitOverflowScrolling: 'touch',
+                maxHeight: 280,
+                overflowY: 'auto',
+                overscrollBehavior: 'contain',
+                WebkitOverflowScrolling: 'touch',
               }}
             >
               <option disabled style={{padding:"8px", cursor: "pointer", borderBottom: "1px solid #eee"}}>Select From Template</option>
@@ -292,7 +265,7 @@ const RichTextEditor = (props: params) => {
                     borderBottom: "1px solid #eee",
                   }}
                   onClick={(e) => {
-                    insertTextAtCursor(option?.value); // Append selected option to editor
+                    insertTextAtCursor(option?.value);
                   }}
                 >
                   {option?.name}

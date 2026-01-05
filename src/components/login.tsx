@@ -162,8 +162,8 @@ const showPwdError = (msg: string) => {
               const isMasterAdmin = !res.tenant || res.tenant.length === 0;
               const userRole = isMasterAdmin ? 0 : res.role;
               
-              // Store master admin flag immediately
-              LocalStorageUtil.setItem('IS_MASTER_ADMIN', isMasterAdmin.toString());
+              // Store user role using secure method
+              Util.setUserRole(userRole);
               
               const profile = {
                 user: res.user,
@@ -286,8 +286,8 @@ const showPwdError = (msg: string) => {
             const isMasterAdmin = !res.tenant || res.tenant.length === 0;
             const userRole = isMasterAdmin ? 0 : res.role;
             
-            // Store master admin flag immediately
-            LocalStorageUtil.setItem('IS_MASTER_ADMIN', isMasterAdmin.toString());
+            // Store user role using secure method
+            Util.setUserRole(userRole);
             
              const profile = {
                 user: res.user,

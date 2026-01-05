@@ -199,7 +199,7 @@ const TasksList = () => {
                 itemName={"Activity"}
                 itemType={Tasks}
                 columnMetaData={columnMetaData}
-                viewAddEditComponent={() => null} 
+                viewAddEditComponent={TaskAddEdit} 
                 itemsBySubURL={"GetAllTask"} // Correct URL endpoint for getting tasks
                 rowTransformFn={rowTransform}
                 api={taskService} // Task service to interact with API

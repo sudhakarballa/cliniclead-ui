@@ -914,13 +914,13 @@ if (exportFormat === "csv") {
             <GroupEmailDialog
               open={groupEmailDialogOpen}
               onClose={() => setGroupEmailDialogOpen(false)}
-              selectedRecipients={(selectedRows as unknown as any[]).map((id) => {
+              selectedRecipients={Array.isArray(selectedRows) ? (selectedRows as unknown as any[]).map((id) => {
                 const item = props.rowData?.find(
                   (row: { personID: number; email: string }) =>
                     row.personID === id
-                );                
+                );
                 return item ? item.email : "";
-              })}
+              }) : []}
               selectedTemplate={selectedTemplate} // Pass the selected template here
               templates={templates} // Pass the templates here
               onTemplateSelect={handleTemplateSelect} // Pass the handler here

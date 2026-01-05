@@ -389,21 +389,23 @@ const showPwdError = (msg: string) => {
       : handleSubmit(onSubmitClick)                         // normal login
   }
                 >
-                <div className="shadow-lg p-4 bg-white rounded-4 loginformblock-row">
+                <div className="shadow-lg p-3 bg-white rounded-4 loginformblock-row">
                   {/* Header */}
                   <div className="logformhead">
                     <h1 className="h1">Sign In</h1>
                     <p>to access CRM</p>
                   </div>
-                  <div className="logformsubtext p-2 text-center">
-                    {loading ? "Please wait" : twoFactorRequired
-                      ? "Enter the 2FA code sent to your email"
-                      : loginError
-                        ? <span style={{ color: '#d32f2f', fontWeight: 'bold', background: '#fff0f0', borderRadius: '4px', padding: '6px 12px', display: 'inline-block', boxShadow: '0 1px 4px rgba(211,47,47,0.08)' }}>
-                            {loginError}
-                          </span>
-                        : null}
-                  </div>
+                  {(loading || twoFactorRequired || loginError) && (
+                    <div className="logformsubtext p-1 text-center">
+                      {loading ? "Please wait" : twoFactorRequired
+                        ? "Enter the 2FA code sent to your email"
+                        : loginError
+                          ? <span style={{ color: '#d32f2f', fontWeight: 'bold', background: '#fff0f0', borderRadius: '4px', padding: '6px 12px', display: 'inline-block', boxShadow: '0 1px 4px rgba(211,47,47,0.08)' }}>
+                              {loginError}
+                            </span>
+                          : null}
+                    </div>
+                  )}
                   {twoFactorRequired ? (
                     // If 2FA is required, show the verification code form
                     <>
@@ -435,101 +437,50 @@ const showPwdError = (msg: string) => {
                     </>
                   ) : (
                     <>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        placeholder="Enter your email"
-                        type="email"
-                        variant="outlined"
-                        margin="normal"
-                        value={selectedItem.email || ''}
-                        onChange={(e) => onChange(e.target.value, { value: 'email' })}
-                        disabled={loading}
-                        size="small"
-                        error={!!methods.formState.errors.email}
-                        helperText={methods.formState.errors.email?.message || ' '}
-                        InputLabelProps={{
-                          shrink: true
-                        }}
-                        sx={{ 
-                          mb: 1,
-                          '& .MuiFormHelperText-root': {
-                            minHeight: '16px',
-                            margin: '2px 14px 0',
-                            fontSize: '0.75rem'
-                          },
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'transparent',
-                            '& fieldset': {
-                              borderColor: 'rgba(0, 0, 0, 0.23)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(0, 0, 0, 0.23)',
-                            },
-                            '&.Mui-focused': {
-                              backgroundColor: 'transparent',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'rgba(0, 0, 0, 0.23)',
-                              borderWidth: '1px',
-                            },
-                          },
-                        }}
-                      />
-                      <TextField
-                        fullWidth
-                        label="Password"
-                        placeholder="Enter your password"
-                        type={showPassword ? 'text' : 'password'}
-                        variant="outlined"
-                        margin="normal"
-                        value={selectedItem.passwordHash || ''}
-                        onChange={(e) => onChange(e.target.value, { value: 'passwordHash' })}
-                        disabled={loading}
-                        size="small"
-                        error={!!methods.formState.errors.passwordHash}
-                        helperText={methods.formState.errors.passwordHash?.message || ' '}
-                        InputLabelProps={{
-                          shrink: true
-                        }}
-                        sx={{ 
-                          mb: 1,
-                          '& .MuiFormHelperText-root': {
-                            minHeight: '16px',
-                            margin: '2px 14px 0',
-                            fontSize: '0.75rem'
-                          },
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'transparent',
-                            '& fieldset': {
-                              borderColor: 'rgba(0, 0, 0, 0.23)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: 'rgba(0, 0, 0, 0.23)',
-                            },
-                            '&.Mui-focused': {
-                              backgroundColor: 'transparent',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'rgba(0, 0, 0, 0.23)',
-                              borderWidth: '1px',
-                            },
-                          },
-                        }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() => setShowPassword(!showPassword)}
-                                edge="end"
-                                size="small"
-                              >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
+                      <Form.Group className="mb-1" controlId="email">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                          type="email"
+                          placeholder="Enter your email"
+                          value={selectedItem.email || ''}
+                          onChange={(e) => onChange(e.target.value, { value: 'email' })}
+                          disabled={loading}
+                          isInvalid={!!methods.formState.errors.email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {methods.formState.errors.email?.message}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                      <Form.Group className="mb-1" controlId="password">
+                        <Form.Label>Password</Form.Label>
+                        <div className="position-relative">
+                          <Form.Control
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Enter your password"
+                            value={selectedItem.passwordHash || ''}
+                            onChange={(e) => onChange(e.target.value, { value: 'passwordHash' })}
+                            disabled={loading}
+                          />
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            size="small"
+                            style={{
+                              position: 'absolute',
+                              right: '8px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              zIndex: 1
+                            }}
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </div>
+                        {methods.formState.errors.passwordHash && (
+                          <div className="invalid-feedback d-block">
+                            {methods.formState.errors.passwordHash.message}
+                          </div>
+                        )}
+                      </Form.Group>
                     {/*   <Form.Group className="mb-2" controlId="checkbox">
                         <Form.Check
                           type="checkbox"

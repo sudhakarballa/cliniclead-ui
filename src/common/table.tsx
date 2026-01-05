@@ -558,7 +558,35 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
           }}
           hideFooter={props.hidePagination}
           density="standard"
-          sx={{ minWidth: 800, height: 'calc(100vh - 220px)' }}
+          sx={{ 
+            minWidth: 800, 
+            height: 'calc(100vh - 220px)',
+            '& .MuiDataGrid-footerContainer': {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              flexWrap: 'nowrap',
+              minHeight: '52px',
+              paddingRight: '16px'
+            },
+            '& .MuiTablePagination-root': {
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'nowrap',
+              marginLeft: 'auto'
+            },
+            '& .MuiTablePagination-toolbar': {
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'nowrap',
+              gap: '8px',
+              marginLeft: 'auto'
+            },
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              margin: 0,
+              whiteSpace: 'nowrap'
+            }
+          }}
           {...clientPaginationDefaults}
 
           {...(props.dataGridProps ?? {})}

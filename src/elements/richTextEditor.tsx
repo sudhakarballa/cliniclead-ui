@@ -96,13 +96,15 @@ const RitechTextEditorWithValidation = (props: params) => {
   return (
     <>
       <br hidden={hideSpace} />
-      <ReactQuill
-        ref={quillRef}
-        modules={modules}
-        onFocus={(e: any) => handleAtClick()}
-        onChange={(e: any) => props.onChange(e)}
-        value={value}
-      />
+      <div style={{ position: 'relative' }}>
+        <ReactQuill
+          ref={quillRef}
+          modules={modules}
+          onFocus={(e: any) => handleAtClick()}
+          onChange={(e: any) => props.onChange(e)}
+          value={value}
+        />
+      </div>
 
       <div className="selectformtemplatebox"
         hidden={!attachedData || attachedData?.length == 0}
@@ -238,12 +240,14 @@ const RichTextEditor = (props: params) => {
       {isValidationOptional ? (
         <>
           <br hidden={hideSpace} />
-          <ReactQuill
-            ref={quillRef}
-            onFocus={(e: any) => handleAtClick()}
-            onChange={(e: any) => props.onChange(e)}
-            value={value}
-          />
+          <div style={{ position: 'relative' }}>
+            <ReactQuill
+              ref={quillRef}
+              onFocus={(e: any) => handleAtClick()}
+              onChange={(e: any) => props.onChange(e)}
+              value={value}
+            />
+          </div>
           <br hidden={hideSpace} />
           <div ref={menuWrapperRef} style={{ position: 'relative', display: 'inline-block' }}>
           <div className="selectformtemplatebox"

@@ -26,7 +26,7 @@ import "./personList.css";
 
 const PersonList = () => {
   const MemoizedPersonAddEditDialog = React.memo(PersonAddEditDialog);
-  const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([] as unknown as GridRowSelectionModel);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [selectAllChecked, setSelectAllChecked] = useState(false);
   const [rowData, setRowData] = useState<Array<Person>>([]);
   const [loadRowData, setLoadRowData] = useState<boolean>(false);
@@ -57,8 +57,21 @@ const PersonList = () => {
 
   const handleSelectionChange = 
     (newSelection: GridRowSelectionModel) => {
+      console.log('Selection changed:', newSelection);
+      let rowIds: number[] = [];
       
-      setSelectedRows(newSelection); // Updates the state in PersonList
+      if (Array.isArray(newSelection)) {
+        // Old format: simple array
+        rowIds = newSelection as number[];
+      } else if (newSelection && typeof newSelection === 'object' && 'ids' in newSelection) {
+        // New format: object with ids property
+        rowIds = (newSelection as any).ids || [];
+      } else if (newSelection && typeof newSelection === 'object') {
+        // Handle other object formats
+        rowIds = Object.values(newSelection).filter(id => typeof id === 'number') as number[];
+      }
+      
+      setSelectedRows(rowIds);
     }
 
 
@@ -78,11 +91,11 @@ const PersonList = () => {
     console.log("Select All Toggled");
     if (selectAllChecked) {
       console.log("Deselecting all rows");
-      setSelectedRows([] as unknown as GridRowSelectionModel);
+      setSelectedRows([]);
     } else {
       const allRowIds = rowData.map((row) => row.personID);
       console.log("Selecting all rows: ", allRowIds);
-      setSelectedRows(allRowIds as unknown as GridRowSelectionModel);
+      setSelectedRows(allRowIds);
     }
     setSelectAllChecked(!selectAllChecked);
   };
@@ -518,10 +531,10 @@ const PersonList = () => {
           <GroupEmailDialog
             open={groupEmailDialogOpen}
             onClose={closeGroupEmailDialog}
-            selectedRecipients={(selectedRows as unknown as any[]).map((id: any) => {
+            selectedRecipients={Array.isArray(selectedRows) ? selectedRows.map((id: number) => {
               const item = rowData.find((row: { personID: number; email: string }) => row.personID === id);
               return item ? item.email : '';
-            }).filter(email => email)}
+            }).filter(email => email) : []}
             selectedTemplate={selectedTemplate}
             templates={templates}
             onTemplateSelect={handleTemplateSelect}

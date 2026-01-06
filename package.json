@@ -2,7 +2,7 @@
   "name": "pipelinemanagementsystem-frontend",
   "version": "0.1.0",
   "private": false,
-  "homepage": "/PLMSUI",
+  "homepage": "/",
   "dependencies": {
     "@atlaskit/theme": "^21.0.3",
     "@azure/msal-browser": "^4.27.0",
@@ -108,5 +108,5 @@
     "@types/styled-components": "^5.1.36",
     "@types/uuid": "^11.0.0"
   },
-  "proxy": "http://localhost:3000"
+  "proxy": "https://cliniclead.app/"
 }

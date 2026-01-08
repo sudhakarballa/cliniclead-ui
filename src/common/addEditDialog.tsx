@@ -100,7 +100,7 @@ export const AddEditDialog: React.FC<Props> = (props) => {
             </Modal.Title>
           </Modal.Header>
         )}
-        <Modal.Body className="modal-body" hidden={hideBody} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        <Modal.Body className="modal-body" hidden={hideBody} style={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden' }}>
           <form
             className="DialogForm"
             id="AddEditForm"
@@ -109,7 +109,7 @@ export const AddEditDialog: React.FC<Props> = (props) => {
             <fieldset disabled={disabled}>{children}</fieldset>
           </form>
         </Modal.Body>
-        <Modal.Footer className="modalfoot">
+        <Modal.Footer className="modalfoot" style={{ position: 'relative', zIndex: 1050 }}>
           <div className="modalfootbar" hidden={customFooter}>
             <button
               onClick={closeDialog}

@@ -30,14 +30,13 @@ const UsersList = () => {
   const isMasterAdmin = Util.isMasterAdmin();
 
   const columnMetaData = [
-    { columnName: "firstName", columnHeaderName: "FirstName", width: 150 },
-    { columnName: "lastName", columnHeaderName: "LastName", width: 150 },
     { columnName: "userName", columnHeaderName: "Username", width: 150 },
     { columnName: "phoneNumber", columnHeaderName: "Phonenumber", width: 150 },
     { columnName: "email", columnHeaderName: "Email Address", width: 150 },
     ...(isMasterAdmin ? [{ columnName: "tenantName", columnHeaderName: "Tenant", width: 150 }] : []),
     { columnName: "roleName", columnHeaderName: "Role", width: 150 },
-    { columnName: "isActive", columnHeaderName: "Status", width: 150 },
+    { columnName: "statusBadge", columnHeaderName: "Status", width: 150 },
+    { columnName: "modifiedDate", columnHeaderName: "Last Modified", width: 150 },
     { columnName: "lastLogin", columnHeaderName: "Last Login", width: 150 },
   ];
 
@@ -92,12 +91,18 @@ const UsersList = () => {
 
   const rowTransform = (item: User, index: number) => {
     const tenant = tenants.find(t => t.id === item.tenantId);
+    const role = roles.find(r => r.id === (item as any).roleID || r.id === item.roleId);
+    const isActive = item.isActive;
     return {
       ...item,
-      roleId: item.roleId,
-      organizationId: item.organizationId,
+      roleId: (item as any).roleID || item.roleId,
+      roleName: role?.name || 'N/A',
+      organizationId: (item as any).organizationID || item.organizationId,
       ...(isMasterAdmin && { tenantName: tenant?.name || 'N/A' }),
+      statusBadge: isActive ? '🟢 Active' : '🔴 Inactive',
+      modifiedDate: item.modifiedDate || item.createdDate,
       id: item.userId > 0 ? item.userId : index,
+      _isDeleted: !item.isActive, // Flag for styling
     };
   };
 
@@ -206,6 +211,12 @@ const UsersList = () => {
         enableCheckboxSelection={false}
         customActions={(e: any) => customActions(e)}
         onSelectionModelChange={() => {}}
+        defaultSortField={"modifiedDate"}
+        dataGridProps={{
+          getRowClassName: (params: any) => {
+            return params.row._isDeleted ? 'deleted-user-row' : '';
+          }
+        }}
       />
     </>
   );

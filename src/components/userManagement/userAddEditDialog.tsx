@@ -38,7 +38,7 @@ const UsersAddEditDialog: React.FC<any> = (props) => {
   const [organizations, setOrganizations] = useState<Array<any>>([]);
   const { userProfile } = useAuthContext();
 
-  debugger
+  
   const isMasterAdmin = Util.isMasterAdmin();
   const userTenantId = (userProfile as any)?.tenant?.[0]?.id || null;
   
@@ -183,7 +183,9 @@ const [usernameError, setUsernameError] = useState<string | undefined>();
       setValue("roleId" as never, roleId as never);
       const tenantValue = selectedItem.tenantId || selectedItem.organizationID || selectedItem.organizationId;
       setValue("tenantId" as never, tenantValue as never);
-      setValue("isActive" as never, selectedItem.isActive as never);
+      // Use the actual boolean value from selectedItem, not the transformed string
+      const isActiveValue = selectedItem.isActive === true || selectedItem.isActive === 'Active';
+      setValue("isActive", isActiveValue);
     } else if (!isMasterAdmin && userTenantId) {
       setValue("tenantId" as never, userTenantId as never);
     }
@@ -259,7 +261,7 @@ const [usernameError, setUsernameError] = useState<string | undefined>();
     obj.email = item.email;
     obj.userName = item.userName;
     obj.phoneNumber = item.phoneNumber;
-    obj.isActive = selectedItem.isActive;
+    obj.isActive = item.isActive;
 
     obj.roleId = item.roleId !== null ? Number(item.roleId) : 0;
     const finalTenantId = isMasterAdmin ? (item.tenantId !== null ? Number(item.tenantId) : 0) : userTenantId;

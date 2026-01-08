@@ -53,6 +53,8 @@ const TemplatesAddEditDialog: React.FC<ViewEditProps> = (props) => {
       key: "Name",
       value: "name",
       isRequired: true,
+      elementSize: 12,
+      isControlInNewLine: true
     }
   ];
 

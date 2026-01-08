@@ -279,7 +279,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     {
       key: "Settings",
       title: "Settings",
-      displayName: "Manage User",
+      displayName: "Users",
       path: "/users",
       icon: <IconWrapper Icon={IoSettings} color={selectedNavItem === "Settings" ? activeNavColor : "black"} />,
       iconComponent: IoSettings,
@@ -407,24 +407,29 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
 
         {getSubMenus().map(subMenu => {
           const isSubMenuActive = subMenu.key === "Admin" ? adminSubMenu.includes(selectedNavItem) : campaignSubMenu.includes(selectedNavItem);
-          const isHidden = subMenu.key === "Admin" ? userRole === 0 || !Util.isAuthorized(subMenu.permission) : !Util.isAuthorized(subMenu.permission);
+          const isHidden = !Util.isAuthorized(subMenu.permission);
           const shouldBeOpen = isSubMenuActive || expandedSubMenu === subMenu.key;
+          
+          // Always render the submenu but control visibility with CSS to prevent layout shifts
+          const menuStyle = isHidden ? { display: 'none' } : {};
           
           if (collapsed) {
             return (
               <MenuItem
                 key={subMenu.key}
                 icon={subMenu.icon}
-                hidden={isHidden}
+                style={menuStyle}
                 title={subMenu.title}
                 onClick={(e) => {
-                  const rect = (e.target as HTMLElement).closest('.ps-menuitem-root')?.getBoundingClientRect();
-                  if (rect) {
-                    setCollapsedSubmenu({
-                      key: subMenu.key,
-                      items: subMenu.items,
-                      top: rect.top
-                    });
+                  if (!isHidden) {
+                    const rect = (e.target as HTMLElement).closest('.ps-menuitem-root')?.getBoundingClientRect();
+                    if (rect) {
+                      setCollapsedSubmenu({
+                        key: subMenu.key,
+                        items: subMenu.items,
+                        top: rect.top
+                      });
+                    }
                   }
                 }}
                 rootStyles={{
@@ -448,13 +453,15 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
             <SubMenu
               key={`${subMenu.key}-${selectedNavItem}`}
               icon={subMenu.icon}
-              hidden={isHidden}
+              style={menuStyle}
               defaultOpen={shouldBeOpen}
               onOpenChange={(open) => {
-                if (open && !isSubMenuActive) {
-                  setExpandedSubMenu(subMenu.key);
-                } else if (!open && !isSubMenuActive) {
-                  setExpandedSubMenu(null);
+                if (!isHidden) {
+                  if (open && !isSubMenuActive) {
+                    setExpandedSubMenu(subMenu.key);
+                  } else if (!open && !isSubMenuActive) {
+                    setExpandedSubMenu(null);
+                  }
                 }
               }}
               title={subMenu.title}

@@ -387,7 +387,21 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
           if (value === null || value === undefined || value === "") {
             return <span style={{ color: '#aaa' }}>N/A</span>;
           }
-          return <span>{value != null ? String(value) : ""}</span>;
+          const stringValue = String(value);
+          return (
+            <span 
+              title={stringValue} 
+              style={{ 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis', 
+                whiteSpace: 'nowrap',
+                display: 'block',
+                width: '100%'
+              }}
+            >
+              {stringValue}
+            </span>
+          );
         };
         return {
           field: metaDataIter.columnName,

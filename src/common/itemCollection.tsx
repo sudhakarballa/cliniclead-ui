@@ -820,7 +820,7 @@ if (exportFormat === "csv") {
           <div className="container-fluid">
             <div className="row toolbarview-row">
               <div className="col-sm-5 toolbarview-actions" style={{ display: 'flex', alignItems: 'center' }}>
-                <h4 style={{ margin: 0 }}>{itemName + " List"}</h4>
+                <h4 style={{ margin: 0 }}>{itemName === "Activity" ? "Activities" : (itemName + "s").replace("ss", "s")}</h4>
               </div>
               {props.isCustomHeaderActions ? (
                 props.customHeaderActions({

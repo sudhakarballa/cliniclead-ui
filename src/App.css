@@ -4469,3 +4469,14 @@ select:focus,
 .MuiDataGrid-menuList .MuiListItemText-primary {
   white-space: nowrap !important;
 }
+
+/* Deleted/Inactive user row styling */
+.deleted-user-row {
+  background-color: #f8f9fa !important;
+  opacity: 0.6 !important;
+  text-decoration: line-through !important;
+}
+
+.deleted-user-row:hover {
+  background-color: #e9ecef !important;
+}

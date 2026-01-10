@@ -7,5 +7,8 @@ export const isUserLoggedIn = (): boolean => {
 }
 
 export const getActiveUserToken = (): string => {
-    return LocalStorageUtil.getItem(Constants.ACCESS_TOKEN) ?? "";
+    // Check both localStorage and sessionStorage for token
+    const token = LocalStorageUtil.getItem(Constants.ACCESS_TOKEN) || 
+                  sessionStorage.getItem(Constants.ACCESS_TOKEN);
+    return token ?? "";
 }

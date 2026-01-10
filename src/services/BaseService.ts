@@ -4,9 +4,8 @@ import { getActiveUserToken } from "../others/authUtil";
 import { APIResult } from "./APIResult";
 import { AuditItem } from "../models/base/AuditNamedItem";
 import { IsMockService } from "../others/util";
+import { waitForAuth } from "../utils/authGate";
 
-
-//const baseURLDev="https://localhost:44310/api";
 const baseURL = window?.config?.ServicesBaseURL;
 
 export class BaseService<TItem extends AuditItem>{
@@ -23,46 +22,58 @@ export class BaseService<TItem extends AuditItem>{
     getItems(axiosCancel?: CancelTokenSource, customURL?: String) {
         console.log("GET - URL: ", `${baseURL}/${this.urlSuffix}`);
         var promise = new Promise<any>((resolve, reject) => {
-            axios({
-                method: 'GET',
-                url: IsMockService()? customURL as any :  `${baseURL}/${customURL ? customURL : this.urlSuffix}`,
-                headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Media-type': 'application/json',
-                    'Authorization': `Bearer ${getActiveUserToken()}`
-                },
-                cancelToken: axiosCancel?.token
-            }).then((res: AxiosResponse) => {
-                console.log("getItems - res: ", res);
-                resolve(res?.data);
-            }).catch((err: AxiosError) => {
-                
-                reject(err);
-            })
+            waitForAuth().then(() => {
+                axios({
+                    method: 'GET',
+                    url: IsMockService()? customURL as any :  `${baseURL}/${customURL ? customURL : this.urlSuffix}`,
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Media-type': 'application/json',
+                        'Authorization': `Bearer ${getActiveUserToken()}`
+                    },
+                    cancelToken: axiosCancel?.token
+                }).then((res: AxiosResponse) => {
+                    console.log("getItems - res: ", res);
+                    resolve(res?.data);
+                }).catch((err: AxiosError) => {
+                    reject(err);
+                });
+            }).catch(reject);
         });
         return promise;
     }
 
     getItemsBySubURL(urlSuffix2: string, axiosCancel?: CancelTokenSource, isTokenOptional: boolean = false) {
-        console.log("GET - URL: ", `${baseURL}/${this.urlSuffix}/${urlSuffix2}`, " | Token: ", getActiveUserToken());
+        console.log("GET - URL: ", `${baseURL}/${this.urlSuffix}/${urlSuffix2}`);
         var promise = new Promise<any>((resolve, reject) => {
-            axios({
-                method: 'GET',
-                url:  `${baseURL}/${this.urlSuffix}/${urlSuffix2}`,
-                headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Media-type': 'application/json',
-                    'Authorization': `${!isTokenOptional ? 'Bearer ' + getActiveUserToken() : null}`
-                },
-                cancelToken: axiosCancel?.token
-            }).then((res: AxiosResponse) => {
-                console.log("getItemsBySubURL - res: ", res);
-                resolve(res?.data);
-            }).catch((err: AxiosError) => {
-                console.log("getItemsBySubURL - Exception Occurred - err: ", err,
-                    " | Code: ", err.code, " | err.message", err.message,);
-                reject(err);
-            })
+            if (isTokenOptional) {
+                axios({
+                    method: 'GET',
+                    url:  `${baseURL}/${this.urlSuffix}/${urlSuffix2}`,
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Media-type': 'application/json'
+                    },
+                    cancelToken: axiosCancel?.token
+                }).then((res: AxiosResponse) => {
+                    resolve(res?.data);
+                }).catch(reject);
+            } else {
+                waitForAuth().then(() => {
+                    axios({
+                        method: 'GET',
+                        url:  `${baseURL}/${this.urlSuffix}/${urlSuffix2}`,
+                        headers: {
+                            'Content-Type': 'application/json; charset=UTF-8',
+                            'Media-type': 'application/json',
+                            'Authorization': `Bearer ${getActiveUserToken()}`
+                        },
+                        cancelToken: axiosCancel?.token
+                    }).then((res: AxiosResponse) => {
+                        resolve(res?.data);
+                    }).catch(reject);
+                }).catch(reject);
+            }
         });
         return promise;
     }
@@ -70,23 +81,36 @@ export class BaseService<TItem extends AuditItem>{
     getItemsByRelativeURL(url: string, axiosCancel?: CancelTokenSource, isTokenOptional: boolean = false) {
         console.log("GET - URL: ", `${baseURL}/${this.urlSuffix}/${url}`, " | Token: ", getActiveUserToken());
         var promise = new Promise<any>((resolve, reject) => {
-            axios({
-                method: 'GET',
-                url:  url,
-                headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Media-type': 'application/json',
-                    'Authorization': `${!isTokenOptional ? 'Bearer ' + getActiveUserToken() : null}`
-                },
-                cancelToken: axiosCancel?.token
-            }).then((res: AxiosResponse) => {
-                console.log("getItemsBySubURL - res: ", res);
-                resolve(res?.data);
-            }).catch((err: AxiosError) => {
-                console.log("getItemsBySubURL - Exception Occurred - err: ", err,
-                    " | Code: ", err.code, " | err.message", err.message,);
-                reject(err);
-            })
+            if (isTokenOptional) {
+                axios({
+                    method: 'GET',
+                    url:  url,
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Media-type': 'application/json'
+                    },
+                    cancelToken: axiosCancel?.token
+                }).then((res: AxiosResponse) => {
+                    console.log("getItemsBySubURL - res: ", res);
+                    resolve(res?.data);
+                }).catch(reject);
+            } else {
+                waitForAuth().then(() => {
+                    axios({
+                        method: 'GET',
+                        url:  url,
+                        headers: {
+                            'Content-Type': 'application/json; charset=UTF-8',
+                            'Media-type': 'application/json',
+                            'Authorization': `Bearer ${getActiveUserToken()}`
+                        },
+                        cancelToken: axiosCancel?.token
+                    }).then((res: AxiosResponse) => {
+                        console.log("getItemsBySubURL - res: ", res);
+                        resolve(res?.data);
+                    }).catch(reject);
+                }).catch(reject);
+            }
         });
         return promise;
     }

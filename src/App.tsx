@@ -1,3 +1,5 @@
+import "./utils/axiosConfig"; // Import axios configuration
+import "./utils/authGate"; // Import auth gate
 import "bootstrap/dist/css/bootstrap.min.css";
 import moment from "moment";
 import { useEffect, useState } from "react";
@@ -27,6 +29,7 @@ import { checkForUpdates } from "./utils/versionCheck";
 
 function AppContent() {
   const [navItemsLoaded, setNavItemsLoaded] = useState(false);
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const userService = new UserService(ErrorBoundary);
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,68 +37,39 @@ function AppContent() {
   const [signalRInitialized, setSignalRInitialized] = useState(false);
   const { setUserProfile, setUserRole, setIsLoggedIn } = useAuthContext();
   
-  // Handle auto-login from subdomain redirect - MUST RUN FIRST
-  useEffect(() => {
-    console.log('🔍 Auto-login useEffect triggered');
-    const params = new URLSearchParams(window.location.search);
-    const authData = params.get('auth');
-    console.log('🔍 Auth data present:', !!authData);
-    
-    if (authData) {
-      console.log('✅ Processing auto-login...');
-      try {
-        const loginData = JSON.parse(atob(authData));
-        console.log('✅ Decoded login data:', loginData);
-        
-        const convertTZ = (dateTime: any) => {
-          return moment(new Date(Util.toLocalTimeZone(dateTime))).format(
-            "MM/DD/YYYY hh:mm:ss a"
-          ) as any;
-        };
-        
-        LocalStorageUtil.setItem(Constants.USER_LOGGED_IN, "true");
-        LocalStorageUtil.setItem(Constants.ACCESS_TOKEN, loginData.token);
-        LocalStorageUtil.setItem(Constants.User_Name, loginData.user);
-        LocalStorageUtil.setItem(Constants.TOKEN_EXPIRATION_TIME, convertTZ(loginData.expires));
-        Util.setUserRole(loginData.role || (loginData.isMasterAdmin ? 0 : 1));
-        console.log('✅ LocalStorage populated');
-        
-        // Set AuthContext
-        const profile = {
-          user: loginData.user,
-          email: loginData.email,
-          userId: loginData.userId,
-          role: loginData.role,
-          tenant: loginData.tenant,
-          isMasterAdmin: loginData.isMasterAdmin
-        };
-        setUserProfile(profile as any);
-        setUserRole(loginData.role);
-        setIsLoggedIn(true);
-        console.log('✅ AuthContext set:', profile);
-        
-        Util.loadNavItemsForUser(loginData.role);
-        setNavItemsLoaded(true);
-        console.log('✅ Nav items loaded, navigating to /pipeline');
-        
-        window.history.replaceState({}, document.title, '/pipeline');
-        navigate('/pipeline');
-      } catch (error) {
-        console.error('❌ Failed to auto-login:', error);
-        navigate('/login');
-      }
-    } else {
-      console.log('ℹ️ No auth data, skipping auto-login');
-    }
-  }, []);
-  
   const clearLocalStorage = () => {
     LocalStorageUtil.removeItem(Constants.USER_LOGGED_IN);
     LocalStorageUtil.removeItem(Constants.ACCESS_TOKEN);
     LocalStorageUtil.removeItem(Constants.TOKEN_EXPIRATION_TIME);
   };
   
-  // Setup axios interceptor for 401 errors
+  // Handle auto-login from URL parameters - MUST RUN FIRST AND SYNCHRONOUSLY
+  const params = new URLSearchParams(window.location.search);
+  const authData = params.get('auth');
+  
+  if (authData && !LocalStorageUtil.getItem(Constants.ACCESS_TOKEN)) {
+    try {
+      const loginData = JSON.parse(atob(authData));
+      const convertTZ = (dateTime: any) => {
+        return moment(new Date(Util.toLocalTimeZone(dateTime))).format(
+          "MM/DD/YYYY hh:mm:ss a"
+        ) as any;
+      };
+      
+      // Set authentication data IMMEDIATELY and SYNCHRONOUSLY
+      LocalStorageUtil.setItem(Constants.USER_LOGGED_IN, "true");
+      LocalStorageUtil.setItem(Constants.ACCESS_TOKEN, loginData.token);
+      LocalStorageUtil.setItem(Constants.User_Name, loginData.user);
+      LocalStorageUtil.setItem(Constants.TOKEN_EXPIRATION_TIME, convertTZ(loginData.expires));
+      Util.setUserRole(loginData.role || (loginData.isMasterAdmin ? 0 : 1));
+      
+      // Clear URL immediately
+      window.history.replaceState({}, document.title, '/pipeline');
+    } catch (error) {
+      console.error('Failed to process auth data:', error);
+    }
+  }
+  
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
       (response) => response,
@@ -183,6 +157,12 @@ function AppContent() {
   };
 
   const IsNotAuthorized = (): boolean => {
+    // Skip authorization check if processing auth data from URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth')) {
+      return false;
+    }
+    
     return !Util.isAuthorized(location.pathname.replace(/^\/+/, ""));
   };
 
@@ -261,7 +241,7 @@ function AppContent() {
 
   return (
     <>
-      {!navItemsLoaded ? (
+      {!navItemsLoaded || isProcessingAuth ? (
         <div className="alignCenter">
           <Spinner />
         </div>

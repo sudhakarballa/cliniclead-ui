@@ -8,6 +8,7 @@ import { updateFavicon } from '../others/faviconUtil';
 export interface ThemeContextType {
   currentTheme: Theme;
   setTheme: (themeId: string) => void;
+  resetTheme: () => void;
   applyTheme: (theme: Theme) => void;
   availableThemes: Theme[];
   isDarkMode: boolean;
@@ -1721,32 +1722,73 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
     
     // Save theme preference if user is logged in
-    if (userProfile?.id) {
+    if (userProfile?.userId) {
       try {
-        const existingPrefs = await userPreferencesService.getUserPreferencesByUserId(userProfile.id);
+        const existingPrefs = await userPreferencesService.getUserPreferencesByUserId(userProfile.userId);
         const themePrefs = existingPrefs.find((pref: UserPreferences) => pref.gridName === 'theme');
         
         const preferencesData = {
           themeId: themeId
         };
         
-        if (themePrefs) {
-          themePrefs.preferencesJson = JSON.stringify(preferencesData);
-          await userPreferencesService.updateUserPreferences(themePrefs);
-        } else {
-          const newPrefs = new UserPreferences(
-            0,
-            userProfile.id,
-            'theme',
-            JSON.stringify(preferencesData),
-            userProfile.id,
-            userProfile.id
-          );
-          await userPreferencesService.addUserPreferences(newPrefs);
-        }
+        const userPrefs = new UserPreferences(
+          themePrefs?.id || 0,
+          userProfile.userId,
+          'theme',
+          JSON.stringify(preferencesData),
+          userProfile.userId,
+          userProfile.userId
+        );
+
+        await (themePrefs?.id 
+          ? userPreferencesService.updateUserPreferences(userPrefs)
+          : userPreferencesService.addUserPreferences(userPrefs));
+          
+        console.log('Theme preference saved successfully');
       } catch (error) {
         console.error('Failed to save theme preference:', error);
+        throw error;
       }
+    }
+  };
+
+  const resetTheme = async () => {
+    if (!userProfile?.userId) return;
+    
+    try {
+      const existingPrefs = await userPreferencesService.getUserPreferencesByUserId(userProfile.userId);
+      const themePrefs = existingPrefs.find((pref: UserPreferences) => pref.gridName === 'theme');
+      
+      if (themePrefs?.id) {
+        await userPreferencesService.deleteUserPreferences(themePrefs.id);
+        console.log('Theme preference deleted successfully');
+      }
+      
+      // Apply tenant theme or default theme
+      const tenant = (userProfile as any).tenant;
+      if (tenant && Array.isArray(tenant) && tenant.length > 0) {
+        const tenantId = tenant[0]?.id;
+        if (tenantId && tenantId > 0 && tenantId <= PREDEFINED_THEMES.length) {
+          const themeIndex = tenantId - 1;
+          const theme = PREDEFINED_THEMES[themeIndex];
+          setBaseTheme(theme);
+          if (!isDarkMode) {
+            setCurrentTheme(theme);
+            applyTheme(theme);
+          }
+          return;
+        }
+      }
+      
+      // Fallback to default theme
+      setBaseTheme(PREDEFINED_THEMES[0]);
+      if (!isDarkMode) {
+        setCurrentTheme(PREDEFINED_THEMES[0]);
+        applyTheme(PREDEFINED_THEMES[0]);
+      }
+    } catch (error) {
+      console.error('Failed to reset theme preference:', error);
+      throw error;
     }
   };
 
@@ -1768,7 +1810,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
         
         try {
-          // PRIORITY 1: Check tenant-based theme
+          // PRIORITY 1: Check user preferences first
+          if (userProfile.userId) {
+            const userPrefs = await userPreferencesService.getUserPreferencesByUserId(userProfile.userId);
+            const themePrefs = userPrefs.find((pref: UserPreferences) => pref.gridName === 'theme');
+            
+            if (themePrefs?.preferencesJson) {
+              const savedTheme = JSON.parse(themePrefs.preferencesJson);
+              if (savedTheme.themeId) {
+                const theme = getThemeById(savedTheme.themeId) || PREDEFINED_THEMES[0];
+                console.log('Applying user preference theme:', theme.displayName);
+                setBaseTheme(theme);
+                if (!isDarkMode) {
+                  setCurrentTheme(theme);
+                  applyTheme(theme);
+                }
+                return;
+              }
+            }
+          }
+          
+          // PRIORITY 2: Check tenant-based theme
           const tenant = (userProfile as any).tenant;
           console.log('Tenant data:', tenant);
           
@@ -1786,27 +1848,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 applyTheme(theme);
               }
               return;
-            }
-          }
-          
-          // PRIORITY 2: Check user preferences
-          if (userProfile.userId || (userProfile as any).id) {
-            const userId = userProfile.userId || (userProfile as any).id;
-            const userPrefs = await userPreferencesService.getUserPreferencesByUserId(userId);
-            const themePrefs = userPrefs.find((pref: UserPreferences) => pref.gridName === 'theme');
-            
-            if (themePrefs?.preferencesJson) {
-              const savedTheme = JSON.parse(themePrefs.preferencesJson);
-              if (savedTheme.themeId) {
-                const theme = getThemeById(savedTheme.themeId) || PREDEFINED_THEMES[0];
-                console.log('Applying user preference theme:', theme.displayName);
-                setBaseTheme(theme);
-                if (!isDarkMode) {
-                  setCurrentTheme(theme);
-                  applyTheme(theme);
-                }
-                return;
-              }
             }
           }
           
@@ -1848,7 +1889,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [currentTheme]);
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, applyTheme, availableThemes: PREDEFINED_THEMES, isDarkMode, toggleDarkMode }}>
+    <ThemeContext.Provider value={{ currentTheme, setTheme, resetTheme, applyTheme, availableThemes: PREDEFINED_THEMES, isDarkMode, toggleDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );

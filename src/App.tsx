@@ -41,6 +41,17 @@ function AppContent() {
     LocalStorageUtil.removeItem(Constants.USER_LOGGED_IN);
     LocalStorageUtil.removeItem(Constants.ACCESS_TOKEN);
     LocalStorageUtil.removeItem(Constants.TOKEN_EXPIRATION_TIME);
+    LocalStorageUtil.removeItem(Constants.USER_PROFILE);
+    LocalStorageUtil.removeItem('USER_TENANTS');
+    localStorage.removeItem('sys_perm_data');
+    localStorage.removeItem('sys_check');
+    
+    // Clear cross-domain cookies
+    const domain = window.location.hostname.includes('cliniclead.app') ? '.cliniclead.app' : window.location.hostname;
+    const cookiesToClear = ['sys_perm_data', 'sys_check', 'ACCESS_TOKEN', 'USER_LOGGED_IN', 'USER_PROFILE', 'USER_TENANTS'];
+    cookiesToClear.forEach(cookie => {
+      document.cookie = `${cookie}=; domain=${domain}; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    });
   };
   
   // Handle auto-login from URL parameters - MUST RUN FIRST AND SYNCHRONOUSLY

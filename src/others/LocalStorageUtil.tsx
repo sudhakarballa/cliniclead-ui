@@ -62,10 +62,64 @@ import SecureStorageUtil from './secureStorageUtil';
              const checksum = this.generateChecksum(value);
              const dataWithChecksum = JSON.stringify({ data: value, checksum });
              SecureStorageUtil.setSecureItem(key, dataWithChecksum);
+             
+             // Also set as cookie for cross-subdomain access
+             this.setCrossDomainCookie(key, dataWithChecksum);
          } else {
              localStorage.setItem(key, value);
+             // Set non-sensitive data as cookie for cross-subdomain access
+             this.setCrossDomainCookie(key, value);
          }
      };
+
+     private static setCrossDomainCookie(key: string, value: string): void {
+         // For localhost testing, use localhost domain without port
+         const isLocalhost = window.location.hostname === 'localhost';
+         const isLocal = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1') || window.location.hostname.includes('local.cliniclead.app');
+         
+         let domain;
+         if (isLocalhost) {
+             // For localhost, don't set domain to share across ports
+             domain = '';
+         } else if (isLocal) {
+             domain = '.local.cliniclead.app';
+         } else {
+             domain = window.location.hostname.includes('cliniclead.app') ? '.cliniclead.app' : window.location.hostname;
+         }
+         
+         // Skip secure flag for local development
+         const secureFlag = isLocal ? '' : 'secure; ';
+         const domainPart = domain ? `domain=${domain}; ` : '';
+         document.cookie = `${key}=${encodeURIComponent(value)}; ${domainPart}path=/; ${secureFlag}samesite=lax`;
+     }
+
+     private static getCrossDomainCookie(key: string): string | null {
+         const cookies = document.cookie.split(';');
+         for (let cookie of cookies) {
+             const [cookieKey, cookieValue] = cookie.trim().split('=');
+             if (cookieKey === key) {
+                 return decodeURIComponent(cookieValue);
+             }
+         }
+         return null;
+     }
+
+     private static removeCrossDomainCookie(key: string): void {
+         const isLocalhost = window.location.hostname === 'localhost';
+         const isLocal = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1') || window.location.hostname.includes('local.cliniclead.app');
+         
+         let domain;
+         if (isLocalhost) {
+             domain = '';
+         } else if (isLocal) {
+             domain = '.local.cliniclead.app';
+         } else {
+             domain = window.location.hostname.includes('cliniclead.app') ? '.cliniclead.app' : window.location.hostname;
+         }
+         
+         const domainPart = domain ? `domain=${domain}; ` : '';
+         document.cookie = `${key}=; ${domainPart}path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+     }
 
      /**
       * Sets an encoded object item in the local storage.
@@ -87,7 +141,17 @@ import SecureStorageUtil from './secureStorageUtil';
      public static getItem(key: string): string | null
      {
          if (this.isSensitiveKey(key)) {
-             const secureData = SecureStorageUtil.getSecureItem(key);
+             let secureData = SecureStorageUtil.getSecureItem(key);
+             
+             // If not found in secure storage, try cookie (for cross-subdomain)
+             if (!secureData) {
+                 secureData = this.getCrossDomainCookie(key);
+                 if (secureData) {
+                     // Store back in secure storage for future use
+                     SecureStorageUtil.setSecureItem(key, secureData);
+                 }
+             }
+             
              if (!secureData) return null;
              
              try {
@@ -109,14 +173,18 @@ import SecureStorageUtil from './secureStorageUtil';
              }
          }
          
-         // Check if the value for the key exists in the storage.
-         if (localStorage.getItem(key) === undefined || localStorage.getItem(key) === null)
-         {
-             return null;
+         // Check localStorage first
+         let value = localStorage.getItem(key);
+         
+         // If not found in localStorage, try cookie (for cross-subdomain)
+         if (!value) {
+             value = this.getCrossDomainCookie(key);
+             if (value) {
+                 // Store back in localStorage for future use
+                 localStorage.setItem(key, value);
+             }
          }
-
-         // Get and return the value.
-         const value = localStorage.getItem(key);
+         
          return value;
      };
 
@@ -152,6 +220,8 @@ import SecureStorageUtil from './secureStorageUtil';
          } else {
              localStorage.removeItem(key);
          }
+         // Also remove from cookies
+         this.removeCrossDomainCookie(key);
      }
 
      public static removeAllTokensWithPrefix (keyPrefix: string) {

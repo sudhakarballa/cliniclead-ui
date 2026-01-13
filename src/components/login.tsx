@@ -204,7 +204,8 @@ const showPwdError = (msg: string) => {
                     isMasterAdmin: isMasterAdmin
                   };
                   const encodedData = btoa(JSON.stringify(loginData));
-                  window.location.href = `https://${tenantSubdomain}?auth=${encodedData}`;
+                  const protocol = window.location.protocol; // Gets 'http:' or 'https:'
+                  window.location.href = `${protocol}//${tenantSubdomain}?auth=${encodedData}`;
                 } else {
                   // Local development or no subdomain configured
                   navigate("/pipeline");
@@ -326,7 +327,8 @@ const showPwdError = (msg: string) => {
                    isMasterAdmin: isMasterAdmin
                  };
                  const encodedData = btoa(JSON.stringify(loginData));
-                 window.location.href = `https://${tenantSubdomain}?auth=${encodedData}`;
+                 const protocol = window.location.protocol; // Gets 'http:' or 'https:'
+                 window.location.href = `${protocol}//${tenantSubdomain}?auth=${encodedData}`;
                } else {
                  // Local development or no subdomain configured
                  navigate("/pipeline");

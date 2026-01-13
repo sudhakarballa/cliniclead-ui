@@ -29,11 +29,45 @@ export default class Util {
     localStorage.setItem('sys_perm_data', role.toString());
     // Store a hash to detect tampering
     localStorage.setItem('sys_check', btoa(role.toString() + 'plms2024'));
+    
+    // Also set as cross-domain cookies for subdomain access
+    const isLocalhost = window.location.hostname === 'localhost';
+    const isLocal = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1') || window.location.hostname.includes('local.cliniclead.app');
+    
+    let domain;
+    if (isLocalhost) {
+        domain = '';
+    } else if (isLocal) {
+        domain = '.local.cliniclead.app';
+    } else {
+        domain = window.location.hostname.includes('cliniclead.app') ? '.cliniclead.app' : window.location.hostname;
+    }
+    
+    const secureFlag = isLocal ? '' : 'secure; ';
+    const domainPart = domain ? `domain=${domain}; ` : '';
+    document.cookie = `sys_perm_data=${role.toString()}; ${domainPart}path=/; ${secureFlag}samesite=lax`;
+    document.cookie = `sys_check=${btoa(role.toString() + 'plms2024')}; ${domainPart}path=/; ${secureFlag}samesite=lax`;
   }
 
   public static getUserRole(): number | null {
-    const roleStr = localStorage.getItem('sys_perm_data');
-    const checkStr = localStorage.getItem('sys_check');
+    let roleStr = localStorage.getItem('sys_perm_data');
+    let checkStr = localStorage.getItem('sys_check');
+    
+    // If not found in localStorage, try cookies (for cross-subdomain)
+    if (!roleStr || !checkStr) {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [key, value] = cookie.trim().split('=');
+        if (key === 'sys_perm_data') roleStr = value;
+        if (key === 'sys_check') checkStr = value;
+      }
+      
+      // Store back in localStorage if found in cookies
+      if (roleStr && checkStr) {
+        localStorage.setItem('sys_perm_data', roleStr);
+        localStorage.setItem('sys_check', checkStr);
+      }
+    }
     
     if (!roleStr || !checkStr) return null;
     
@@ -59,6 +93,14 @@ export default class Util {
   private static clearSession(): void {
     alert('Session expired due to security violation. Please login again.');
     localStorage.clear();
+    
+    // Clear cross-domain cookies
+    const domain = window.location.hostname.includes('cliniclead.app') ? '.cliniclead.app' : window.location.hostname;
+    const cookiesToClear = ['sys_perm_data', 'sys_check', 'ACCESS_TOKEN', 'USER_LOGGED_IN', 'USER_PROFILE', 'USER_TENANTS'];
+    cookiesToClear.forEach(cookie => {
+      document.cookie = `${cookie}=; domain=${domain}; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    });
+    
     window.location.replace(window.config.HomePage + '/Login');
   }
 

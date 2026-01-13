@@ -11,27 +11,22 @@ export const Profile = () => {
     
     const { user, email } = userProfile || new UserProfile();
     const doLogout = async () => {
-        // Clear localStorage immediately to prevent UI flicker
-        localStorage.removeItem('USER_LOGGED_IN');
-        localStorage.removeItem('ACCESS_TOKEN');
-        localStorage.removeItem('TOKEN_EXPIRATION_TIME');
-        localStorage.removeItem('sys_perm_data');
-        localStorage.removeItem('sys_check');
-        
-        setIsLoggedIn(false);
-        
         // Check if we're on a subdomain and need to redirect to main application
         const config = (window as any).config;
         
         if (config?.EnableSubdomainRedirect) {
-            // Redirect to main application login page
+            // Redirect to main application login page immediately
             const homePage = config.HomePage || '';
             const redirectUrl = config.RedirectUri + (homePage === '/' ? '' : homePage) + '/login';
             window.location.href = redirectUrl;
         } else {
-            // Local development or already on main domain
-            window.location.replace('/login');
+            // Local development or already on main domain - redirect immediately
+            window.location.href = '/login';
         }
+        
+        // Clear storage after redirect is initiated
+        localStorage.clear();
+        setIsLoggedIn(false);
     };
     return (
         <Dropdown className="headerprofile">

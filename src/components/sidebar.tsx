@@ -25,6 +25,7 @@ import { HiOutlineFunnel } from "react-icons/hi2";
 import { GiStairsGoal } from "react-icons/gi";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { TOOLTIPS } from "../constants/tooltips";
 
 // Icon wrapper functions to ensure proper typing
 const IconWrapper = ({ Icon, ...props }: { Icon: any; [key: string]: any }): React.ReactElement => {
@@ -39,6 +40,7 @@ interface MenuItemConfig {
   iconComponent: any;
   permission: string;
   displayName?: string;
+  tooltip?: string;
 }
 
 interface SubMenuConfig {
@@ -46,6 +48,7 @@ interface SubMenuConfig {
   title: string;
   icon: React.ReactElement;
   permission: string;
+  tooltip?: string;
   items: MenuItemConfig[];
 }
 
@@ -221,7 +224,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     <MenuItem 
       hidden={!Util.isAuthorized(item.permission)} 
       icon={item.icon}
-      title={item.title} 
+      title={item.tooltip || item.title}
       component={<Link to={item.path} />}
       onClick={() => setSelectedNavItem(item.key)}
       rootStyles={{
@@ -250,7 +253,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       path: "/Stages",
       icon: <IconWrapper Icon={HiOutlineFunnel} color={selectedNavItem === "Stages" ? activeNavColor : "black"} />,
       iconComponent: HiOutlineFunnel,
-      permission: "Stages"
+      permission: "Stages",
+      tooltip: TOOLTIPS.SIDEBAR.ADD_PIPELINE
     },
     {
       key: "pipeline",
@@ -258,7 +262,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       path: "/pipeline",
       icon: <IconWrapper Icon={GiStairsGoal} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "black"}} />,
       iconComponent: GiStairsGoal,
-      permission: "pipeline"
+      permission: "pipeline",
+      tooltip: TOOLTIPS.SIDEBAR.SALES_STAGE
     },
     {
       key: "Activities",
@@ -266,7 +271,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       path: "/Activities",
       icon: <IconWrapper Icon={RxActivityLog} color={selectedNavItem === "Activities" ? activeNavColor : "black"} />,
       iconComponent: RxActivityLog,
-      permission: "Activities"
+      permission: "Activities",
+      tooltip: TOOLTIPS.SIDEBAR.ACTIVITIES
     },
     {
       key: "Person",
@@ -274,7 +280,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       path: "/Person",
       icon: <IconWrapper Icon={RiContactsBookFill} color={selectedNavItem === "Person" ? activeNavColor : "black"} />,
       iconComponent: RiContactsBookFill,
-      permission: "Person"
+      permission: "Person",
+      tooltip: TOOLTIPS.SIDEBAR.PERSONS
     },
     {
       key: "Settings",
@@ -283,7 +290,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       path: "/users",
       icon: <IconWrapper Icon={IoSettings} color={selectedNavItem === "Settings" ? activeNavColor : "black"} />,
       iconComponent: IoSettings,
-      permission: "users"
+      permission: "users",
+      tooltip: TOOLTIPS.SIDEBAR.USERS
     },
     {
       key: "Reporting",
@@ -291,7 +299,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       path: "/Reporting",
       icon: <IconWrapper Icon={RiDashboard2Fill} color={selectedNavItem === "Reporting" ? activeNavColor : "black"} />,
       iconComponent: RiDashboard2Fill,
-      permission: "Reporting"
+      permission: "Reporting",
+      tooltip: TOOLTIPS.SIDEBAR.REPORTING
     }
   ];
 
@@ -301,6 +310,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Campaigns",
       icon: <IconWrapper Icon={MdCampaign} color={campaignSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
       permission: "Template",
+      tooltip: TOOLTIPS.SIDEBAR.CAMPAIGNS,
       items: [
         {
           key: "Template",
@@ -308,7 +318,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           path: "/Template",
           icon: <IconWrapper Icon={HiTemplate} color={selectedNavItem === "Template" ? activeNavColor : "black"} />,
           iconComponent: HiTemplate,
-          permission: "Template"
+          permission: "Template",
+          tooltip: TOOLTIPS.SIDEBAR.TEMPLATE
         }
       ]
     },
@@ -317,6 +328,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Admin",
       icon: <IconWrapper Icon={RiAdminFill} color={adminSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
       permission: "Admin",
+      tooltip: TOOLTIPS.SIDEBAR.ADMIN,
       items: [
         {
           key: "Clinic",
@@ -324,7 +336,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           path: "/Clinic",
           icon: <IconWrapper Icon={FaClinicMedical} color={selectedNavItem === "Clinic" ? activeNavColor : "black"} />,
           iconComponent: FaClinicMedical,
-          permission: "Clinic"
+          permission: "Clinic",
+          tooltip: TOOLTIPS.SIDEBAR.CLINIC
         },
         {
           key: "Source",
@@ -332,7 +345,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           path: "/Source",
           icon: <IconWrapper Icon={BiGitBranch} color={selectedNavItem === "Source" ? activeNavColor : "black"} />,
           iconComponent: BiGitBranch,
-          permission: "Source"
+          permission: "Source",
+          tooltip: TOOLTIPS.SIDEBAR.SOURCE
         },
         {
           key: "Treatment",
@@ -340,7 +354,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           path: "/Treatment",
           icon: <IconWrapper Icon={FaNotesMedical} color={selectedNavItem === "Treatment" ? activeNavColor : "black"} />,
           iconComponent: FaNotesMedical,
-          permission: "Treatment"
+          permission: "Treatment",
+          tooltip: TOOLTIPS.SIDEBAR.TREATMENT
         },
         {
           key: "PipeLineType",
@@ -348,7 +363,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           path: "/PipeLineType",
           icon: <IconWrapper Icon={FaProjectDiagram} color={selectedNavItem === "PipeLineType" ? activeNavColor : "black"} />,
           iconComponent: FaProjectDiagram,
-          permission: "PipeLineType"
+          permission: "PipeLineType",
+          tooltip: TOOLTIPS.SIDEBAR.PIPELINE_TYPE
         }
       ]
     }
@@ -383,7 +399,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
             key={`${item.key}-${selectedNavItem}`}
             hidden={!Util.isAuthorized(item.permission)} 
             icon={<IconWrapper Icon={item.iconComponent} color={selectedNavItem === item.key ? activeNavColor : "black"} />}
-            title={item.title} 
+            title={item.tooltip || item.title}
             component={<Link to={item.path} />}
             onClick={() => setSelectedNavItem(item.key)}
             rootStyles={{
@@ -419,7 +435,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
                 key={subMenu.key}
                 icon={subMenu.icon}
                 style={menuStyle}
-                title={subMenu.title}
+                title={subMenu.tooltip || subMenu.title}
                 onClick={(e) => {
                   if (!isHidden) {
                     const rect = (e.target as HTMLElement).closest('.ps-menuitem-root')?.getBoundingClientRect();
@@ -454,6 +470,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
               key={`${subMenu.key}-${selectedNavItem}`}
               icon={subMenu.icon}
               style={menuStyle}
+              title={subMenu.tooltip || subMenu.title}
               defaultOpen={shouldBeOpen}
               onOpenChange={(open) => {
                 if (!isHidden) {
@@ -464,7 +481,6 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
                   }
                 }
               }}
-              title={subMenu.title}
               label={subMenu.title}
               rootStyles={{
                 ['.' + 'ps-submenu-content']: {
@@ -485,7 +501,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
         <MenuItem 
           key={`tenant-${selectedNavItem}`}
           hidden={userRole !== 0} 
-          title="Tenants" 
+          title={TOOLTIPS.SIDEBAR.TENANTS}
           component={<Link to="/Tenant" />} 
           onClick={() => setSelectedNavItem("Tenant")} 
           icon={<IconWrapper Icon={FaBuilding} color={selectedNavItem === "Tenant" ? activeNavColor : "black"} />}

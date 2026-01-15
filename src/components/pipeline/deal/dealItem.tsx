@@ -11,6 +11,8 @@ import { Utility } from "../../../models/utility";
 import Util, { IsMockService } from "../../../others/util";
 import LocalStorageUtil from "../../../others/LocalStorageUtil";
 import Constants from "../../../others/constants";
+import { Tooltip } from "@mui/material";
+import { TOOLTIPS } from "../../../constants/tooltips";
 
 type params = {
   deal?: Deal;
@@ -95,17 +97,19 @@ export const DealItem = (props: params) => {
               <div className="pdstage-title">{deal?.treatmentName}
               </div>
               <div className='dropdownbox-toolgripdot'>
-                <button 
-                  className='toolgrip-dot' 
-                  style={{ 
-                    background: 'none', 
-                    border: 'none', 
-                    cursor: 'pointer'
-                  }}
-                  onClick={handleDropdownToggle}
-                >
-                  <FontAwesomeIcon icon={faEllipsisVertical} />
-                </button>
+                <Tooltip title="More actions" placement="top">
+                  <button 
+                    className='toolgrip-dot' 
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      cursor: 'pointer'
+                    }}
+                    onClick={handleDropdownToggle}
+                  >
+                    <FontAwesomeIcon icon={faEllipsisVertical} />
+                  </button>
+                </Tooltip>
               </div>
               <div className="pdstage-description">
                 <div className="pdstage-descitem"><a href="" onClick={(e: any) => handleLinkClick(e)}>{utility?.users.find(u => u.id == deal?.assigntoId)?.name || deal?.personName}</a></div>
@@ -153,59 +157,67 @@ export const DealItem = (props: params) => {
             padding: '8px 0'
           }}
         >
-          <div
-            onClick={() => {
-              onDeleteClick();
-              setShowDropdown(false);
-            }}
-            style={{
-              padding: '12px 16px',
-              cursor: 'pointer',
-              borderBottom: '1px solid #f0f0f0',
-              color: '#3f3f3f'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f3f3'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            Delete
-          </div>
-          <div
-            style={{
-              padding: '12px 16px',
-              cursor: 'not-allowed',
-              borderBottom: '1px solid #f0f0f0',
-              color: '#999',
-              opacity: 0.5
-            }}
-          >
-            Won
-          </div>
-          <div
-            style={{
-              padding: '12px 16px',
-              cursor: 'not-allowed',
-              borderBottom: '1px solid #f0f0f0',
-              color: '#999',
-              opacity: 0.5
-            }}
-          >
-            Lost
-          </div>
-          <div
-            onClick={() => {
-              setDialogIsOpen(true);
-              setShowDropdown(false);
-            }}
-            style={{
-              padding: '12px 16px',
-              cursor: 'pointer',
-              color: '#3f3f3f'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f3f3'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            Move To
-          </div>
+          <Tooltip title={TOOLTIPS.DEAL.DELETE_DEAL} placement="left">
+            <div
+              onClick={() => {
+                onDeleteClick();
+                setShowDropdown(false);
+              }}
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                borderBottom: '1px solid #f0f0f0',
+                color: '#3f3f3f'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f3f3'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              Delete
+            </div>
+          </Tooltip>
+          <Tooltip title={TOOLTIPS.DEAL.MARK_WON} placement="left">
+            <div
+              style={{
+                padding: '12px 16px',
+                cursor: 'not-allowed',
+                borderBottom: '1px solid #f0f0f0',
+                color: '#999',
+                opacity: 0.5
+              }}
+            >
+              Won
+            </div>
+          </Tooltip>
+          <Tooltip title={TOOLTIPS.DEAL.MARK_LOST} placement="left">
+            <div
+              style={{
+                padding: '12px 16px',
+                cursor: 'not-allowed',
+                borderBottom: '1px solid #f0f0f0',
+                color: '#999',
+                opacity: 0.5
+              }}
+            >
+              Lost
+            </div>
+          </Tooltip>
+          <Tooltip title="Move deal to another stage or pipeline" placement="left">
+            <div
+              onClick={() => {
+                setDialogIsOpen(true);
+                setShowDropdown(false);
+              }}
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                color: '#3f3f3f'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f3f3'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              Move To
+            </div>
+          </Tooltip>
         </div>,
         document.body
       )}

@@ -1,6 +1,8 @@
 import { PipeLine } from "../../../models/pipeline"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo, faCircleUser, faPencil, faSortDown, faEllipsis, faAngleDown, faGear, faPlus, faMoneyBill, faTag, faScaleBalanced, faFlagCheckered, faUser, faBuilding, faBarsStaggered, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { Tooltip } from "@mui/material";
+import { TOOLTIPS } from "../../../constants/tooltips";
 
 
 type params = {
@@ -63,8 +65,14 @@ export const StageActions = (props: params) => {
                                 {/* <button className="probinfobtn"><FontAwesomeIcon icon={faCircleInfo} /></button> */}
                             </div>
                             <div className="colactionbtnrow">
-                                <button type="button" className="btn btn-dark" onClick={(e: any) => props.onCancelClick()}>Cancel</button>
-                                <button type="button" className="btn btn-primary" disabled={!canSave}  onClick={(e: any) => {if(!canSave) return; props.onSaveClick()}}>Save Changes</button>
+                                <Tooltip title={TOOLTIPS.ACTIONS.CANCEL} placement="top">
+                                    <button type="button" className="btn btn-dark" onClick={(e: any) => props.onCancelClick()}>Cancel</button>
+                                </Tooltip>
+                                <Tooltip title={TOOLTIPS.ACTIONS.SAVE} placement="top">
+                                    <span>
+                                        <button type="button" className="btn btn-primary" disabled={!canSave}  onClick={(e: any) => {if(!canSave) return; props.onSaveClick()}}>Save Changes</button>
+                                    </span>
+                                </Tooltip>
                                 {/* <button className="ellipsis-btn"><FontAwesomeIcon icon={faEllipsis} /></button> */}
                             </div>
                         </div>

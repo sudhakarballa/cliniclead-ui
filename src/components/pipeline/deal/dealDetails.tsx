@@ -1,3 +1,4 @@
+import { Tooltip } from "@mui/material";
 import { useMsal } from "@azure/msal-react";
 import {
   faAngleDown,
@@ -668,11 +669,13 @@ export const DealDetails = () => {
                                   : "£0"}
                               </span>
                               {userRole === 1 && (
-                                <FontAwesomeIcon
-                                  icon={faPenToSquare}
-                                  className="edit-icon"
-                                  onClick={handleEditClick}
-                                />
+                                <Tooltip title="Edit Deal Amount" placement="top">
+                                  <FontAwesomeIcon
+                                    icon={faPenToSquare}
+                                    className="edit-icon"
+                                    onClick={handleEditClick}
+                                  />
+                                </Tooltip>
                               )}
                             </div>
                           )}
@@ -723,57 +726,65 @@ export const DealDetails = () => {
                     <div className="appdealblock-row mt-2">
                       <ul className="appdealblock-iconlist">
                         <li>
-                          <button
-                            className="dealicon"
-                            onClick={() => {
-                              setDialogToOpen("NotesAddEdit" as any);
-                              setDialogIsOpen(true);
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faPenToSquare} />
-                          </button>
+                          <Tooltip title="Add Note" placement="top">
+                            <button
+                              className="dealicon"
+                              onClick={() => {
+                                setDialogToOpen("NotesAddEdit" as any);
+                                setDialogIsOpen(true);
+                              }}
+                            >
+                              <FontAwesomeIcon icon={faPenToSquare} />
+                            </button>
+                          </Tooltip>
                           <span className="dealicon-name">Note</span>
                         </li>
                         <li>
-                          <button
-                            className="dealicon"
-                            onClick={() => {
-                              setSelectedEmail({
-                                to: dealItem.email || "default@example.com",
-                              });
-                              setDialogToOpen("EmailComposeDialog" as any);
-                              accounts.length == 0
-                                ? onLoginConfirm()
-                                : setDialogIsOpen(true);
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faEnvelope} />
-                          </button>
+                          <Tooltip title="Send Email" placement="top">
+                            <button
+                              className="dealicon"
+                              onClick={() => {
+                                setSelectedEmail({
+                                  to: dealItem.email || "default@example.com",
+                                });
+                                setDialogToOpen("EmailComposeDialog" as any);
+                                accounts.length == 0
+                                  ? onLoginConfirm()
+                                  : setDialogIsOpen(true);
+                              }}
+                            >
+                              <FontAwesomeIcon icon={faEnvelope} />
+                            </button>
+                          </Tooltip>
                           <span className="dealicon-name">Email</span>
                         </li>
                         <li>
-                          <button
-                            className="dealicon"
-                            onClick={() =>
-                              setSelectedPhoneNmber(dealItem.phone as any)
-                            }
-                          >
-                            <FontAwesomeIcon icon={faPhone} />
-                          </button>
+                          <Tooltip title="Make Call" placement="top">
+                            <button
+                              className="dealicon"
+                              onClick={() =>
+                                setSelectedPhoneNmber(dealItem.phone as any)
+                              }
+                            >
+                              <FontAwesomeIcon icon={faPhone} />
+                            </button>
+                          </Tooltip>
                           <span className="dealicon-name">Call</span>
                         </li>
                         <li>
-                          <button
-                            className="dealicon"
-                            onClick={() => {
-                              setDialogToOpen("TaskAddEdit" as any);
-                              accounts.length == 0
-                                ? onLoginConfirm()
-                                : setDialogIsOpen(true);
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faListCheck} />
-                          </button>
+                          <Tooltip title="Create Task" placement="top">
+                            <button
+                              className="dealicon"
+                              onClick={() => {
+                                setDialogToOpen("TaskAddEdit" as any);
+                                accounts.length == 0
+                                  ? onLoginConfirm()
+                                  : setDialogIsOpen(true);
+                              }}
+                            >
+                              <FontAwesomeIcon icon={faListCheck} />
+                            </button>
+                          </Tooltip>
                           <span className="dealicon-name">Task</span>
                         </li>
                       </ul>
@@ -1053,11 +1064,13 @@ export const DealDetails = () => {
                           ) : (
                             <>
                               <span>{tempMedicalFormValue}</span>
-                              <FontAwesomeIcon
-                                icon={faPencil}
-                                style={{ cursor: "pointer" }}
-                                onClick={() => setIsEditingMedicalForm(true)}
-                              />
+                              <Tooltip title="Edit Medical Form Status" placement="top">
+                                <FontAwesomeIcon
+                                  icon={faPencil}
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => setIsEditingMedicalForm(true)}
+                                />
+                              </Tooltip>
                             </>
                           )}
                         </div>

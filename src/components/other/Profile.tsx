@@ -33,7 +33,7 @@ export const Profile = () => {
         <Dropdown.Toggle className="profiledroupdown" variant="" id="dropdown-profile">
             <span className="profileicon"><FontAwesomeIcon icon={faCircleUser} /></span>
         </Dropdown.Toggle>
-        <Dropdown.Menu>
+        <Dropdown.Menu style={{ zIndex: 9999 }}>
             <div className="dropdown-header px-3 py-2 border-bottom">
                 <div className="fw-bold">{user}</div>
                 <div className="text-muted small">{email}</div>
@@ -41,8 +41,8 @@ export const Profile = () => {
             <Dropdown.Item onClick={() => {
                 console.log('Navigating to profile page');
                 navigate("/profile");
-            }}>Profile</Dropdown.Item>
-            <Dropdown.Item onClick={(e:any)=>doLogout()}>Logout</Dropdown.Item>
+            }} title="View and edit your profile">Profile</Dropdown.Item>
+            <Dropdown.Item onClick={(e:any)=>doLogout()} title="Sign out of your account">Logout</Dropdown.Item>
         </Dropdown.Menu>
     </Dropdown>
  

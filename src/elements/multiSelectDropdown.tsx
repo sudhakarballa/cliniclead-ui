@@ -28,7 +28,6 @@ const MultiSelectDropdownWithValidations = (props: Params) => {
     formContextAvailable = false;
   }
 
-  // Filter out any items without a 'name' property
   const safeList = Array.isArray(list) ? list.filter((item) => item && typeof item.name === 'string') : [];
   const safeSelectedList = Array.isArray(selectedList) ? selectedList.filter((item) => item && typeof item.name === 'string') : [];
 
@@ -92,6 +91,29 @@ const MultiSelectDropdownWithValidations = (props: Params) => {
             onRemove={onRemove}
             displayValue="name"
             {...(register && item?.value ? register(item?.value) : {})}
+            style={{
+              multiselectContainer: {
+                width: '100%'
+              },
+              searchBox: {
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                padding: '4px'
+              },
+              option: {
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              },
+              optionContainer: {
+                maxHeight: '200px',
+                border: 'none'
+              },
+              highlightOption: {
+                border: 'none'
+              }
+            }}
           />
           <p className="text-danger" id={`validationMsgfor_${item?.value}`}>
             {errors?.[item?.value]?.message}
@@ -105,6 +127,29 @@ const MultiSelectDropdownWithValidations = (props: Params) => {
           onSelect={onSelect}
           onRemove={onRemove}
           displayValue="name"
+          style={{
+            multiselectContainer: {
+              width: '100%'
+            },
+            searchBox: {
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              padding: '4px'
+            },
+            option: {
+              padding: '8px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            },
+            optionContainer: {
+              maxHeight: '200px',
+              border: 'none'
+            },
+            highlightOption: {
+              border: 'none'
+            }
+          }}
         />
       )}
     </>

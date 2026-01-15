@@ -10,7 +10,7 @@ import GroupEmailDialog from "../components/GroupEmailDialog";
 import { EmailTemplateService } from "../services/emailTemplateService"; // Import the EmailTemplateService
 import { EmailTemplate } from "../models/emailTemplate"; // Import EmailTemplate model
 import Drawer from "@mui/material/Drawer";
-import { Button, Grid, Menu, MenuItem, IconButton, ListItemIcon, ListItemText } from "@mui/material";
+import { Button, Grid, Menu, MenuItem, IconButton, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
 import { MoreVert as MoreVertIcon, Email, FileDownload, Save, Refresh } from "@mui/icons-material";
 import MultiSelectDropdown from "../elements/multiSelectDropdown";
 import * as XLSX from "xlsx";
@@ -20,6 +20,7 @@ import SimpleGridPreferencesButton from './SimpleGridPreferencesButton';
 import { useGridPreferences } from '../hooks/useGridPreferences';
 import { DeleteDialog } from './deleteDialog';
 import LocalStorageUtil from "../others/LocalStorageUtil";
+import { TOOLTIPS } from "../constants/tooltips";
 
 // Static flag to prevent multiple simultaneous API calls
 let isLoadingTemplatesGlobal = false;
@@ -291,26 +292,37 @@ const ItemCollection: React.FC<params> = (props) => {
         item.updatedDate = item.modifiedDate ?? item.createdDate;
       });
       setRowData([...rowData]);
-      setIsloading(false); // Data loaded, stop loading
+      populateColumnsForExport(rowData);
+      setIsloading(false);
     } else {
-      setIsloading(true); // No data yet, show loading
+      setIsloading(true);
     }
   }, [props.rowData]);
 
   const populateColumnsForExport = (data: Array<any>) => {
     if (data?.length > 0) {
       const firstItem = data[0];
-
       const dynamicColumns = Object.keys(firstItem)
         ?.filter((i) => !(excludeColumnsForExport ?? []).includes(i))
         ?.map((key) => ({
           key,
           label: key
             .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase()), // optional: prettify key names
+            .replace(/^./, (str) => str.toUpperCase()),
         }));
       setDataToExport(data);
       setTotalColumns(dynamicColumns);
+    } else {
+      const columnsFromMetadata = columnMetaData
+        ?.filter((col: any) => !(excludeColumnsForExport ?? []).includes(col.columnName))
+        ?.map((col: any) => ({
+          key: col.columnName,
+          label: col.columnHeaderName || col.columnName
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str:any) => str.toUpperCase()),
+        }));
+      setTotalColumns(columnsFromMetadata || []);
+      setDataToExport([]);
     }
   };
 
@@ -693,19 +705,21 @@ if (exportFormat === "csv") {
   // More Actions dropdown menu
   const renderMoreActionsMenu = () => (
     <>
-      <IconButton
-        onClick={(e) => setMoreActionsAnchor(e.currentTarget)}
-        size="small"
-        style={{
-          ...toolbarButtonStyle,
-          minWidth: 36,
-          width: 36,
-          height: 32,
-          padding: 0
-        }}
-      >
-        <MoreVertIcon fontSize="small" />
-      </IconButton>
+      <Tooltip title={TOOLTIPS.ACTIONS.MORE_ACTIONS} placement="top">
+        <IconButton
+          onClick={(e) => setMoreActionsAnchor(e.currentTarget)}
+          size="small"
+          style={{
+            ...toolbarButtonStyle,
+            minWidth: 36,
+            width: 36,
+            height: 32,
+            padding: 0
+          }}
+        >
+          <MoreVertIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
       <Menu
         anchorEl={moreActionsAnchor}
         open={Boolean(moreActionsAnchor)}
@@ -725,6 +739,7 @@ if (exportFormat === "csv") {
               setMoreActionsAnchor(null);
             }}
             disabled={(selectedRows as unknown as any[]).length === 0}
+            title="Send email to selected recipients"
             sx={{
               py: 1,
               px: 2,
@@ -749,6 +764,7 @@ if (exportFormat === "csv") {
               setDrawerOpen(true);
               setMoreActionsAnchor(null);
             }}
+            title="Export data to Excel or CSV"
             sx={{
               py: 1,
               px: 2,
@@ -770,6 +786,7 @@ if (exportFormat === "csv") {
             setMoreActionsAnchor(null);
           }}
           disabled={!hasChanges}
+          title="Save current grid settings"
           sx={{
             py: 1,
             px: 2,
@@ -793,6 +810,7 @@ if (exportFormat === "csv") {
             setMoreActionsAnchor(null);
           }}
           disabled={!hasExistingPreferences && !hasChanges}
+          title="Reset grid to default settings"
           sx={{
             py: 1,
             px: 2,
@@ -845,20 +863,22 @@ if (exportFormat === "csv") {
                     }}>
                     {renderMoreActionsMenu()}
                     
-                    <Button
-                      type="button"
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      style={toolbarButtonStyle}
-                      hidden={!canAdd}
-                      onClick={(e: any) => {
-                        setSelectedItemUser(new props.itemType());
-                        setDialogIsOpen(true);
-                      }}
-                    >
-                      + Add {itemName}
-                    </Button>
+                    <Tooltip title={`${TOOLTIPS.ACTIONS.ADD} ${itemName}`} placement="top">
+                      <Button
+                        type="button"
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        style={toolbarButtonStyle}
+                        hidden={!canAdd}
+                        onClick={(e: any) => {
+                          setSelectedItemUser(new props.itemType());
+                          setDialogIsOpen(true);
+                        }}
+                      >
+                        + Add {itemName}
+                      </Button>
+                    </Tooltip>
                   </div>
                 </div>
               )}
@@ -914,9 +934,13 @@ if (exportFormat === "csv") {
               <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
                 <div
                   hidden={(selectedRows as unknown as any[]).length > 0}
-                  style={{ marginBottom: "24px" }}
                 >
-                  <h4>Columns</h4>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <h4 style={{ margin: 0 }}>Columns</h4>
+                    <IconButton onClick={() => setDrawerOpen(false)} size="small">
+                      <span style={{ fontSize: "24px", cursor: "pointer" }}>×</span>
+                    </IconButton>
+                  </div>
                   <MultiSelectDropdown
                     list={getFiltersList()}
                     selectedList={selectedColumns}
@@ -924,54 +948,42 @@ if (exportFormat === "csv") {
                   />
                 </div>
 
-                <Grid
-                  container
-                  spacing={2}
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  {/* <Grid item>
-                    <Button variant="contained" onClick={handlePreview}>
-                      Preview
-                    </Button>
-                  </Grid> */}
-
-                 <Grid container spacing={2}>
-                  <div>
-                    <h4>Export Format</h4>
-                    <div style={{ marginBottom: "16px" }}>
-    <label style={{ marginRight: "16px" }}>
-      <input
-        type="radio"
-        name="exportFormat"
-        value="csv"
-        checked={exportFormat === "csv"}
-        onChange={(e) => setExportFormat(e.target.value)}
-      />{" "}
-      CSV
-    </label>
-    <label>
-      <input
-        type="radio"
-        name="exportFormat"
-        value="xlsx"
-        checked={exportFormat === "xlsx"}
-        onChange={(e) => setExportFormat(e.target.value)}
-      />{" "}
-      Excel (XLSX)
-    </label>
-                    </div>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      hidden={(selectedRows as unknown as any[]).length > 0}
-                      onClick={(e: any) => handleExportToExcel()}
-                    >
-                      Export
-                    </Button>
+                <div style={{ marginTop: "24px" }}>
+                  <h4>Export Format</h4>
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ marginRight: "16px" }}>
+                      <input
+                        type="radio"
+                        name="exportFormat"
+                        value="csv"
+                        checked={exportFormat === "csv"}
+                        onChange={(e) => setExportFormat(e.target.value)}
+                      />{" "}
+                      CSV
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="exportFormat"
+                        value="xlsx"
+                        checked={exportFormat === "xlsx"}
+                        onChange={(e) => setExportFormat(e.target.value)}
+                      />{" "}
+                      Excel (XLSX)
+                    </label>
                   </div>
-                </Grid>
-                </Grid>
+                </div>
+              </div>
+              
+              <div style={{ padding: "16px", borderTop: "1px solid #e0e0e0", backgroundColor: "#fff" }}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  hidden={(selectedRows as unknown as any[]).length > 0}
+                  onClick={(e: any) => handleExportToExcel()}
+                >
+                  Export
+                </Button>
               </div>
             </div>
           </Drawer>

@@ -36,7 +36,8 @@ import DoneIcon from '@mui/icons-material/Done';
 import { Utility } from "../../../models/utility";
 import Constants from "../../../others/constants";
 import LocalStorageUtil from "../../../others/LocalStorageUtil";
-import { Button } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
+import { TOOLTIPS } from "../../../constants/tooltips";
 
 type params = {
   canAddDeal: boolean;
@@ -136,16 +137,18 @@ export const DealHeader = (props: params) => {
   const addorUpdateStage = () => {
     return (
       <>
-        <button
-          type="button"
-          className="btn"
-          onClick={(e: any) =>
-            navigate("/pipeline/edit?pipelineID=" + selectedItem.pipelineID)
-          }
-        >
-          {" "}
-          <FontAwesomeIcon icon={faPencil} />
-        </button>
+        <Tooltip title="Edit pipeline stages" placement="top">
+          <button
+            type="button"
+            className="btn"
+            onClick={(e: any) =>
+              navigate("/pipeline/edit?pipelineID=" + selectedItem.pipelineID)
+            }
+          >
+            {" "}
+            <FontAwesomeIcon icon={faPencil} />
+          </button>
+        </Tooltip>
       </>
     );
   };
@@ -153,17 +156,21 @@ export const DealHeader = (props: params) => {
   const addorUpdateDeal = () => {
     return (
       <>
-        <Button
-          type="button"
-          variant="contained"
-          color="primary"
-          size="medium"
-          style={{ minWidth: 140, minHeight: 30, fontWeight: 600, padding: '0 24px', borderRadius: 8, boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={(e: any) => setDialogIsOpen(true)}
-          disabled={!canAddDeal}
-        >
-          + New Deal
-        </Button>
+        <Tooltip title={TOOLTIPS.DEAL.ADD_DEAL} placement="top">
+          <span>
+            <Button
+              type="button"
+              variant="contained"
+              color="primary"
+              size="medium"
+              style={{ minWidth: 140, minHeight: 30, fontWeight: 600, padding: '0 24px', borderRadius: 8, boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={(e: any) => setDialogIsOpen(true)}
+              disabled={!canAddDeal}
+            >
+              + New Deal
+            </Button>
+          </span>
+        </Tooltip>
       </>
     );
   };
@@ -416,30 +423,32 @@ export const DealHeader = (props: params) => {
                 </div>}
                 {!isMasterAdmin && <div className="pipefilterbtn" style={{ display: (dialogIsOpen || dealFilterDialogIsOpen) ? 'none' : 'block' }}>
                   <div className="filterbtn">
-                    <a
-                      className={`btn ${!(selectedFilterObj || selectedUserId) ? 'disabled' : ''}`}
-                      href="javascript:void(0);"
-                      style={{
-                        opacity: !(selectedFilterObj || selectedUserId) ? 0.5 : 1,
-                        cursor: !(selectedFilterObj || selectedUserId) ? 'not-allowed' : 'pointer',
-                        pointerEvents: !(selectedFilterObj || selectedUserId) ? 'none' : 'auto'
-                      }}
-                      onClick={(e: any) => {
-                        if (selectedFilterObj || selectedUserId) {
-                          setSelectedUserId(null);
-                          setSelectedFilterObj(null);
-                          if (props.pipeLinesList && props.pipeLinesList.length > 0) {
-                            props.setPipeLineId(props.pipeLinesList[0].pipelineID);
-                            props.setSelectedItem(props.pipeLinesList[0]);
-                          } else {
-                            props.setPipeLineId && props.setPipeLineId(null);
-                            props.setSelectedItem && props.setSelectedItem(null);
+                    <Tooltip title="Clear all active filters" placement="top">
+                      <a
+                        className={`btn ${!(selectedFilterObj || selectedUserId) ? 'disabled' : ''}`}
+                        href="javascript:void(0);"
+                        style={{
+                          opacity: !(selectedFilterObj || selectedUserId) ? 0.5 : 1,
+                          cursor: !(selectedFilterObj || selectedUserId) ? 'not-allowed' : 'pointer',
+                          pointerEvents: !(selectedFilterObj || selectedUserId) ? 'none' : 'auto'
+                        }}
+                        onClick={(e: any) => {
+                          if (selectedFilterObj || selectedUserId) {
+                            setSelectedUserId(null);
+                            setSelectedFilterObj(null);
+                            if (props.pipeLinesList && props.pipeLinesList.length > 0) {
+                              props.setPipeLineId(props.pipeLinesList[0].pipelineID);
+                              props.setSelectedItem(props.pipeLinesList[0]);
+                            } else {
+                              props.setPipeLineId && props.setPipeLineId(null);
+                              props.setSelectedItem && props.setSelectedItem(null);
+                            }
                           }
-                        }
-                      }}
-                    >
-                      <FilterAltOffIcon />
-                    </a>
+                        }}
+                      >
+                        <FilterAltOffIcon />
+                      </a>
+                    </Tooltip>
                   </div>
                 </div>}
 
@@ -453,13 +462,15 @@ export const DealHeader = (props: params) => {
               <div className="toolbarview-actionsrow">
                 <div className="d-flex toolbutton-group">
                   <Dropdown className="toolgrip-dropdownbox">
-                    <Dropdown.Toggle
-                      className="toolpipebtn activetoolbtn"
-                      variant="success"
-                      id="dropdown-toolgrip"
-                    >
-                      <FontAwesomeIcon icon={faGrip} />
-                    </Dropdown.Toggle>
+                    <Tooltip title="Switch between List and Kanban view" placement="top">
+                      <Dropdown.Toggle
+                        className="toolpipebtn activetoolbtn"
+                        variant="success"
+                        id="dropdown-toolgrip"
+                      >
+                        <FontAwesomeIcon icon={faGrip} />
+                      </Dropdown.Toggle>
+                    </Tooltip>
                     <Dropdown.Menu className="toolgrip-dropdown">
                       <Dropdown.Item
                         onClick={(e: any) => {

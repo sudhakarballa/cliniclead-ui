@@ -1186,12 +1186,12 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                     <FontAwesomeIcon icon={faEllipsisV} />
                   </Dropdown.Toggle>
                   <Dropdown.Menu style={{ zIndex: 2000, minWidth: 180 }}>
-                    <Dropdown.Item onClick={() => setOpenAddDealDialog(true)}>
+                    <Dropdown.Item onClick={() => setOpenAddDealDialog(true)} title="Create a new deal">
                       <FontAwesomeIcon icon={faAdd} style={{ marginRight: 8, color: '#28a745' }} /> New Deal
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Header style={{ fontSize: '12px', color: '#6c757d' }}>VIEW OPTIONS</Dropdown.Header>
-                    <Dropdown.Item onClick={() => props.setViewType("list")}>
+                    <Dropdown.Item onClick={() => props.setViewType("list")} title="Switch to list view">
                       <FontAwesomeIcon icon={faBars} style={{ marginRight: 8, color: '#007bff' }} /> List View
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => {
@@ -1199,21 +1199,21 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                       const currentParams = new URLSearchParams(window.location.search);
                       currentParams.set('viewType', 'kanban');
                       navigate(`/pipeline?${currentParams.toString()}`);
-                    }}>
+                    }} title="Switch to kanban board view">
                       <FontAwesomeIcon icon={faGrip} style={{ marginRight: 8, color: '#007bff' }} /> Kanban View
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Header style={{ fontSize: '12px', color: '#6c757d' }}>BULK ACTIONS</Dropdown.Header>
-                    <Dropdown.Item onClick={() => setDrawerOpen(true)} disabled={selectedRows.length > 0}>
+                    <Dropdown.Item onClick={() => setDrawerOpen(true)} disabled={selectedRows.length > 0} title="Export all deals to Excel or CSV">
                       <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8, color: '#17a2b8' }} /> Export
                     </Dropdown.Item>
-                    <Dropdown.Item onClick={handleOpenGroupEmailDialog} disabled={selectedRows.length === 0}>
+                    <Dropdown.Item onClick={handleOpenGroupEmailDialog} disabled={selectedRows.length === 0} title="Send email to selected deals">
                       📧 Send Group Email
                     </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setDrawerOpen(true)} disabled={selectedRows.length === 0}>
+                    <Dropdown.Item onClick={() => setDrawerOpen(true)} disabled={selectedRows.length === 0} title="Send SMS to selected deals">
                       <FontAwesomeIcon icon={faEnvelope} style={{ marginRight: 8, color: '#ffc107' }} /> Send SMS
                     </Dropdown.Item>
-                    <Dropdown.Item onClick={handleOpenSalesDialer} disabled={selectedRows.length === 0}>
+                    <Dropdown.Item onClick={handleOpenSalesDialer} disabled={selectedRows.length === 0} title="Open JustCall sales dialer for selected deals">
                       <FontAwesomeIcon icon={faPhone} style={{ marginRight: 8, color: '#6f42c1' }} /> JustCall Sales Dialer
                     </Dropdown.Item>
                   </Dropdown.Menu>

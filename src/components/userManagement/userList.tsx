@@ -13,6 +13,7 @@ import LockResetIcon from "@mui/icons-material/LockReset";
 import moment from "moment";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import { TenantService } from "../../services/tenantService";
+import { TOOLTIPS } from "../../constants/tooltips";
 
 const UsersList = () => {
   const userSvc = new UserService(ErrorBoundary);
@@ -167,27 +168,32 @@ const UsersList = () => {
   row?.emailConfirmed === false || row?.EmailConfirmed === false;
     return (
       <>
-        <Button
-          color="primary"
-          startIcon={<LockResetIcon />}
-          title="Reset Password"
-          onClick={(event) => {
-            if (!isCurrentUser) resetPassword(item.row);
-          }}
-          className="rowActionIcon"
-          disabled={isCurrentUser}
-        ></Button>
-        {/* Resend confirmation – only show when not confirmed */}
-      {needsConfirmation && (
-        <Button
-          color="primary"
-          startIcon={<MailOutlineIcon />}
-          title="Resend confirmation email"
-          onClick={() => resendConfirmation(row)}
-          className="rowActionIcon"
-          disabled={isResendClicked}
-        />
-      )}
+        <Tooltip title={TOOLTIPS.USER.RESET_PASSWORD} placement="top">
+          <span>
+            <Button
+              color="primary"
+              startIcon={<LockResetIcon />}
+              onClick={(event) => {
+                if (!isCurrentUser) resetPassword(item.row);
+              }}
+              className="rowActionIcon"
+              disabled={isCurrentUser}
+            ></Button>
+          </span>
+        </Tooltip>
+        {needsConfirmation && (
+          <Tooltip title={TOOLTIPS.USER.RESEND_CONFIRMATION} placement="top">
+            <span>
+              <Button
+                color="primary"
+                startIcon={<MailOutlineIcon />}
+                onClick={() => resendConfirmation(row)}
+                className="rowActionIcon"
+                disabled={isResendClicked}
+              />
+            </span>
+          </Tooltip>
+        )}
       </>
     );
   };

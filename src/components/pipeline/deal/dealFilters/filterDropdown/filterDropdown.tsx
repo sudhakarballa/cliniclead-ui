@@ -17,6 +17,8 @@ import { toast } from "react-toastify";
 import LocalStorageUtil from "../../../../../others/LocalStorageUtil";
 import Constants from "../../../../../others/constants";
 import DoneIcon from "@mui/icons-material/Done";
+import { Tooltip } from "@mui/material";
+import { TOOLTIPS } from "../../../../../constants/tooltips";
 
 type params = {
   showPipeLineFilters?: any;
@@ -193,44 +195,50 @@ const FilterDropdown = (props: params) => {
                       {item.name}
                     </button>
                     <div className="pipeselect-btns">
-                      <span
-                        className="pl-4"
-                        onClick={(e: any) => {
-                          e.stopPropagation(); // VERY important
-                          setDialogIsOpen(true);
-                          setSelectedFilter(item);
-                          setShowPipeLineFilters(false); // also optional here
-                        }}
-                        style={{ paddingLeft: 10, paddingRight: 10 }}
-                      >
-                        <FontAwesomeIcon className="pl-4" icon={faEdit} />
-                      </span>
-                      <span
-                        className="pl-4"
-                        onClick={(e: any) => {
-                          e.stopPropagation(); // VERY important
-                          setSelectedFilter(item);
-                          setShowDeleteDialog(true);
-                          setShowPipeLineFilters(false);
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faDeleteLeft} />
-                      </span>
+                      <Tooltip title="Edit this filter" placement="top">
+                        <span
+                          className="pl-4"
+                          onClick={(e: any) => {
+                            e.stopPropagation(); // VERY important
+                            setDialogIsOpen(true);
+                            setSelectedFilter(item);
+                            setShowPipeLineFilters(false); // also optional here
+                          }}
+                          style={{ paddingLeft: 10, paddingRight: 10 }}
+                        >
+                          <FontAwesomeIcon className="pl-4" icon={faEdit} />
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Delete this filter" placement="top">
+                        <span
+                          className="pl-4"
+                          onClick={(e: any) => {
+                            e.stopPropagation(); // VERY important
+                            setSelectedFilter(item);
+                            setShowDeleteDialog(true);
+                            setShowPipeLineFilters(false);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faDeleteLeft} />
+                        </span>
+                      </Tooltip>
                     </div>
                   </li>
                 ))}
               </ul>
             </div>
             <div className="add-new-filter">
-              <button
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  setDialogIsOpen(true);
-                  setShowPipeLineFilters(false);
-                }}
-              >
-                Add new filter
-              </button>
+              <Tooltip title="Create a new custom filter" placement="top">
+                <button
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    setDialogIsOpen(true);
+                    setShowPipeLineFilters(false);
+                  }}
+                >
+                  Add new filter
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}

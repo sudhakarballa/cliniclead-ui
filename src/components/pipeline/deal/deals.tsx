@@ -25,6 +25,8 @@ import { DealFilter } from "../../../models/dealFilters";
 import { DotDigitalCampaignService } from "../../../services/dotDigitalCampaignService";
 import { JustcallCampaignService } from "../../../services/justCallCampaignService";
 import { useAuthContext } from "../../../contexts/AuthContext";
+import { Tooltip } from "@mui/material";
+import { TOOLTIPS } from "../../../constants/tooltips";
 
 type params = {
   isCombineEnabled?: any;
@@ -454,16 +456,18 @@ export const Deals = (props: params) => {
                       <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
                       <h3 style={{ marginBottom: '8px', color: '#333' }}>No deals found</h3>
                       <p style={{ marginBottom: '16px' }}>No deals match the selected filter combination.</p>
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => {
-                          setSelectedFilterObj(null);
-                          setSelectedUserId(null);
-                        }}
-                        style={{ padding: '8px 16px' }}
-                      >
-                        Clear Filters
-                      </button>
+                      <Tooltip title="Remove all active filters and show all deals" placement="top">
+                        <button 
+                          className="btn btn-primary"
+                          onClick={() => {
+                            setSelectedFilterObj(null);
+                            setSelectedUserId(null);
+                          }}
+                          style={{ padding: '8px 16px' }}
+                        >
+                          Clear Filters
+                        </button>
+                      </Tooltip>
                     </div>
                   ) : (
                   <div className="pdstage-row" hidden={pipeLines.length == 0}>
@@ -523,29 +527,31 @@ export const Deals = (props: params) => {
                       style={{ textAlign: "center" }}
                       hidden={isLoadingMore || pipeLines.length == 0}
                     >
-                      <button
-                        type="button"
-                        className="btn btn-primary btngradiant"
-                        style={{
-                          minWidth: 160,
-                          minHeight: 44,
-                          fontWeight: 600,
-                          fontSize: 16,
-                          borderRadius: 8,
-                          background: 'linear-gradient(90deg, #b68d40 0%, #cfa34c 100%)',
-                          color: '#fff',
-                          boxShadow: '0 2px 8px rgba(33,35,44,0.08)',
-                          transition: 'background 0.2s',
-                          margin: '16px 0',
-                          padding: '0 32px',
-                          outline: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                        onClick={(e: any) => loadMoreDeals()}
-                      >
-                        Load More
-                      </button>
+                      <Tooltip title="Load more deals from all stages" placement="top">
+                        <button
+                          type="button"
+                          className="btn btn-primary btngradiant"
+                          style={{
+                            minWidth: 160,
+                            minHeight: 44,
+                            fontWeight: 600,
+                            fontSize: 16,
+                            borderRadius: 8,
+                            background: 'linear-gradient(90deg, #b68d40 0%, #cfa34c 100%)',
+                            color: '#fff',
+                            boxShadow: '0 2px 8px rgba(33,35,44,0.08)',
+                            transition: 'background 0.2s',
+                            margin: '16px 0',
+                            padding: '0 32px',
+                            outline: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                          onClick={(e: any) => loadMoreDeals()}
+                        >
+                          Load More
+                        </button>
+                      </Tooltip>
                     </div>
                      )}
                     <div

@@ -1621,7 +1621,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
         position: 'sticky',
         top: 0,
         backgroundColor: 'white',
-        zIndex: 100,
+        zIndex: 1,
         paddingTop: '20px',
         paddingBottom: '10px',
         marginTop: '-20px',
@@ -1652,6 +1652,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                     setShowCancelModal(true);
                   }
                 }}
+                title={hasChanges ? "Discard unsaved changes" : "Cancel and go back"}
               >
                 {hasChanges ? 'Discard Changes' : 'Cancel'}
               </Button>
@@ -1738,6 +1739,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                     setIsSaving(false);
                   }
                 }}
+                title={hasChanges ? "Save changes to report" : "Save new report"}
               >
                 {isSaving ? (
                   <>
@@ -1770,6 +1772,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                   fontSize: '13px',
                   fontWeight: '500'
                 }}
+                title="Refresh report data"
               >
                 <FontAwesomeIcon icon={faRedo} className="me-2" style={{ fontSize: '12px' }} />
                 Refresh
@@ -1784,7 +1787,18 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                     borderRadius: '6px',
                     padding: '6px 12px',
                     fontSize: '13px',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#0d6efd';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.borderColor = '#0d6efd';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#0d6efd';
+                    e.currentTarget.style.borderColor = '#0d6efd';
                   }}
                 >
                   <FontAwesomeIcon icon={faTachometerAlt} className="me-2" style={{ fontSize: '12px' }} />
@@ -1966,11 +1980,11 @@ onClick={async () => {
                         toast.error('Failed to clone report. Please try again.');
                       }
                     }
-                  }}>
+                  }} title="Create a copy of this report">
                     <FontAwesomeIcon icon={faCopy} className="me-2" />
                     Duplicate Report
                   </Dropdown.Item>
-                  <Dropdown.Item onClick={() => setShowDeleteModal(true)} className="text-danger">
+                  <Dropdown.Item onClick={() => setShowDeleteModal(true)} className="text-danger" title="Delete this report permanently">
                     <FontAwesomeIcon icon={faTrash} className="me-2" />
                     Delete Report
                   </Dropdown.Item>
@@ -2174,7 +2188,7 @@ onClick={async () => {
                         variant="outline-danger"
                         size="sm"
                         onClick={() => removeFilter(filter.id)}
-                        title="Delete condition"
+                        title="Remove this condition"
                       >
                         <FontAwesomeIcon icon={faTimes} />
                       </Button>
@@ -2303,7 +2317,7 @@ onClick={async () => {
                           setNewCondition({ entity: 'Deal', field: '', operator: '', value: '' });
                           setShowAddCondition(false);
                         }}
-                        title="Delete condition"
+                        title="Remove this condition"
                       >
                         <FontAwesomeIcon icon={faTimes} />
                       </Button>
@@ -2317,6 +2331,17 @@ onClick={async () => {
                 <Button
                   variant="outline-primary"
                   size="sm"
+                  style={{ transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#0d6efd';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.borderColor = '#0d6efd';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#0d6efd';
+                    e.currentTarget.style.borderColor = '#0d6efd';
+                  }}
                   onClick={() => {
                     if (newCondition.field && newCondition.operator && newCondition.value) {
                       handleAddConditionClick();
@@ -2325,6 +2350,7 @@ onClick={async () => {
                       setShowAddCondition(true);
                     }
                   }}
+                  title="Add a new filter condition"
                 >
                   <FontAwesomeIcon icon={faPlus} className="me-1" />
                   Add Condition
@@ -2437,7 +2463,21 @@ onClick={async () => {
               </div>
 
               <Dropdown>
-                <Dropdown.Toggle variant="outline-primary" size="sm">
+                <Dropdown.Toggle 
+                  variant="outline-primary" 
+                  size="sm"
+                  style={{ transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#0d6efd';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.borderColor = '#0d6efd';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#0d6efd';
+                    e.currentTarget.style.borderColor = '#0d6efd';
+                  }}
+                >
                   <FontAwesomeIcon icon={faDownload} className="me-1" />
                   Export
                 </Dropdown.Toggle>
@@ -2818,6 +2858,17 @@ onClick={async () => {
                 setFolderNameError('');
               }}
               title="Create New Folder"
+              style={{ transition: 'all 0.2s' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#0d6efd';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.borderColor = '#0d6efd';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#0d6efd';
+                e.currentTarget.style.borderColor = '#0d6efd';
+              }}
             >
               <FontAwesomeIcon icon={faFolder} className="me-1" />
               New Folder

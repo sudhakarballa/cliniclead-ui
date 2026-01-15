@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import DealLostConfirmationDialog from "./dealLostConfirmation";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { useRef } from "react";
+import { Tooltip } from "@mui/material";
 
 
 type params = {
@@ -228,127 +229,131 @@ const handleLostClick = () => {
                   </div>
                   <div className="pdsdetail-topright">
                     <div className="wonlost-btngroup">
-                      <button 
-                        className={`btn wonbtn ${
-                          dealItem?.statusID === 2 
-                            ? 'btn-success' 
-                            : 'btn-outline-success'
-                        }`}
-                        onClick={handleWonClick}
-                        style={{
-                          boxShadow: dealItem?.statusID === 2 
-                            ? '0 0 10px rgba(40, 167, 69, 0.5)' 
-                            : 'none',
-                          transform: dealItem?.statusID === 2 
-                            ? 'scale(1.1)' 
-                            : 'scale(1)',
-                          marginRight: 16 // Add space between WON and LOST buttons
-                        }}
-                      >
-                        <span className="label">
-                          <FontAwesomeIcon icon={faThumbsUp} />
-                          {dealItem?.statusID === 2 && (
-                            <>
-                              {' WON'}
-                              {dealItem.modifiedDate && (
-                                <span
-                                  style={{
-                                    marginLeft: 8,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    background: '#e3f2fd',
-                                    borderRadius: '8px',
-                                    padding: '4px 10px',
-                                    boxShadow: '0 1px 4px rgba(25, 118, 210, 0.10)',
-                                    transition: 'background 0.2s',
-                                    fontSize: '13px',
-                                    color: '#1976d2',
-                                    fontWeight: 500,
-                                    position: 'relative',
-                                  }}
-                                  title={`Won on: ${moment(dealItem.modifiedDate).format('MM/DD/YYYY hh:mm:ss a')}`}
-                                  className="deal-won-info-icon"
-                                >
-                                  <FontAwesomeIcon icon={faInfoCircle} color="#1976d2" style={{ fontSize: 16, marginRight: 0 }} />
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </span>
-                      </button>
-                      <button 
-                        className={`btn lostbtn ${
-                          dealItem?.statusID === 3 
-                            ? 'btn-danger' 
-                            : 'btn-outline-danger'
-                        }`}
-                        onClick={handleLostClick}
-                        style={{
-                          boxShadow: dealItem?.statusID === 3 
-                            ? '0 0 10px rgba(220, 53, 69, 0.5)' 
-                            : 'none',
-                          transform: dealItem?.statusID === 3 
-                            ? 'scale(1.1)' 
-                            : 'scale(1)'
-                        }}
-                      >
-                        <span className="label">
-                          <FontAwesomeIcon icon={faThumbsDown} />
-                          {dealItem?.statusID === 3 && (
-                            <>
-                              {' LOST'}
-                              {dealItem.comments && (
-                                <span
-                                  style={{
-                                    marginLeft: 8,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    background: '#fdecea',
-                                    borderRadius: '8px',
-                                    padding: '4px 10px',
-                                    boxShadow: '0 1px 4px rgba(220, 53, 69, 0.10)',
-                                    transition: 'background 0.2s',
-                                    fontSize: '13px',
-                                    color: '#d32f2f',
-                                    fontWeight: 500,
-                                    position: 'relative',
-                                  }}
-                                  title={dealItem.comments}
-                                  className="deal-lost-info-icon"
-                                >
-                                  <FontAwesomeIcon icon={faInfoCircle} color="#d32f2f" style={{ fontSize: 16, marginRight: 0 }} />
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </span>
-                      </button>
+                      <Tooltip title="Mark deal as Won" placement="top">
+                        <button 
+                          className={`btn wonbtn ${
+                            dealItem?.statusID === 2 
+                              ? 'btn-success' 
+                              : 'btn-outline-success'
+                          }`}
+                          onClick={handleWonClick}
+                          style={{
+                            boxShadow: dealItem?.statusID === 2 
+                              ? '0 0 10px rgba(40, 167, 69, 0.5)' 
+                              : 'none',
+                            transform: dealItem?.statusID === 2 
+                              ? 'scale(1.1)' 
+                              : 'scale(1)',
+                            marginRight: 16
+                          }}
+                        >
+                          <span className="label">
+                            <FontAwesomeIcon icon={faThumbsUp} />
+                            {dealItem?.statusID === 2 && (
+                              <>
+                                {' WON'}
+                                {dealItem.modifiedDate && (
+                                  <span
+                                    style={{
+                                      marginLeft: 8,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      background: '#e3f2fd',
+                                      borderRadius: '8px',
+                                      padding: '4px 10px',
+                                      boxShadow: '0 1px 4px rgba(25, 118, 210, 0.10)',
+                                      transition: 'background 0.2s',
+                                      fontSize: '13px',
+                                      color: '#1976d2',
+                                      fontWeight: 500,
+                                      position: 'relative',
+                                    }}
+                                    title={`Won on: ${moment(dealItem.modifiedDate).format('MM/DD/YYYY hh:mm:ss a')}`}
+                                    className="deal-won-info-icon"
+                                  >
+                                    <FontAwesomeIcon icon={faInfoCircle} color="#1976d2" style={{ fontSize: 16, marginRight: 0 }} />
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </span>
+                        </button>
+                      </Tooltip>
+                      <Tooltip title="Mark deal as Lost" placement="top">
+                        <button 
+                          className={`btn lostbtn ${
+                            dealItem?.statusID === 3 
+                              ? 'btn-danger' 
+                              : 'btn-outline-danger'
+                          }`}
+                          onClick={handleLostClick}
+                          style={{
+                            boxShadow: dealItem?.statusID === 3 
+                              ? '0 0 10px rgba(220, 53, 69, 0.5)' 
+                              : 'none',
+                            transform: dealItem?.statusID === 3 
+                              ? 'scale(1.1)' 
+                              : 'scale(1)'
+                          }}
+                        >
+                          <span className="label">
+                            <FontAwesomeIcon icon={faThumbsDown} />
+                            {dealItem?.statusID === 3 && (
+                              <>
+                                {' LOST'}
+                                {dealItem.comments && (
+                                  <span
+                                    style={{
+                                      marginLeft: 8,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      background: '#fdecea',
+                                      borderRadius: '8px',
+                                      padding: '4px 10px',
+                                      boxShadow: '0 1px 4px rgba(220, 53, 69, 0.10)',
+                                      transition: 'background 0.2s',
+                                      fontSize: '13px',
+                                      color: '#d32f2f',
+                                      fontWeight: 500,
+                                      position: 'relative',
+                                    }}
+                                    title={dealItem.comments}
+                                    className="deal-lost-info-icon"
+                                  >
+                                    <FontAwesomeIcon icon={faInfoCircle} color="#d32f2f" style={{ fontSize: 16, marginRight: 0 }} />
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </span>
+                        </button>
+                      </Tooltip>
                       {(dealItem?.statusID === 2 || dealItem?.statusID === 3) && (
-<button
-  className="btn btn-outline-secondary ms-2"
-  onClick={() => {
-    const lastOpenStageID =
-      (dealItem as any).lastOpenStageID ??
-      dealItem.stageID ??
-      stages?.[0]?.stageID;
+                        <Tooltip title="Reopen this deal" placement="top">
+                          <button
+                            className="btn btn-outline-secondary ms-2"
+                            onClick={() => {
+                              const lastOpenStageID =
+                                (dealItem as any).lastOpenStageID ??
+                                dealItem.stageID ??
+                                stages?.[0]?.stageID;
 
-    updateDealStatus(
-      "Open",
-      {
-        stageID: lastOpenStageID,
-        comments: null,      // clear lost comments
-        reason: null,    // clear lost reason
-      },
-      { allowUndo: true }
-    );
-  }}
-  title="Reopen this deal"
->
-  <FontAwesomeIcon icon={faTimesCircle} className="me-1" />
-  Reopen
-</button>
-
-)}
+                              updateDealStatus(
+                                "Open",
+                                {
+                                  stageID: lastOpenStageID,
+                                  comments: null,
+                                  reason: null,
+                                },
+                                { allowUndo: true }
+                              );
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faTimesCircle} className="me-1" />
+                            Reopen
+                          </button>
+                        </Tooltip>
+                      )}
 
                     </div>
                     {/* <div className="ellipsis-btncol">

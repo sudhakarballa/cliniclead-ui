@@ -539,7 +539,7 @@ export const TaskAddEdit = (props: params) => {
                   <Spinner />
                 </div>
               )}
-              <div className="modelformfiledrow row" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div className="modelformfiledrow row">
                 <div>
                   <div className="modelformbox ps-2 pe-2">
                     {

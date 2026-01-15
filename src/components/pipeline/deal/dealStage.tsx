@@ -4,6 +4,8 @@ import { Draggable } from "react-beautiful-dnd";
 import { FaPlus, FaPlay } from "react-icons/fa";
 import { DealList } from "./dealList";
 import { PipeLine } from "../../../models/pipeline";
+import { Tooltip } from "@mui/material";
+import { TOOLTIPS } from "../../../constants/tooltips";
 
 
 type params = {
@@ -40,8 +42,14 @@ export const DealStage = (props: params) => {
                                 <div className="pdstage-head">
                                     <div className="pdstagehead-title" title={title}>{title}</div>
                                     <div className="pdstagehead-btns">
-                                        <button className='' onClick={(e:any)=>onDealAddClick(stageID)}><FaPlus /></button>
-                                        <button className={deals?.length==0 ? 'disabled' : ''} disabled={deals?.length==0} onClick={(e:any)=>onStageExpand(stageID)}><FaPlay /></button>
+                                        <Tooltip title={TOOLTIPS.DEAL.ADD_DEAL} placement="top">
+                                            <button className='' onClick={(e:any)=>onDealAddClick(stageID)}><FaPlus /></button>
+                                        </Tooltip>
+                                        <Tooltip title="Expand stage to view all deals" placement="top">
+                                            <span>
+                                                <button className={deals?.length==0 ? 'disabled' : ''} disabled={deals?.length==0} onClick={(e:any)=>onStageExpand(stageID)}><FaPlay /></button>
+                                            </span>
+                                        </Tooltip>
                                     </div>
                                 </div>
                                 <div className="pdstage-summary">

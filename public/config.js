@@ -1,7 +1,7 @@
 window.config = {
  //ServicesBaseURL: "https://localhost:7182/api",
- ServicesBaseURL: "https://stg-api.cliniclead.app/api",
-  SMSServiceURL:"https://stg-api.cliniclead.app/api/send-sms",
+ ServicesBaseURL: "https://api.cliniclead.app/api",
+  SMSServiceURL:"https://api.cliniclead.app/api/send-sms",
   DefaultStages: [
     "Qualified",
     "Conact Made",
@@ -10,14 +10,14 @@ window.config = {
     "Negotiations Started",
   ],
   HomePage:"/",
-  RedirectUri:"https://cliniclead.app/",
+  RedirectUri:"https://cliniclead.app",
   UseMockService: false,
   DisableDropdownAPI: true,
   DisableDotDigitalAPI: true,
   CampaignSections: ["Assets", "Tasks"],
   ClientId: "58f8d840-1215-4e4f-8901-da06f1dba5ac",
   DateFormat: "MM/DD/YYYY",
-  FrontendBaseURL: "https://stg-ui.cliniclead.app/",
+  FrontendBaseURL: "https://cliniclead.app",
   NavItemsForUser: [
     {
       Role: 0,
@@ -90,9 +90,12 @@ window.config = {
     maxSessionTimeoutMinutes: 1440
   },
   TenantSubdomains: {
-    1: "transformus.cliniclead.app",
-    2: "signatureclinic.cliniclead.app/"
+    1: "signatureclinic.cliniclead.app",
+    2: "transformus.cliniclead.app"
     // Add more tenants as needed: tenantId: "subdomain.cliniclead.app"
   },
   EnableSubdomainRedirect: true // Set to true for production, false for local development
 };
+
+   
+  

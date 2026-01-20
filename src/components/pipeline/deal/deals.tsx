@@ -55,6 +55,11 @@ export const Deals = (props: params) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState(null);
   const [stageIdForExpand, setStageIdForExpand] = useState(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(200);
   
   // Get initial view type from URL
   const urlViewType = new URLSearchParams(location.search).get("viewType");
@@ -407,6 +412,45 @@ export const Deals = (props: params) => {
   }
 }, [selectedFilterObj, selectedUserId]);
 
+
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (scrollContainerRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+        const hasOverflow = scrollWidth > clientWidth + 10;
+        setShowScrollButtons(hasOverflow);
+        setShowLeftArrow(scrollLeft > 10);
+        setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+      }
+      const mainContent = document.querySelector('.maincontent');
+      if (mainContent) {
+        const rect = mainContent.getBoundingClientRect();
+        setSidebarWidth(rect.left);
+      }
+    };
+    checkScroll();
+    setTimeout(checkScroll, 100);
+    setTimeout(checkScroll, 500);
+    const container = scrollContainerRef.current;
+    container?.addEventListener('scroll', checkScroll);
+    window.addEventListener('resize', checkScroll);
+    const observer = new MutationObserver(checkScroll);
+    const sidebar = document.querySelector('.sidebar');
+    const mainLayout = document.querySelector('.mainlayout');
+    if (sidebar) {
+      observer.observe(sidebar, { attributes: true, attributeFilter: ['class', 'style'], subtree: true });
+    }
+    if (mainLayout) {
+      observer.observe(mainLayout, { attributes: true, childList: true, subtree: true });
+    }
+    return () => {
+      container?.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+      observer.disconnect();
+    };
+  }, [stages]);
+
   // Remove the userProfile waiting condition to prevent infinite loading
 
   return (
@@ -440,7 +484,7 @@ export const Deals = (props: params) => {
               />
             ) : null}
             {viewType === "kanban" ? (
-              <div className="pdstage-area">
+              <div className="pdstage-area" ref={scrollContainerRef}>
                 <div className="pdstagearea-inner">
                   {/* Show no deals message when filter is applied but no deals found */}
                   {(selectedFilterObj || selectedUserId) && stages.length === 0 && !isLoading ? (
@@ -470,6 +514,25 @@ export const Deals = (props: params) => {
                       </Tooltip>
                     </div>
                   ) : (
+                  <>
+                    {showScrollButtons && showLeftArrow && (
+                      <Tooltip title="Scroll left to view previous stages" placement="right">
+                        <button onClick={() => {
+                          if (scrollContainerRef.current) {
+                            scrollContainerRef.current.scrollLeft -= 400;
+                          }
+                        }} style={{ position: 'fixed', left: `${sidebarWidth + 20}px`, top: '50%', transform: 'translateY(-50%)', zIndex: 99999, background: '#fff', border: '2px solid #b68d40', borderRadius: '50%', width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 32, fontWeight: 'bold', color: '#b68d40' }}>‹</button>
+                      </Tooltip>
+                    )}
+                    {showScrollButtons && showRightArrow && (
+                      <Tooltip title="Scroll right to view more stages" placement="left">
+                        <button onClick={() => {
+                          if (scrollContainerRef.current) {
+                            scrollContainerRef.current.scrollLeft += 400;
+                          }
+                        }} style={{ position: 'fixed', right: 20, top: '50%', transform: 'translateY(-50%)', zIndex: 99999, background: '#fff', border: '2px solid #b68d40', borderRadius: '50%', width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 32, fontWeight: 'bold', color: '#b68d40' }}>›</button>
+                      </Tooltip>
+                    )}
                   <div className="pdstage-row" hidden={pipeLines.length == 0}>
                     <DragDropContext
                       onDragEnd={onDragEnd}
@@ -520,6 +583,7 @@ export const Deals = (props: params) => {
                       </Droppable>
                     </DragDropContext>
                   </div>
+                  </>
                   )}
                   <div className="loadingmore">
                     {hasMore && !isLoadingMore && pipeLines.length > 0 && (

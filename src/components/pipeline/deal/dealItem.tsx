@@ -40,9 +40,7 @@ export const DealItem = (props: params) => {
     LocalStorageUtil.getItemObject(Constants.UTILITY) as any
   );
 
-  const handleLinkClick = (e:any) => {
-    e.preventDefault(); // Prevents the default anchor behavior
-    // Navigate programmatically
+  const handleCardClick = () => {
     let filterId = LocalStorageUtil.getItem(Constants.FILTER_ID) as any;
     let url = `/deal?id=${deal?.dealID}&pipeLineId=${deal?.pipelineID}`;
     if (filterId !== undefined && filterId !== null && filterId !== "undefined") {
@@ -92,51 +90,42 @@ export const DealItem = (props: params) => {
         style={provided.draggableProps.style}
       >
         <div className="pdstage-item">
-          <div className='pdstage-box' style={{ overflow: 'visible' }}>
-            <a className='pdstage-boxlink'>
-              <div className="pdstage-title">{deal?.treatmentName}
+          <div className='pdstage-box' style={{ overflow: 'visible', cursor: 'pointer' }} onClick={handleCardClick}>
+            <div className="pdstage-title">{deal?.treatmentName}</div>
+            <div className='dropdownbox-toolgripdot'>
+              <Tooltip title="More actions" placement="top">
+                <button 
+                  className='toolgrip-dot' 
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => { e.stopPropagation(); handleDropdownToggle(e); }}
+                >
+                  <FontAwesomeIcon icon={faEllipsisVertical} />
+                </button>
+              </Tooltip>
+            </div>
+            <div className="pdstage-description">
+              <div className="pdstage-descitem">{utility?.users.find(u => u.id == deal?.assigntoId)?.name || deal?.personName}</div>
+            </div>
+            <div className="pdstage-status-row">
+              <div className="pdstage-avatar">
+                <i className="rs-icon rs-icon-user-circle"></i>
               </div>
-              <div className='dropdownbox-toolgripdot'>
-                <Tooltip title="More actions" placement="top">
-                  <button 
-                    className='toolgrip-dot' 
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      cursor: 'pointer'
-                    }}
-                    onClick={handleDropdownToggle}
-                  >
-                    <FontAwesomeIcon icon={faEllipsisVertical} />
-                  </button>
-                </Tooltip>
-              </div>
-              <div className="pdstage-description">
-                <div className="pdstage-descitem"><a href="" onClick={(e: any) => handleLinkClick(e)}>{utility?.users.find(u => u.id == deal?.assigntoId)?.name || deal?.personName}</a></div>
-              </div>
-              <div className="pdstage-status-row">
-                <div className="pdstage-avatar">
-                  <i className="rs-icon rs-icon-user-circle"></i>
-                </div>
-                <div className="pdstage-value">
+              <div className="pdstage-value">
                 <span>£{deal?.value ?? 0}</span>
-                </div>
               </div>
-              <div className='pdstage-box1 pdstage-simplebadge'>
-                   {deal?.statusID === 2 && (
-                     <div className="deal-status-badge won">WON</div>
-                    )}
-                    {deal?.statusID === 3 && (
-                      <div className="deal-status-badge lost">LOST</div>
-                         )}
-                    {/* <a className='pdstage-boxlink'>
-                    ...
-                     </a> */}
-</div>
-            </a>
-            {/* <div className="pdstage-status-indicator">
-                <div className='pdstage-indicator-icon'><i className="rs-icon rs-icon-arrow-circle-left"></i></div>
-              </div> */}
+            </div>
+            <div className='pdstage-box1 pdstage-simplebadge'>
+              {deal?.statusID === 2 && (
+                <div className="deal-status-badge won">WON</div>
+              )}
+              {deal?.statusID === 3 && (
+                <div className="deal-status-badge lost">LOST</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

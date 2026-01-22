@@ -558,20 +558,20 @@ export const DealDetails = () => {
           <div className="pdstage-detail">
             <div className="sidebardetail-col">
               <div className="sidebardetailtopbar">
-                <div
-                  className="appdealtopbartitle"
-                  onClick={() => {
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
                     const qs = new URLSearchParams();
                     if (pipeLineId) qs.set("pipelineID", String(pipeLineId));
                     if (filterId) qs.set("filterId", String(filterId));
                     if (viewType === "list") qs.set("viewType", "list");
                     navigator(`/pipeline?${qs.toString()}`);
                   }}
+                  style={{ fontSize: '0.9em', color: '#007bff', textDecoration: 'underline' }}
                 >
-                  <a href="javascript:void(0);">
-                    <FontAwesomeIcon icon={faAngleLeft} /> Deals
-                  </a>{" "}
-                </div>
+                  <FontAwesomeIcon icon={faAngleLeft} /> Deals
+                </a>
                 {/* <div className="appdealtopbaractions">
                   <Dropdown className="dropdown-actionsbox">
                     <Dropdown.Toggle id="dropdown-actions">
@@ -825,23 +825,16 @@ export const DealDetails = () => {
                     >
                       <div className="details-row">
                         <div className="details-label">Phone -</div>
-                        <a
-                          href="javascript:void(0);"
-                          style={{
-                            fontSize: "0.9em",
-                            color: "#007bff",
-                            textDecoration: "underline",
-                          }}
-                        >
-                          <div
-                            className="details-value"
-                            onClick={(e: any) =>
-                              setSelectedPhoneNmber(dealItem.phone as any)
-                            }
-                          >
-                            {dealItem.phone || "-"}
-                          </div>
-                        </a>
+                        <div className="details-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {dealItem.phone || "-"}
+                          {dealItem.phone && dealItem.phone !== "-" && (
+                            <FontAwesomeIcon 
+                              icon={faPhone} 
+                              style={{ cursor: 'pointer', color: '#4f80ff' }}
+                              onClick={(e: any) => setSelectedPhoneNmber(dealItem.phone as any)}
+                            />
+                          )}
+                        </div>
                       </div>
                       <div className="details-row">
                         <div className="details-label">Email -</div>

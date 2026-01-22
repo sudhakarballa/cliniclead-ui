@@ -57,6 +57,7 @@ type params = {
   setDealFilterDialogIsOpen:any;
   pipeLineId:any;
   setPipeLineId:any;
+  onSortChange:any;
 };
 export const DealHeader = (props: params) => {
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ export const DealHeader = (props: params) => {
     setDealFilterDialogIsOpen,
     pipeLineId,
     setPipeLineId,
+    onSortChange,
     ...others
   } = props;
   const [pipeLinesList, setPipeLinesList] = useState(props.pipeLinesList);
@@ -451,6 +453,24 @@ export const DealHeader = (props: params) => {
                     </Tooltip>
                   </div>
                 </div>}
+
+                <div className="pipefilterbtn" style={{ display: (dialogIsOpen || dealFilterDialogIsOpen) ? 'none' : 'block', marginLeft: '8px' }}>
+                  <Dropdown>
+                    <Tooltip title="Sort deals" placement="top">
+                      <Dropdown.Toggle className="btn" style={{ padding: '1px 6px', backgroundColor: '#1f2937', color: '#fff', border: 'none' }}>
+                        <FontAwesomeIcon icon={faBars} style={{ fontSize: '16px' }} />
+                      </Dropdown.Toggle>
+                    </Tooltip>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => onSortChange('name-asc')}>Name (A-Z)</Dropdown.Item>
+                      <Dropdown.Item onClick={() => onSortChange('name-desc')}>Name (Z-A)</Dropdown.Item>
+                      <Dropdown.Item onClick={() => onSortChange('value-asc')}>Value (Low to High)</Dropdown.Item>
+                      <Dropdown.Item onClick={() => onSortChange('value-desc')}>Value (High to Low)</Dropdown.Item>
+                      <Dropdown.Item onClick={() => onSortChange('date-asc')}>Date (Oldest First)</Dropdown.Item>
+                      <Dropdown.Item onClick={() => onSortChange('date-desc')}>Date (Newest First)</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
 
                 {/* <div className="pipeselectbox selecteveryonebox">
                                     <button className="pipeselect" type="button"><FontAwesomeIcon icon={faAlignCenter} /> Everyone <FontAwesomeIcon icon={faCaretDown} /></button>

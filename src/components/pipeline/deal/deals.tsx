@@ -94,6 +94,28 @@ export const Deals = (props: params) => {
   );
   const [selectedUserId, setSelectedUserId] = useState<any>();
   const [dealFilterDialogIsOpen, setDealFilterDialogIsOpen] = useState((selectedFilterObj as DealFilter)?.isPreview ?? false);
+  const [sortBy, setSortBy] = useState<string>("");
+  
+  const sortDeals = (deals: Deal[], sortType: string): Deal[] => {
+    const sorted = [...deals];
+    switch(sortType) {
+      case 'name-asc':
+        return sorted.sort((a, b) => (a.treatmentName || '').localeCompare(b.treatmentName || ''));
+      case 'name-desc':
+        return sorted.sort((a, b) => (b.treatmentName || '').localeCompare(a.treatmentName || ''));
+      case 'value-asc':
+        return sorted.sort((a, b) => (parseFloat(a.value || '0') - parseFloat(b.value || '0')));
+      case 'value-desc':
+        return sorted.sort((a, b) => (parseFloat(b.value || '0') - parseFloat(a.value || '0')));
+      case 'date-asc':
+        return sorted.sort((a, b) => new Date(a.createdDate || 0).getTime() - new Date(b.createdDate || 0).getTime());
+      case 'date-desc':
+        return sorted.sort((a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime());
+      default:
+        return sorted;
+    }
+  };
+  
   const stageHasMore = (
   stages: Stage[],
   perStageLimit: number,
@@ -268,6 +290,16 @@ export const Deals = (props: params) => {
       if (!isLoading) loadStages(selectedItem?.pipelineID as any);
     }
   }, [selectedItem, selectedFilterObj, selectedUserId]);
+
+  useEffect(() => {
+    if (sortBy && stages.length > 0) {
+      const sortedStages = stages.map(stage => ({
+        ...stage,
+        deals: sortDeals(stage.deals, sortBy)
+      }));
+      setStages([...sortedStages]);
+    }
+  }, [sortBy]);
 
   const onDragEnd = (result: any) => {
     const source = result.source;
@@ -481,6 +513,7 @@ export const Deals = (props: params) => {
                 setSelectedUserId={setSelectedUserId}
                 setDealFilterDialogIsOpen={setDealFilterDialogIsOpen}
                 dealFilterDialogIsOpen={dealFilterDialogIsOpen}
+                onSortChange={(sort: string) => setSortBy(sort)}
               />
             ) : null}
             {viewType === "kanban" ? (

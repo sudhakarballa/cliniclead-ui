@@ -69,14 +69,27 @@ export const useGridPreferences = (gridName: string) => {
         userProfile.userId
       );
 
-      await (existingPref?.id 
+      const result = await (existingPref?.id 
         ? userPreferencesService.updateUserPreferences(userPrefs)
         : userPreferencesService.addUserPreferences(userPrefs));
       
-      // Always fetch latest preferences after save/update
-      const allPrefs = await userPreferencesService.getUserPreferencesByUserId(userProfile.userId);
-      if (Array.isArray(allPrefs)) {
-        setUserPreferences(allPrefs);
+      // Update context directly instead of fetching all preferences
+      if (existingPref?.id) {
+        const updated = userPreferences.map(p => 
+          p.id === existingPref.id ? { ...p, preferencesJson: JSON.stringify(newPreferences) } : p
+        );
+        setUserPreferences(updated);
+      } else if (result && (result as any).id) {
+        setUserPreferences([...userPreferences, {
+          id: (result as any).id,
+          userId: userProfile.userId,
+          gridName,
+          preferencesJson: JSON.stringify(newPreferences),
+          createdDate: new Date().toISOString(),
+          createdBy: userProfile.userId,
+          modifiedBy: userProfile.userId,
+          modifiedDate: new Date().toISOString()
+        }]);
       }
       
       toast.success('Grid preferences saved');

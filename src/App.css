@@ -610,18 +610,18 @@ body {
 }
 
 .toolgrip-dropdown.dropdown-menu {
-  z-index: 2;
+  z-index: 1000;
 }
 
 .dropdown-menu.show {
-  z-index: 2;
+  z-index: 1000;
 }
 
 .pipefilterbtn {
   display: flex;
   align-items: center;
   pointer-events: auto !important;
-  z-index: 10 !important;
+  z-index: 1000 !important;
 }
 
 .filterbtn .btn, .filterbtn .btn:focus {
@@ -735,7 +735,7 @@ body {
   position: absolute;
   left: 0;
   top: 100%;
-  z-index: 2;
+  z-index: 1000;
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;

@@ -108,14 +108,25 @@ export const DealAddEditDialog = (props: params) => {
     }
     // Fetch persons for autocomplete
     const fetchContacts = async (inputValue: string): Promise<ContactOption[]> => {
-        if (!inputValue) return [];
+        if (!inputValue || inputValue.trim().length === 0) {
+          return [];
+        }
+        
         try {
           const response = await personSvc.searchPersons(inputValue);
-          const options = response.map((person: any) => ({
-            label: `${person.personName} (${person.email || "No Email"})`,
-            value: person.personID,
-            details: person, // Pass full contact details
-          }));
+          console.log('API Response:', response);
+          
+          const options: ContactOption[] = [];
+          
+          if (Array.isArray(response) && response.length > 0) {
+            response.forEach((person: any) => {
+              options.push({
+                label: `${person.personName} (${person.email || "No Email"})`,
+                value: person.personID,
+                details: person,
+              });
+            });
+          }
       
           options.push({
             label: `+ Add '${inputValue}' as new contact`,
@@ -123,19 +134,22 @@ export const DealAddEditDialog = (props: params) => {
             isNew: true,
             inputValue,
           });
-      
+          
+          console.log('Returning options:', options);
           return options;
-        } catch (error) {
-          console.error("Error fetching contacts:", error);
-          // Return a fallback option for adding a new contact
-          return [
-            {
-              label: `+ Add '${inputValue}' as new contact`,
-              value: "new",
-              isNew: true,
-              inputValue,
-            },
-          ];
+        } catch (error: any) {
+          console.log("Error fetching contacts - returning add new option:", error?.response?.status);
+          if (error?.response?.status === 404 || error?.message?.includes('404')) {
+            return [
+              {
+                label: `+ Add '${inputValue}' as new contact`,
+                value: "new",
+                isNew: true,
+                inputValue,
+              },
+            ];
+          }
+          throw error;
         }
       };
     
@@ -159,7 +173,21 @@ export const DealAddEditDialog = (props: params) => {
             email?: string;
             phone?: string;
         };
-        [key: string]: any; // Allow other dynamic fields from the Deal model
+        [key: string]: any;
+    };
+    
+    type ContactOption = {
+        label: string;
+        value: any;
+        isNew?: boolean;
+        inputValue?: string;
+        isDisabled?: boolean;
+        details?: {
+            personName: string;
+            email?: string;
+            phone?: string;
+            contactPersonID?: number;
+        };
     };
    
 
@@ -361,20 +389,8 @@ export const DealAddEditDialog = (props: params) => {
             const errorMessage = error?.response?.data?.message || error?.message || "An error occurred while saving the deal.";
             toast.error(errorMessage);
         }).finally(() => {
-            setIsSubmitting(false); // Re-enable submission
+            setIsSubmitting(false);
         });
-    };
-    type ContactOption = {
-        label: string;
-        value: any;
-        isNew?: boolean; // Optional property for "Add new" option
-        inputValue?: string; // Optional property for the input value
-        details?: {
-            personName: string;
-            email?: string;
-            phone?: string;
-            contactPersonID?: number;
-        }; // Optional details for existing contacts
     };
     const getCustomElement = (item: IControl) => {
         if (item.key === "Stage") {
@@ -393,9 +409,29 @@ export const DealAddEditDialog = (props: params) => {
         if (item.key === "Contact Person") {
           return (
             <AsyncSelect<ContactOption>
-              cacheOptions
-              loadOptions={fetchContacts} // Function to fetch contacts
-              defaultOptions // Show default options on focus
+              loadOptions={fetchContacts}
+              defaultOptions={false}
+              isClearable
+              menuPortalTarget={document.body}
+              styles={{
+                menuPortal: (base:any) => ({ ...base, zIndex: 9999 }),
+                option: (
+                  provided: any,
+                  state: { data: { isNew: any }; isFocused: any }
+                ) => {
+                  const isAddNewOption = state.data.isNew;
+                  return {
+                    ...provided,
+                    backgroundColor: state.isFocused
+                      ? isAddNewOption
+                        ? "#e0f3ff"
+                        : "#f0f0f0"
+                      : "white",
+                    color: isAddNewOption ? "#007bff" : "black",
+                    fontWeight: isAddNewOption ? "bold" : "normal",
+                  };
+                },
+              } as any}
               onChange={(newValue: any) => {
                 
                 let value = +newValue?.value > 0 ? +newValue?.value : null;
@@ -464,36 +500,16 @@ export const DealAddEditDialog = (props: params) => {
               }}
               placeholder="Search or Add Contact"
               value={
-                selectedContact // Use selectedContact if available
+                selectedContact
                   ? {
                       label: selectedContact.personName,
                       value: selectedContact.contactPersonID,
                     }
-                  : selectedItem.newContact?.personName // Use typed input for new contacts
+                  : selectedItem.newContact?.personName
                   ? { label: selectedItem.newContact.personName, value: "new" }
-                  : null // Fallback for no selection
+                  : null
               }
               noOptionsMessage={() => "Type to search or add a new contact"}
-              styles={
-                {
-                  option: (
-                    provided: any,
-                    state: { data: { isNew: any }; isFocused: any }
-                  ) => {
-                    const isAddNewOption = state.data.isNew;
-                    return {
-                      ...provided,
-                      backgroundColor: state.isFocused
-                        ? isAddNewOption
-                          ? "#e0f3ff" // Light blue for "Add new" hover
-                          : "#f0f0f0" // Default hover color
-                        : "white",
-                      color: isAddNewOption ? "#007bff" : "black", // Blue text for "Add new"
-                      fontWeight: isAddNewOption ? "bold" : "normal", // Bold for "Add new"
-                    };
-                  },
-                } as any
-              }
             />
           );
         }

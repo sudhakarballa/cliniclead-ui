@@ -13,6 +13,7 @@ import LocalStorageUtil from "../../../others/LocalStorageUtil";
 import Constants from "../../../others/constants";
 import { Tooltip } from "@mui/material";
 import { TOOLTIPS } from "../../../constants/tooltips";
+import { calculateInactivityDays, formatInactivityBadge } from "../../../utils/dealInactivity";
 
 type params = {
   deal?: Deal;
@@ -40,6 +41,7 @@ export const DealItem = (props: params) => {
     LocalStorageUtil.getItemObject(Constants.UTILITY) as any
   );
   const mouseDownPos = useRef({ x: 0, y: 0 });
+  const inactivityDays = calculateInactivityDays(deal as Deal);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     mouseDownPos.current = { x: e.clientX, y: e.clientY };
@@ -105,6 +107,13 @@ export const DealItem = (props: params) => {
         <div className="pdstage-item">
           <div className='pdstage-box' style={{ overflow: 'visible', cursor: 'pointer' }} onMouseDown={handleMouseDown} onClick={handleCardClick}>
             <div className="pdstage-title">{deal?.treatmentName}</div>
+            {inactivityDays !== null && inactivityDays > 0 && (
+              <Tooltip title={`No actions for ${inactivityDays} day${inactivityDays !== 1 ? 's' : ''}`} placement="top">
+                <div className="deal-inactivity-badge">
+                  {formatInactivityBadge(inactivityDays)}
+                </div>
+              </Tooltip>
+            )}
             <div className='dropdownbox-toolgripdot'>
               <Tooltip title="More actions" placement="top">
                 <button 

@@ -86,7 +86,7 @@ const InnerQuoteList = (props: paramsForQuote) => {
 
 const DropZone = styled.divBox`
   /* stop the list collapsing when empty */
-  min-height: 200px;
+  min-height: calc(100vh - 200px);
   /*
     not relying on the items for a margin-bottom
     as it will collapse when the list is empty

@@ -39,8 +39,21 @@ export const DealItem = (props: params) => {
   const utility: Utility = JSON.parse(
     LocalStorageUtil.getItemObject(Constants.UTILITY) as any
   );
+  const mouseDownPos = useRef({ x: 0, y: 0 });
 
-  const handleCardClick = () => {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseDownPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const moveThreshold = 5;
+    const deltaX = Math.abs(e.clientX - mouseDownPos.current.x);
+    const deltaY = Math.abs(e.clientY - mouseDownPos.current.y);
+    
+    if (deltaX > moveThreshold || deltaY > moveThreshold) {
+      return;
+    }
+    
     let filterId = LocalStorageUtil.getItem(Constants.FILTER_ID) as any;
     let url = `/deal?id=${deal?.dealID}&pipeLineId=${deal?.pipelineID}`;
     if (filterId !== undefined && filterId !== null && filterId !== "undefined") {
@@ -90,7 +103,7 @@ export const DealItem = (props: params) => {
         style={provided.draggableProps.style}
       >
         <div className="pdstage-item">
-          <div className='pdstage-box' style={{ overflow: 'visible', cursor: 'pointer' }} onClick={handleCardClick}>
+          <div className='pdstage-box' style={{ overflow: 'visible', cursor: 'pointer' }} onMouseDown={handleMouseDown} onClick={handleCardClick}>
             <div className="pdstage-title">{deal?.treatmentName}</div>
             <div className='dropdownbox-toolgripdot'>
               <Tooltip title="More actions" placement="top">

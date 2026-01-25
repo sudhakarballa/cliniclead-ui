@@ -307,18 +307,21 @@ export const Deals = (props: params) => {
     
     setIsDragging(false);
     
-    // If no destination, don't allow the drop
     if (!destination) {
       return;
     }
     
-    // If same stage, show warning and don't allow the drop
     if (source.droppableId === destination.droppableId) {
       toast.warning("Moving deals within the same stage is not supported");
       return;
     }
     
     if (source && destination) {
+      const previousStages = stages.map(stage => ({
+        ...stage,
+        deals: [...stage.deals]
+      }));
+      
       let stagesList = [...stages];
       let sourceStageIndex = stagesList.findIndex(
         (s) => s.stageID == +source.droppableId
@@ -327,7 +330,6 @@ export const Deals = (props: params) => {
         (s) => s.stageID == +destination.droppableId
       );
       
-      // Find the deal being moved by draggableId (which is the dealID)
       let dealToMove = stagesList[sourceStageIndex]?.deals?.find(
         (d) => d.dealID == +result.draggableId
       );
@@ -336,18 +338,14 @@ export const Deals = (props: params) => {
       );
       
       if (dealToMove && dealIndex !== -1) {
-        // Remove from source stage
         stagesList[sourceStageIndex].deals.splice(dealIndex, 1);
-        
-        // Insert at the correct position in destination stage
         stagesList[destinationStageIndex].deals.splice(destination.index, 0, dealToMove);
         
         setStages([...stagesList]);
 
-        // Only proceed if userProfile is available
         if (!userProfile?.userId) {
           toast.error('User session not available. Please refresh the page.');
-          setStages([...originalStages]);
+          setStages(previousStages);
           return;
         }
 
@@ -372,8 +370,7 @@ export const Deals = (props: params) => {
           })
           .catch((err) => {
             toast.error("Failed to move deal. Please try again.");
-            setError("No deals found under selected combination" as any);
-            setStages([...originalStages]);
+            setStages(previousStages);
           });
       }
     }

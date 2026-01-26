@@ -16,6 +16,10 @@ import { DeleteDialog } from "../../../../../common/deleteDialog";
 import { toast } from "react-toastify";
 import LocalStorageUtil from "../../../../../others/LocalStorageUtil";
 import Constants from "../../../../../others/constants";
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+
 import DoneIcon from "@mui/icons-material/Done";
 import { Tooltip } from "@mui/material";
 import { TOOLTIPS } from "../../../../../constants/tooltips";
@@ -27,6 +31,10 @@ type params = {
   setSelectedFilterObj: any;
   dialogIsOpen:any;
   setDialogIsOpen:any;
+  showFavouritesOnly?: boolean;
+  users?: any[];
+  onPersonSelection?: (userName: string) => void;
+  setSelectedUserId?: any;
 };
 
 // Static flag to prevent multiple simultaneous API calls
@@ -40,6 +48,10 @@ const FilterDropdown = (props: params) => {
     setSelectedFilterObj,
     dialogIsOpen,
     setDialogIsOpen,
+    showFavouritesOnly = false,
+    users = [],
+    onPersonSelection,
+    setSelectedUserId,
     ...others
   } = props;
   const [selectedFilter, setSelectedFilter] = useState<DealFilter>(
@@ -50,6 +62,7 @@ const FilterDropdown = (props: params) => {
   const [isLoading, setIsLoading] = useState(false);
   const dealFiltersSvc = new DealFiltersService(ErrorBoundary);
   const [filters, setFilters] = useState<Array<DealFilter>>([]);
+  const [favourites, setFavourites] = useState<{filters: number[], owners: number[]}>({filters: [], owners: []});
 
   // // Filters Array
   // const filters = [
@@ -83,11 +96,61 @@ const FilterDropdown = (props: params) => {
   }, [selectedFilterObj]);
 
   useEffect(() => {
+    // Load favourites from localStorage
+    const savedFavourites = LocalStorageUtil.getItemObject('DEAL_FAVOURITES');
+    if (savedFavourites) {
+      setFavourites(JSON.parse(savedFavourites as string));
+    }
+
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      const updated = LocalStorageUtil.getItemObject('DEAL_FAVOURITES');
+      if (updated) {
+        setFavourites(JSON.parse(updated as string));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(handleStorageChange, 100);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
     // Only load if filters are not already loaded and not currently loading
     if (filters.length === 0 && !isLoading) {
       loadDealFilters();
     }
   }, []);
+
+  const toggleFavourite = (type: 'filter' | 'owner', id: number) => {
+    if (type === 'filter') {
+      const filter = filters.find(f => f.id === id);
+      if (filter) {
+        const updatedFilter = { ...filter, isFavourite: !filter.isFavourite };
+        dealFiltersSvc.saveDealFilters(updatedFilter).then(() => {
+          setFilters(prev => prev.map(f => f.id === id ? updatedFilter : f));
+          loadDealFilters(true);
+        }).catch(err => {
+          console.error('Error updating filter favourite:', err);
+        });
+      }
+    }
+    
+    setFavourites(prev => {
+      const key = type === 'filter' ? 'filters' : 'owners';
+      const newFavs = prev[key].includes(id)
+        ? prev[key].filter(fId => fId !== id)
+        : [...prev[key], id];
+      const updated = { ...prev, [key]: newFavs };
+      LocalStorageUtil.setItemObject('DEAL_FAVOURITES', JSON.stringify(updated));
+      console.log('Updated favourites:', updated);
+      return updated;
+    });
+  };
 
   const loadDealFilters = (forceRefresh = false) => {
     // Check if already loading globally
@@ -147,6 +210,16 @@ const FilterDropdown = (props: params) => {
       });
   };
 
+  const filteredFilters = showFavouritesOnly
+    ? filters.filter(f => favourites.filters.includes(f.id))
+    : filters;
+
+  const filteredOwners = showFavouritesOnly
+    ? users.filter(u => favourites.owners.includes(u.id))
+    : users;
+
+  console.log('FilterDropdown render:', { showFavouritesOnly, showPipeLineFilters, filteredFiltersCount: filteredFilters.length, filteredOwnersCount: filteredOwners.length });
+
   const onFilterSelection = (item: DealFilter) => {
     setFilters((prevFilters) =>
       prevFilters.map((filter) =>
@@ -174,35 +247,102 @@ const FilterDropdown = (props: params) => {
       >
         {showPipeLineFilters && ( // optional double-check
           <div className="pipeselectcontentinner">
-            <div className="pipeselectpadlr">
-              <ul className="pipeselectlist">
-                {filters?.map((item, index) => (
+            {filteredFilters.length === 0 && filteredOwners.length === 0 && (
+              <div className="pipeselectpadlr">
+                <ul className="pipeselectlist">
+                  <li style={{padding: '10px', color: '#999'}}>No favourites yet. Mark filters or owners as favourite.</li>
+                </ul>
+              </div>
+            )}
+            {showFavouritesOnly && filteredFilters.length > 0 && (
+              <div className="pipeselectpadlr">
+                <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: '#666' }}>FILTERS</div>
+                <ul className="pipeselectlist">
+                {filteredFilters?.map((item, index) => (
                   <li key={index}>
                     <a hidden={item.isSelected}>
-                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      &nbsp;&nbsp;
                     </a>
                     <a className="filterowner-tick" hidden={!item.isSelected}>
                       <DoneIcon />
                     </a>
                     <button
                       className="pipeselectlink"
-                      onClick={(e: React.MouseEvent) => {
-                        onFilterSelection(item);
-                        setSelectedFilterObj(item);
+                      onMouseDown={(e: React.MouseEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (setSelectedUserId) setSelectedUserId(null);
+                        setSelectedFilterObj({...item});
+                        setShowPipeLineFilters(false);
                       }}
                       type="button"
                     >
                       {item.name}
                     </button>
                     <div className="pipeselect-btns">
+                      <Tooltip title={favourites.filters.includes(item.id) ? "Remove from favourites" : "Add to favourites"} placement="bottom">
+                        <span
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleFavourite('filter', item.id);
+                          }}
+                          style={{ cursor: 'pointer', marginRight: '8px' }}
+                        >
+                          {favourites.filters.includes(item.id) ? <StarIcon style={{ color: '#f4a261', fontSize: '16px' }} /> : <StarBorderIcon style={{ fontSize: '16px' }} />}
+                        </span>
+                      </Tooltip>
+                    </div>
+                  </li>
+                ))}
+                </ul>
+              </div>
+            )}
+            {!showFavouritesOnly && (
+              <div className="pipeselectpadlr">
+                <ul className="pipeselectlist">
+                {filteredFilters?.map((item, index) => (
+                  <li key={index}>
+                    <a hidden={item.isSelected}>
+                      &nbsp;&nbsp;
+                    </a>
+                    <a className="filterowner-tick" hidden={!item.isSelected}>
+                      <DoneIcon />
+                    </a>
+                    <button
+                      className="pipeselectlink"
+                      onMouseDown={(e: React.MouseEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (setSelectedUserId) setSelectedUserId(null);
+                        setSelectedFilterObj({...item});
+                        setShowPipeLineFilters(false);
+                      }}
+                      type="button"
+                    >
+                      {item.name}
+                    </button>
+                    <div className="pipeselect-btns">
+                      <Tooltip title={favourites.filters.includes(item.id) ? "Remove from favourites" : "Add to favourites"} placement="bottom">
+                        <span
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleFavourite('filter', item.id);
+                          }}
+                          style={{ paddingLeft: 10, paddingRight: 10, cursor: 'pointer' }}
+                        >
+                          {favourites.filters.includes(item.id) ? <StarIcon style={{ color: '#f4a261', fontSize: '16px' }} /> : <StarBorderIcon style={{ fontSize: '16px' }} />}
+                        </span>
+                      </Tooltip>
                       <Tooltip title="Edit this filter" placement="top">
                         <span
                           className="pl-4"
                           onClick={(e: any) => {
-                            e.stopPropagation(); // VERY important
+                            e.stopPropagation();
                             setDialogIsOpen(true);
                             setSelectedFilter(item);
-                            setShowPipeLineFilters(false); // also optional here
+                            setShowPipeLineFilters(false);
                           }}
                           style={{ paddingLeft: 10, paddingRight: 10 }}
                         >
@@ -213,7 +353,7 @@ const FilterDropdown = (props: params) => {
                         <span
                           className="pl-4"
                           onClick={(e: any) => {
-                            e.stopPropagation(); // VERY important
+                            e.stopPropagation();
                             setSelectedFilter(item);
                             setShowDeleteDialog(true);
                             setShowPipeLineFilters(false);
@@ -225,8 +365,59 @@ const FilterDropdown = (props: params) => {
                     </div>
                   </li>
                 ))}
-              </ul>
-            </div>
+                </ul>
+              </div>
+            )}
+            {showFavouritesOnly && filteredOwners.length > 0 && (
+              <div className="pipeselectpadlr filterownersbox" style={{ marginTop: '16px', borderTop: '1px solid #ddd', paddingTop: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: '#666' }}>OWNERS</div>
+                {filteredOwners
+                  ?.filter((u) => u.isActive)
+                  ?.map((item, index) => (
+                    <ul className="pipeselectlist filterownerslist" key={index}>
+                      <li>
+                        <div
+                          className="filterownerli-row"
+                          style={{ cursor: 'pointer' }}
+                          onMouseDown={(e: any) => {
+                            if (!(e.target as HTMLElement).closest('.filterownerli-icon')) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (onPersonSelection) {
+                                onPersonSelection(item.name);
+                              }
+                              setShowPipeLineFilters(false);
+                            }
+                          }}
+                        >
+                          <AccountCircleIcon className="userCircleIcon" />
+                          <span>{item.name}</span>
+                          <div className="filterownerli-icon">
+                            <Tooltip title={favourites.owners.includes(item.id) ? "Remove from favourites" : "Add to favourites"} placement="top">
+                              <span
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  toggleFavourite('owner', item.id);
+                                }}
+                                style={{ cursor: 'pointer', marginRight: '8px' }}
+                              >
+                                {favourites.owners.includes(item.id) ? <StarIcon style={{ color: '#f4a261', fontSize: '16px' }} /> : <StarBorderIcon style={{ fontSize: '16px' }} />}
+                              </span>
+                            </Tooltip>
+                            <a
+                              className="filterowner-tick"
+                              hidden={!item.isSelected}
+                            >
+                              <DoneIcon />
+                            </a>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  ))}
+              </div>
+            )}
             <div className="add-new-filter">
               <Tooltip title="Create a new custom filter" placement="top">
                 <button

@@ -32,6 +32,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import DoneIcon from '@mui/icons-material/Done';
 import { Utility } from "../../../models/utility";
 import Constants from "../../../others/constants";
@@ -93,6 +94,23 @@ export const DealHeader = (props: params) => {
   const [users, setUsers]=useState<Array<any>>(utility?.users || []);
   const userRole = parseInt(LocalStorageUtil.getItem(Constants.USER_Role) || '0');
   const isMasterAdmin = userRole === 0;
+  const [favourites, setFavourites] = useState<{filters: number[], owners: number[]}>({filters: [], owners: []});
+  
+  useEffect(() => {
+    const savedFavourites = LocalStorageUtil.getItemObject('DEAL_FAVOURITES');
+    if (savedFavourites) {
+      setFavourites(JSON.parse(savedFavourites as string));
+    }
+
+    const interval = setInterval(() => {
+      const updated = LocalStorageUtil.getItemObject('DEAL_FAVOURITES');
+      if (updated) {
+        setFavourites(JSON.parse(updated as string));
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
   
   useEffect(() => {
     setPipeLinesList(props.pipeLinesList);
@@ -328,13 +346,30 @@ export const DealHeader = (props: params) => {
                         <li className="nav-item" role="presentation">
                           <button
                             className="nav-link active"
+                            id="favourites-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#favourites"
+                            type="button"
+                            role="tab"
+                            aria-controls="favourites"
+                            aria-selected="true"
+                          >
+                            <span>
+                              <StarIcon />
+                            </span>
+                            Favourites
+                          </button>
+                        </li>
+                        <li className="nav-item" role="presentation">
+                          <button
+                            className="nav-link"
                             id="filters-tab"
                             data-bs-toggle="tab"
                             data-bs-target="#filters"
                             type="button"
                             role="tab"
                             aria-controls="filters"
-                            aria-selected="true"
+                            aria-selected="false"
                           >
                             <span>
                               <FilterListIcon />
@@ -366,6 +401,25 @@ export const DealHeader = (props: params) => {
                       >
                         <div
                           className="tab-pane fade show active"
+                          id="favourites"
+                          role="tabpanel"
+                          aria-labelledby="favourites-tab"
+                        >
+                          <FilterDropdown
+                            showPipeLineFilters={showPipeLineFilters}
+                            setShowPipeLineFilters={setShowPipeLineFilters}
+                            selectedFilterObj={selectedFilterObj}
+                            setSelectedFilterObj={setSelectedFilterObj}
+                            setDialogIsOpen={setDealFilterDialogIsOpen}
+                            dialogIsOpen={dealFilterDialogIsOpen}
+                            showFavouritesOnly={true}
+                            users={users}
+                            onPersonSelection={onPersonSelection}
+                            setSelectedUserId={setSelectedUserId}
+                          />
+                        </div>
+                        <div
+                          className="tab-pane fade"
                           id="filters"
                           role="tabpanel"
                           aria-labelledby="filters-tab"
@@ -402,9 +456,24 @@ export const DealHeader = (props: params) => {
                                         <AccountCircleIcon className="userCircleIcon" />
                                         <span>{item.name}</span>
                                         <div className="filterownerli-icon">
-                                          {/* <a className="filterowner-star">
-                                            <StarIcon />
-                                          </a> */}
+                                          <Tooltip title={favourites.owners.includes(item.id) ? "Remove from favourites" : "Add to favourites"} placement="top">
+                                            <span
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setFavourites(prev => {
+                                                  const newOwners = prev.owners.includes(item.id)
+                                                    ? prev.owners.filter(id => id !== item.id)
+                                                    : [...prev.owners, item.id];
+                                                  const updated = { ...prev, owners: newOwners };
+                                                  LocalStorageUtil.setItemObject('DEAL_FAVOURITES', JSON.stringify(updated));
+                                                  return updated;
+                                                });
+                                              }}
+                                              style={{ cursor: 'pointer', marginRight: '8px' }}
+                                            >
+                                              {favourites.owners.includes(item.id) ? <StarIcon style={{ color: '#f4a261', fontSize: '16px' }} /> : <StarBorderIcon style={{ fontSize: '16px' }} />}
+                                            </span>
+                                          </Tooltip>
                                           <a
                                             className="filterowner-tick"
                                             hidden={!item.isSelected}
@@ -426,9 +495,9 @@ export const DealHeader = (props: params) => {
                 {!isMasterAdmin && <div className="pipefilterbtn" style={{ display: (dialogIsOpen || dealFilterDialogIsOpen) ? 'none' : 'block' }}>
                   <div className="filterbtn">
                     <Tooltip title="Clear all active filters" placement="top">
-                      <a
+                      <button
                         className={`btn ${!(selectedFilterObj || selectedUserId) ? 'disabled' : ''}`}
-                        href="javascript:void(0);"
+                        type="button"
                         style={{
                           opacity: !(selectedFilterObj || selectedUserId) ? 0.5 : 1,
                           cursor: !(selectedFilterObj || selectedUserId) ? 'not-allowed' : 'pointer',
@@ -449,7 +518,7 @@ export const DealHeader = (props: params) => {
                         }}
                       >
                         <FilterAltOffIcon />
-                      </a>
+                      </button>
                     </Tooltip>
                   </div>
                 </div>}

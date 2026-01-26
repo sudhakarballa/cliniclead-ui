@@ -766,6 +766,7 @@ body {
   font-size: 14px;
   border-radius: 4px;
   padding-right: 30px;
+  cursor: pointer;
 }
 
 .pipeselectlink {
@@ -876,7 +877,7 @@ body {
 }
 
 .nav-tabs.pipefilternav-tabs>li {
-  width: 50%;
+  width: 33.333%;
 }
 
 .nav-tabs.pipefilternav-tabs>li .nav-link {
@@ -896,6 +897,8 @@ body {
 
 .filterownerli-row {
   padding: 8px;
+  color: #21232c;
+  cursor: pointer;
 }
 
 .filterownerli-icon {

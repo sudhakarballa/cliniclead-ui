@@ -90,6 +90,7 @@ const DealListView = (props: Params) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<'export' | 'import' | 'sms'>('export');
   const [error, setError] = useState<AxiosError | null>(null);
   const [pipeLines, setPipeLines] = useState<Array<PipeLine>>([]);
   const [selectedStartDate, setSelectedStartDate] = useState<Date>(new Date());
@@ -196,6 +197,8 @@ const DealListView = (props: Params) => {
   const [dealFilterDialogIsOpen, setDealFilterDialogIsOpen] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
   const { preferences } = useGridPreferences('Deals-grid');
 
 
@@ -460,7 +463,82 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
       .trim();
   };
 
-  const handleExportToExcel = async () => {
+  const validateFileFormat = (headers: string[]): boolean => {
+  // Make validation more flexible - check for key columns only
+  const requiredHeaders = [
+    'Treatment Name', 'Stage', 'Pipeline'
+  ];
+  
+  const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+  
+  if (missingHeaders.length > 0) {
+    toast.error(`Invalid file format. Missing required columns: ${missingHeaders.join(', ')}`);
+    return false;
+  }
+  return true;
+};
+
+const handleDownloadSample = () => {
+  const sampleFilePath = '/All_Deals_2026-01-19_updated.xlsx';
+  const link = document.createElement('a');
+  link.href = sampleFilePath;
+  link.download = 'Sample_Deals_Format.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast.success('Sample file downloaded!');
+};
+
+const handleImportDeals = async () => {
+  if (!importFile) {
+    toast.error('Please select a file to import');
+    return;
+  }
+
+  if (isImporting) {
+    toast.warning('Import already in progress. Please wait...');
+    return;
+  }
+
+  setIsImporting(true);
+  toast.info('Reading file... Please wait', { autoClose: 2000 });
+
+  try {
+    const data = await importFile.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+    if (!jsonData.length) {
+      toast.error('No data found in the file');
+      setIsImporting(false);
+      return;
+    }
+
+    // Log headers for debugging
+    const headers = Object.keys(jsonData[0]);
+    console.log('Excel file headers:', headers);
+    console.log('First row data:', jsonData[0]);
+
+    toast.info(`Processing ${jsonData.length} deals...`, { autoClose: 2000 });
+
+    // Call backend API to import deals using DealService
+    await dealSvc.importDeal(jsonData);
+    
+    toast.success(`Successfully imported ${jsonData.length} deals!`);
+    setImportFile(null);
+    setDrawerOpen(false);
+    loadDeals(); // Reload the deals list
+  } catch (error: any) {
+    console.error('Import error:', error);
+    toast.error(error?.response?.data?.message || 'Import failed. Please check the file format.');
+  } finally {
+    setIsImporting(false);
+  }
+};
+
+const handleExportToExcel = async () => {
   if (isExporting) {
     toast.warning('Export already in progress. Please wait...');
     return;
@@ -1016,6 +1094,9 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                   <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8, color: '#17a2b8' }} />
                   Export
                 </Dropdown.Item>
+                <Dropdown.Item onClick={() => setDrawerOpen(true)}>
+                  📤 Import
+                </Dropdown.Item>
                 <Dropdown.Item onClick={handleOpenGroupEmailDialog} disabled={selectedRows.length === 0}>
                  📧 Send Group Email
                  </Dropdown.Item>
@@ -1186,7 +1267,7 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                     <FontAwesomeIcon icon={faEllipsisV} />
                   </Dropdown.Toggle>
                   <Dropdown.Menu style={{ zIndex: 2000, minWidth: 180 }}>
-                    <Dropdown.Item onClick={() => setOpenAddDealDialog(true)} title="Create a new deal">
+                <Dropdown.Item onClick={() => setOpenAddDealDialog(true)} title="Create a new deal">
                       <FontAwesomeIcon icon={faAdd} style={{ marginRight: 8, color: '#28a745' }} /> New Deal
                     </Dropdown.Item>
                     <Dropdown.Divider />
@@ -1204,13 +1285,16 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Header style={{ fontSize: '12px', color: '#6c757d' }}>BULK ACTIONS</Dropdown.Header>
-                    <Dropdown.Item onClick={() => setDrawerOpen(true)} disabled={selectedRows.length > 0} title="Export all deals to Excel or CSV">
+                    <Dropdown.Item onClick={() => { setDrawerMode('export'); setDrawerOpen(true); }} disabled={selectedRows.length > 0} title="Export all deals to Excel or CSV">
                       <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8, color: '#17a2b8' }} /> Export
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => { setDrawerMode('import'); setDrawerOpen(true); }} title="Import deals from Excel file">
+                      <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8, color: '#28a745', transform: 'rotate(180deg)' }} /> Import
                     </Dropdown.Item>
                     <Dropdown.Item onClick={handleOpenGroupEmailDialog} disabled={selectedRows.length === 0} title="Send email to selected deals">
                       📧 Send Group Email
                     </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setDrawerOpen(true)} disabled={selectedRows.length === 0} title="Send SMS to selected deals">
+                    <Dropdown.Item onClick={() => { setDrawerMode('sms'); setDrawerOpen(true); }} disabled={selectedRows.length === 0} title="Send SMS to selected deals">
                       <FontAwesomeIcon icon={faEnvelope} style={{ marginRight: 8, color: '#ffc107' }} /> Send SMS
                     </Dropdown.Item>
                     <Dropdown.Item onClick={handleOpenSalesDialer} disabled={selectedRows.length === 0} title="Open JustCall sales dialer for selected deals">
@@ -1289,7 +1373,10 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
         <Drawer
           anchor="right"
           open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
+          onClose={() => {
+            setDrawerOpen(false);
+            setImportFile(null);
+          }}
         >
           <div
             style={{
@@ -1312,7 +1399,7 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                   <div
                     className="p-4 border rounded shadow bg-white"
                     style={{ maxWidth: "400px" }}
-                    hidden={selectedRows.length == 0}
+                    hidden={drawerMode !== 'sms'}
                   >
                     <h2 style={{ marginBottom: "8px" }}>Bulk Actions</h2>
                     <p style={{ marginBottom: "24px" }}>
@@ -1350,7 +1437,7 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
                     </button>
                   </div>
                 </div>
-{selectedRows.length === 0 && (
+{drawerMode === 'export' && (
   <div style={{ marginTop: 24 }}>
     <h4 style={{ marginBottom: 12 }}>Export Deals</h4>
     <div style={{ marginBottom: 12 }}>
@@ -1383,7 +1470,7 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
       fullWidth
       onClick={handleExportToExcel}
       disabled={isExporting}
-      style={{ position: 'relative' }}
+      style={{ position: 'relative', marginBottom: 16 }}
     >
       {isExporting ? (
         <>
@@ -1410,6 +1497,87 @@ const loadAllDeals = async (): Promise<Array<Deal>> => {
       )}
     </Button>
 
+  </div>
+)}
+{drawerMode === 'import' && (
+  <div style={{ marginTop: 24 }}>
+    <h4 style={{ marginBottom: 12 }}>Import Deals</h4>
+    <div style={{ marginBottom: 12, padding: 12, backgroundColor: '#f8f9fa', borderRadius: 4, border: '1px solid #dee2e6' }}>
+      <p style={{ fontSize: 13, marginBottom: 8, color: '#495057' }}>
+        📋 Please use the correct format for import
+      </p>
+      <button
+        onClick={handleDownloadSample}
+        style={{ 
+          fontSize: 12,
+          width: '100%',
+          padding: '6px 16px',
+          border: '1px solid #dee2e6',
+          borderRadius: '4px',
+          backgroundColor: 'white',
+          color: '#495057',
+          cursor: 'pointer',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#f8f9fa';
+          e.currentTarget.style.borderColor = '#adb5bd';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'white';
+          e.currentTarget.style.borderColor = '#dee2e6';
+        }}
+      >
+        📥 Download Sample Format
+      </button>
+    </div>
+    <div style={{ marginBottom: 12 }}>
+      <label className="fw-bold" style={{ display: 'block', marginBottom: 8 }}>Select Excel File</label>
+      <input
+        type="file"
+        accept=".xlsx,.xls"
+        onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+        value=""
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '8px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          fontSize: '14px'
+        }}
+      />
+      {importFile && (
+        <p style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
+          Selected: {importFile.name}
+        </p>
+      )}
+    </div>
+    <Button
+      variant="contained"
+      fullWidth
+      onClick={handleImportDeals}
+      disabled={!importFile || isImporting}
+      style={{ position: 'relative', backgroundColor: '#28a745' }}
+    >
+      {isImporting ? (
+        <>
+          <span style={{ marginRight: 8 }}>Importing...</span>
+          <div 
+            style={{
+              width: 16,
+              height: 16,
+              border: '2px solid #ffffff40',
+              borderTop: '2px solid #ffffff',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}
+          />
+        </>
+      ) : (
+        'Import Deals'
+      )}
+    </Button>
   </div>
 )} 
 

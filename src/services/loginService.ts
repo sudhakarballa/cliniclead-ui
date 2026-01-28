@@ -42,11 +42,11 @@ export class LoginService{
         return promise;
     }
      // Add this method to verify the 2FA code
-     verifyTwoFactorCode(item: { userId: number; verificationCode: string; email: string }, axiosCancel?: CancelTokenSource) {
+     verifyTwoFactorCode(item: { userId: number; verificationCode: string; email: string; tenantId: number | null }, axiosCancel?: CancelTokenSource) {
         return new Promise<any>((resolve, reject) => {
             axios({
                 method: 'POST',
-                url: `${baseURL}/Login/VerifyTwoFactorCode`, // Ensure this matches the backend endpoint
+                url: `${baseURL}/Login/VerifyTwoFactorCode`,
                 headers: {
                     'Content-Type': 'application/json; charset=UTF-8',
                     'Authorization': `Bearer ${getActiveUserToken()}`

@@ -51,6 +51,7 @@ const Login = () => {
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
+  const [tenantId, setTenantId] = useState<number | null>(null);
 
   const [selectedItem, setSelectedItem] = useState(
     new UserCredentails(
@@ -213,13 +214,14 @@ const showPwdError = (msg: string) => {
               }
             } else if (res?.twoFactorRequired) {
               toast.success(
-                "2FA code sent to your email! Please check your inbox."
+                "2FA code sent to your email and SMS! Please check your inbox."
               );
 
           
               setTwoFactorRequired(true);
               setUserId(res.userId);
               setEmail(res.email);
+              setTenantId(res.tenantId || null);
             } else if ((res as any)?.status === 401 || (res as any)?.error === 'Invalid credentials') {
               setLoginError('Invalid email or password. Please try again.' as any);
             } else {
@@ -273,7 +275,7 @@ const showPwdError = (msg: string) => {
     setLoading(true);
     try {
       await loginSvc
-        .verifyTwoFactorCode({ userId, verificationCode, email })
+        .verifyTwoFactorCode({ userId, verificationCode, email, tenantId })
         .then((res: any) => {
           if (res?.token) {
             LocalStorageUtil.setItem(Constants.USER_LOGGED_IN, "true");
@@ -400,7 +402,7 @@ const showPwdError = (msg: string) => {
                   {(loading || twoFactorRequired || loginError) && (
                     <div className="logformsubtext p-1 text-center">
                       {loading ? "Please wait" : twoFactorRequired
-                        ? "Enter the 2FA code sent to your email"
+                        ? "Enter the 2FA code sent to your email and SMS"
                         : loginError
                           ? <span style={{ color: '#d32f2f', fontWeight: 'bold', background: '#fff0f0', borderRadius: '4px', padding: '6px 12px', display: 'inline-block', boxShadow: '0 1px 4px rgba(211,47,47,0.08)' }}>
                               {loginError}

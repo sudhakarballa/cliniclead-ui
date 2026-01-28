@@ -34,7 +34,7 @@ const VerifyCode = () => {
         }
 
         try {
-            await loginSvc.verifyTwoFactorCode({ userId, verificationCode, email }).then((res: any) => {
+            await loginSvc.verifyTwoFactorCode({ userId, verificationCode, email, tenantId: null }).then((res: any) => {
                 if (res?.token) {
                     // Save token and user information in local storage
                     LocalStorageUtil.setItem(Constants.USER_LOGGED_IN, "true");

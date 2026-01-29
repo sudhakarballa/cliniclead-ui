@@ -1,6 +1,6 @@
 import { faGrip, faEllipsisV, faAdd, faBars, faDownload, faEnvelope, faPhone, faChartSimple } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import axios, { AxiosError } from "axios";
 import { saveAs } from "file-saver";
@@ -15,6 +15,7 @@ import { UnAuthorized } from "../../../common/unauthorized";
 import { DateRangePicker } from "../../../elements/dateRangePicker";
 import MultiSelectDropdown from "../../../elements/multiSelectDropdown";
 import { Deal, DealExport } from "../../../models/deal";
+import { DealFilter } from "../../../models/dealFilters";
 import { PipeLine } from "../../../models/pipeline";
 import { Utility } from "../../../models/utility";
 import Constants from "../../../others/constants";
@@ -28,11 +29,14 @@ import { DealAddEditDialog } from "./dealAddEditDialog";
 import JustCallCampaignManager from "./justCallCampaignManager";
 import JustCallCampaignModal from "./justCallCampaignModal";
 import FilterDropdown from "./dealFilters/filterDropdown/filterDropdown";
+import DealFilterAddEditDialog from "./dealFilters/dealFilterAddEditDialog";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DoneIcon from "@mui/icons-material/Done";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 import GroupEmailDialog from "../../GroupEmailDialog";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../pipeline/deal/activities/email/authConfig";
@@ -195,11 +199,29 @@ const DealListView = (props: Params) => {
   const [selectedFilterObj, setSelectedFilterObj] = useState<any>(null);
   const [selectedUserId, setSelectedUserId] = useState<any>(null);
   const [dealFilterDialogIsOpen, setDealFilterDialogIsOpen] = useState(false);
+  const [selectedFilterForEdit, setSelectedFilterForEdit] = useState<DealFilter | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const { preferences } = useGridPreferences('Deals-grid');
+  const [favourites, setFavourites] = useState<{filters: number[], owners: number[]}>({filters: [], owners: []});
+
+  useEffect(() => {
+    const savedFavourites = LocalStorageUtil.getItemObject('DEAL_FAVOURITES');
+    if (savedFavourites) {
+      setFavourites(JSON.parse(savedFavourites as string));
+    }
+
+    const interval = setInterval(() => {
+      const updated = LocalStorageUtil.getItemObject('DEAL_FAVOURITES');
+      if (updated) {
+        setFavourites(JSON.parse(updated as string));
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
 
 
 
@@ -420,7 +442,7 @@ useEffect(() => { loadPipeLines(); }, []);
   }, [selectedRows]);
 
   const handleRowSelection = (id: any) => {
-    setSelectedRows(id);
+    setSelectedRows(Array.isArray(id) ? id : []);
   };
 
 
@@ -1208,31 +1230,67 @@ const handleExportToExcel = async () => {
                     <span>{selectedFilterObj?.name ?? users?.find((u) => u.id === selectedUserId)?.name ?? "Select"}</span>
                   </button>
                   <div className="pipeselectcontent pipeselectfilter" hidden={!showPipeLineFilters} style={{ position: 'absolute', right: 0, left: 'auto', transform: 'translateX(0)', zIndex: showPipeLineFilters ? 999 : -1, pointerEvents: showPipeLineFilters ? 'auto' : 'none' }}>
-                    <ul className="nav nav-tabs pipefilternav-tabs" id="myTab" role="tablist">
-                      <li className="nav-item" role="presentation">
-                        <button className="nav-link active" id="filters-tab" data-bs-toggle="tab" data-bs-target="#filters" type="button" role="tab">
-                          <FilterListIcon /> Filters
+                    <ul className="nav nav-tabs pipefilternav-tabs" id="myTab" role="tablist" style={{ display: 'flex', flexDirection: 'row', margin: 0, padding: 0, listStyle: 'none' }}>
+                      <li className="nav-item" role="presentation" style={{ flex: '1' }}>
+                        <button className="nav-link active" id="favourites-tab" data-bs-toggle="tab" data-bs-target="#favourites" type="button" role="tab" style={{ width: '100%', textAlign: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <StarIcon style={{ fontSize: '16px' }} /> Favourites
+                          </span>
                         </button>
                       </li>
-                      <li className="nav-item" role="presentation">
-                        <button className="nav-link" id="owners-tab" data-bs-toggle="tab" data-bs-target="#owners" type="button" role="tab">
-                          <PersonOutlineIcon /> Owners
+                      <li className="nav-item" role="presentation" style={{ flex: '1' }}>
+                        <button className="nav-link" id="filters-tab" data-bs-toggle="tab" data-bs-target="#filters" type="button" role="tab" style={{ width: '100%', textAlign: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <FilterListIcon style={{ fontSize: '16px' }} /> Filters
+                          </span>
+                        </button>
+                      </li>
+                      <li className="nav-item" role="presentation" style={{ flex: '1' }}>
+                        <button className="nav-link" id="owners-tab" data-bs-toggle="tab" data-bs-target="#owners" type="button" role="tab" style={{ width: '100%', textAlign: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <PersonOutlineIcon style={{ fontSize: '16px' }} /> Owners
+                          </span>
                         </button>
                       </li>
                     </ul>
                     <div className="tab-content pipefiltertab-content" id="myTabContent">
-                      <div className="tab-pane fade show active" id="filters" role="tabpanel">
-                        <FilterDropdown key={resetKey} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} />
+                      <div className="tab-pane fade show active" id="favourites" role="tabpanel">
+                        <FilterDropdown key={resetKey} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} showFavouritesOnly={true} users={users} onPersonSelection={onPersonSelection} setSelectedUserId={setSelectedUserId} setSelectedFilter={setSelectedFilterForEdit} />
+                      </div>
+                      <div className="tab-pane fade" id="filters" role="tabpanel">
+                        <FilterDropdown key={resetKey} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} setSelectedFilter={setSelectedFilterForEdit} />
                       </div>
                       <div className="tab-pane fade" id="owners" role="tabpanel">
                         <div className="pipeselectpadlr filterownersbox">
                           {(users || []).filter((u) => u?.isActive).map((item, index) => (
                             <ul className="pipeselectlist filterownerslist" key={index}>
                               <li>
-                                <div className="filterownerli-row" onClick={() => onPersonSelection(item.name)}>
+                                <div className="filterownerli-row" onClick={(e: any) => {
+                                  if (!(e.target as HTMLElement).closest('.filterownerli-icon')) {
+                                    onPersonSelection(item.name);
+                                  }
+                                }}>
                                   <AccountCircleIcon className="userCircleIcon" />
                                   <span>{item.name}</span>
                                   <div className="filterownerli-icon">
+                                    <Tooltip title={favourites.owners.includes(item.id) ? "Remove from favourites" : "Add to favourites"} placement="top">
+                                      <span
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setFavourites(prev => {
+                                            const newOwners = prev.owners.includes(item.id)
+                                              ? prev.owners.filter(id => id !== item.id)
+                                              : [...prev.owners, item.id];
+                                            const updated = { ...prev, owners: newOwners };
+                                            LocalStorageUtil.setItemObject('DEAL_FAVOURITES', JSON.stringify(updated));
+                                            return updated;
+                                          });
+                                        }}
+                                        style={{ cursor: 'pointer', marginRight: '8px' }}
+                                      >
+                                        {favourites.owners.includes(item.id) ? <StarIcon style={{ color: '#f4a261', fontSize: '16px' }} /> : <StarBorderIcon style={{ fontSize: '16px' }} />}
+                                      </span>
+                                    </Tooltip>
                                     <a className="filterowner-tick" hidden={!item.isSelected}>
                                       <DoneIcon />
                                     </a>
@@ -1623,6 +1681,16 @@ const handleExportToExcel = async () => {
     onTemplateSelect={(t) => setSelectedTemplate(t)}
   />
 )}
+      {dealFilterDialogIsOpen && (
+        <DealFilterAddEditDialog
+          dialogIsOpen={dealFilterDialogIsOpen}
+          setDialogIsOpen={setDealFilterDialogIsOpen}
+          onSaveChanges={() => loadDeals()}
+          selectedFilter={selectedFilterForEdit || new DealFilter()}
+          setSelectedFilter={setSelectedFilterForEdit}
+          onPreview={() => {}}
+        />
+      )}
     </>
   );
 };

@@ -3825,13 +3825,9 @@ select {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* Space between elements */
-  background-color: #dc3545;
   padding: 8px;
   border-radius: 5px;
-  
   width: fit-content;
-  /* Adjust to content width */
 }
 
 .deal-amount-input {
@@ -3866,6 +3862,7 @@ select {
 .deal-amount-value {
   font-size: 16px;
   font-weight: bold;
+  color: #000 !important;
 }
 
 .edit-icon {

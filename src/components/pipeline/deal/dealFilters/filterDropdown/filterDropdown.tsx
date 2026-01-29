@@ -35,6 +35,7 @@ type params = {
   users?: any[];
   onPersonSelection?: (userName: string) => void;
   setSelectedUserId?: any;
+  setSelectedFilter?: any;
 };
 
 // Static flag to prevent multiple simultaneous API calls
@@ -52,6 +53,7 @@ const FilterDropdown = (props: params) => {
     users = [],
     onPersonSelection,
     setSelectedUserId,
+    setSelectedFilter: setSelectedFilterFromParent,
     ...others
   } = props;
   const [selectedFilter, setSelectedFilter] = useState<DealFilter>(
@@ -85,7 +87,6 @@ const FilterDropdown = (props: params) => {
   useEffect(() => {
     if (!dialogIsOpen) {
       setSelectedFilter(new DealFilter());
-      setShowPipeLineFilters(false); 
     }
   }, [dialogIsOpen]);
 
@@ -130,7 +131,12 @@ const FilterDropdown = (props: params) => {
     if (type === 'filter') {
       const filter = filters.find(f => f.id === id);
       if (filter) {
-        const updatedFilter = { ...filter, isFavourite: !filter.isFavourite };
+        const updatedFilter = { 
+          ...filter, 
+          isFavourite: !filter.isFavourite,
+          allConditions: filter.conditions.find((i) => i.glue === "AND")?.conditionList || [],
+          anyConditions: filter.conditions.find((i) => i.glue === "OR")?.conditionList || []
+        };
         dealFiltersSvc.saveDealFilters(updatedFilter).then(() => {
           setFilters(prev => prev.map(f => f.id === id ? updatedFilter : f));
           loadDealFilters(true);
@@ -338,13 +344,15 @@ const FilterDropdown = (props: params) => {
                       <Tooltip title="Edit this filter" placement="top">
                         <span
                           className="pl-4"
-                          onClick={(e: any) => {
+                          onMouseDown={(e: any) => {
+                            e.preventDefault();
                             e.stopPropagation();
-                            setDialogIsOpen(true);
                             setSelectedFilter(item);
+                            if (setSelectedFilterFromParent) setSelectedFilterFromParent(item);
                             setShowPipeLineFilters(false);
+                            setTimeout(() => setDialogIsOpen(true), 0);
                           }}
-                          style={{ paddingLeft: 10, paddingRight: 10 }}
+                          style={{ paddingLeft: 10, paddingRight: 10, cursor: 'pointer' }}
                         >
                           <FontAwesomeIcon className="pl-4" icon={faEdit} />
                         </span>
@@ -352,12 +360,14 @@ const FilterDropdown = (props: params) => {
                       <Tooltip title="Delete this filter" placement="top">
                         <span
                           className="pl-4"
-                          onClick={(e: any) => {
+                          onMouseDown={(e: any) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             setSelectedFilter(item);
-                            setShowDeleteDialog(true);
                             setShowPipeLineFilters(false);
+                            setTimeout(() => setShowDeleteDialog(true), 0);
                           }}
+                          style={{ cursor: 'pointer' }}
                         >
                           <FontAwesomeIcon icon={faDeleteLeft} />
                         </span>
@@ -421,10 +431,11 @@ const FilterDropdown = (props: params) => {
             <div className="add-new-filter">
               <Tooltip title="Create a new custom filter" placement="top">
                 <button
-                  onClick={(e: React.MouseEvent) => {
+                  onMouseDown={(e: React.MouseEvent) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    setDialogIsOpen(true);
                     setShowPipeLineFilters(false);
+                    setTimeout(() => setDialogIsOpen(true), 0);
                   }}
                 >
                   Add new filter
@@ -436,20 +447,6 @@ const FilterDropdown = (props: params) => {
       </OutsideClickHandler>
 
       {/* Modals should live outside to avoid re-opening */}
-      {dialogIsOpen && (
-        <DealFilterAddEditDialog
-          dialogIsOpen={dialogIsOpen}
-          setDialogIsOpen={setDialogIsOpen}
-          onPreview={(e:any)=>setShowPipeLineFilters(false)}
-          onSaveChanges={(e: any) => {
-            loadDealFilters(true);
-            setDialogIsOpen(false);
-          }}
-          selectedFilter={selectedFilter as any}
-          setSelectedFilter={setSelectedFilterObj}
-        />
-      )}
-
       {showDeleteDialog && (
         <DeleteDialog
           itemType={"Deal Filter"}

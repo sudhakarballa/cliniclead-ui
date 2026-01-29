@@ -25,6 +25,7 @@ import OutsideClickHandler from "react-outside-click-handler";
 import { Stage } from "../../../models/stage";
 import Dropdown from "react-bootstrap/Dropdown";
 import FilterDropdown from "./dealFilters/filterDropdown/filterDropdown";
+import DealFilterAddEditDialog from "./dealFilters/dealFilterAddEditDialog";
 import { DealFilter } from "../../../models/dealFilters";
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
@@ -88,6 +89,7 @@ export const DealHeader = (props: params) => {
   const [showPipeLineFilters, setShowPipeLineFilters] = useState(false);
   const [selectedViewType, setSelectedViewType]=useState("kanban");
   const [canEdit, setCanEdit] = useState(false);
+  const [selectedFilterForEdit, setSelectedFilterForEdit] = useState<any>(null);
   const utility: Utility = JSON.parse(
     LocalStorageUtil.getItemObject(Constants.UTILITY) as any
   );
@@ -416,6 +418,7 @@ export const DealHeader = (props: params) => {
                             users={users}
                             onPersonSelection={onPersonSelection}
                             setSelectedUserId={setSelectedUserId}
+                            setSelectedFilter={setSelectedFilterForEdit}
                           />
                         </div>
                         <div
@@ -431,6 +434,7 @@ export const DealHeader = (props: params) => {
                             setSelectedFilterObj={setSelectedFilterObj}
                             setDialogIsOpen={setDealFilterDialogIsOpen}
                             dialogIsOpen={dealFilterDialogIsOpen}
+                            setSelectedFilter={setSelectedFilterForEdit}
                           />
                         </div>
                         <div
@@ -608,6 +612,20 @@ export const DealHeader = (props: params) => {
           selectedStageId={selectedStageId}
           selectedPipeLineId={selectedItem?.pipelineID}
           pipeLinesList={pipeLinesList}
+        />
+      )}
+
+      {dealFilterDialogIsOpen && (
+        <DealFilterAddEditDialog
+          dialogIsOpen={dealFilterDialogIsOpen}
+          setDialogIsOpen={setDealFilterDialogIsOpen}
+          onPreview={(e:any)=>setShowPipeLineFilters(false)}
+          onSaveChanges={(e: any) => {
+            setDealFilterDialogIsOpen(false);
+            props.onSaveChanges();
+          }}
+          selectedFilter={selectedFilterForEdit as any}
+          setSelectedFilter={setSelectedFilterObj}
         />
       )}
     </>

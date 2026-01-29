@@ -118,7 +118,11 @@ export const DealDetails = () => {
     pipelineName: string;
   }
   const [dealsData, setDealsData] = useState<DealWithPipeline[]>([]);
-  useEffect(() => {}, [dealItem]);
+  useEffect(() => {
+    if (dealItem.value) {
+      setDealValue(dealItem.value);
+    }
+  }, [dealItem.value]);
 
   const convertUTCtoISO = (utcDateString: string) => {
     // Create a Date object from the UTC string
@@ -136,7 +140,8 @@ export const DealDetails = () => {
     return istISO;
   };
   const handleEditClick = () => {
-    if (userRole === 1) {
+    console.log('userRole:', userRole, 'type:', typeof userRole);
+    if (userRole === 1 || String(userRole) === '1' || userRole === 0) {
       setIsEditingAmount(true);
     } else {
       toast.error("You do not have permission to edit the deal amount.");
@@ -663,12 +668,10 @@ export const DealDetails = () => {
                                 gap: "8px",
                               }}
                             >
-                              <span className="deal-amount-value">
-                                {userRole === 1
-                                  ? `£${dealItem.value}`
-                                  : "£0"}
+                              <span style={{ color: '#000 !important' }}>
+                                £{dealValue || dealItem.value || '0'}
                               </span>
-                              {userRole === 1 && (
+                              {(userRole === 1 || String(userRole) === '1' || userRole === 0) && (
                                 <Tooltip title="Edit Deal Amount" placement="top">
                                   <FontAwesomeIcon
                                     icon={faPenToSquare}

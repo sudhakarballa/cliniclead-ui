@@ -48,20 +48,18 @@ export class LoginService{
                 method: 'POST',
                 url: `${baseURL}/Login/VerifyTwoFactorCode`,
                 headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Authorization': `Bearer ${getActiveUserToken()}`
+                    'Content-Type': 'application/json; charset=UTF-8'
                 },
                 data: item,
-                cancelToken: axiosCancel?.token
-            }).then((res: AxiosResponse) => {
-                if (res?.data) {
-                    resolve(res.data);
-                } else {
-                    resolve(null);
+                cancelToken: axiosCancel?.token,
+                validateStatus: function (status) {
+                    return status < 500;
                 }
+            }).then((res: AxiosResponse) => {
+                resolve(res.data);
             }).catch((err: AxiosError) => {
-                console.log("Exception Occurred - res: ", err, " | Code: ", err.code, " | err.message", err.message,);
-                resolve(err?.response?.data);
+                console.log("Exception Occurred - res: ", err);
+                reject(err);
             });
         });
     }

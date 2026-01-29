@@ -1068,7 +1068,7 @@ const handleExportToExcel = async () => {
           />
           
           {/* Combined More Actions menu */}
-          <div style={{ position: 'relative', zIndex: 1050 }}>
+          <div>
             <Dropdown align="end">
               <Dropdown.Toggle variant="secondary" id="dropdown-more-actions">
                 <FontAwesomeIcon icon={faEllipsisV} />
@@ -1261,12 +1261,12 @@ const handleExportToExcel = async () => {
                 onReset={itemCollectionPrefs?.onReset}
               />
               
-              <div style={{ position: 'relative', zIndex: 1050 }}>
+              <div>
                 <Dropdown align="end">
                   <Dropdown.Toggle variant="secondary" id="dropdown-more-actions">
                     <FontAwesomeIcon icon={faEllipsisV} />
                   </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ zIndex: 2000, minWidth: 180 }}>
+                  <Dropdown.Menu style={{ minWidth: 180 }}>
                 <Dropdown.Item onClick={() => setOpenAddDealDialog(true)} title="Create a new deal">
                       <FontAwesomeIcon icon={faAdd} style={{ marginRight: 8, color: '#28a745' }} /> New Deal
                     </Dropdown.Item>

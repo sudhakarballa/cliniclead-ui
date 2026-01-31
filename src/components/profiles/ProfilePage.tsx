@@ -15,13 +15,15 @@ import ToggleSwitch from "../../elements/ToggleSwitch";
 
 
 export const ProfilePage = () => {
-  const { userProfile } = useAuthContext();
+  const { userProfile, userRole } = useAuthContext();
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState<boolean>(false);
   const [userDetails, setUserDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const userService = new UserService(ErrorBoundary);
+
+  const getBackPath = () => userRole === 0 ? "/Tenant" : "/pipeline";
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -103,11 +105,11 @@ export const ProfilePage = () => {
           <p style={{ color: '#6c757d', marginBottom: '20px' }}>User profile could not be loaded. Please try again later.</p>
           <Button 
             variant="primary" 
-            onClick={() => navigate("/pipeline")}
+            onClick={() => navigate(getBackPath())}
             className="d-flex align-items-center gap-2 mx-auto"
           >
             <FontAwesomeIcon icon={faArrowLeft} />
-            Back to Deals
+            {userRole === 0 ? "Back to Tenants" : "Back to Deals"}
           </Button>
         </div>
       </div>
@@ -120,10 +122,10 @@ export const ProfilePage = () => {
         <Button 
           variant="outline-primary" 
           className="back-button d-flex align-items-center gap-2" 
-          onClick={() => navigate("/pipeline")}
+          onClick={() => navigate(getBackPath())}
         >
           <FontAwesomeIcon icon={faArrowLeft} />
-          <span>Back to Deals</span>
+          <span>{userRole === 0 ? "Back to Tenants" : "Back to Deals"}</span>
         </Button>
         <div className="profile-header">
           <div className="profile-header-info">

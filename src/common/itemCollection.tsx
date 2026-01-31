@@ -780,54 +780,58 @@ if (exportFormat === "csv") {
             <span style={{ fontSize: 14, fontWeight: 500 }}>Export</span>
           </MenuItem>
         )}
-        <MenuItem
-          onClick={() => {
-            savePreferences(currentGridPreferencesRef.current);
-            setMoreActionsAnchor(null);
-          }}
-          disabled={!hasChanges}
-          title="Save current grid settings"
-          sx={{
-            py: 1,
-            px: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            '&:hover': {
-              backgroundColor: '#f5f5f5'
-            },
-            '&.Mui-disabled': {
-              opacity: 0.5
-            }
-          }}
-        >
-          <Save fontSize="small" color={!hasChanges ? 'disabled' : 'primary'} />
-          <span style={{ fontSize: 14, fontWeight: 500 }}>Save Settings</span>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setShowResetDialog(true);
-            setMoreActionsAnchor(null);
-          }}
-          disabled={!hasExistingPreferences && !hasChanges}
-          title="Reset grid to default settings"
-          sx={{
-            py: 1,
-            px: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            '&:hover': {
-              backgroundColor: '#f5f5f5'
-            },
-            '&.Mui-disabled': {
-              opacity: 0.5
-            }
-          }}
-        >
-          <Refresh fontSize="small" color={(!hasExistingPreferences && !hasChanges) ? 'disabled' : 'primary'} />
-          <span style={{ fontSize: 14, fontWeight: 500 }}>Reset Settings</span>
-        </MenuItem>
+        {!isMasterAdminGlobal && (
+          <MenuItem
+            onClick={() => {
+              savePreferences(currentGridPreferencesRef.current);
+              setMoreActionsAnchor(null);
+            }}
+            disabled={!hasChanges}
+            title="Save current grid settings"
+            sx={{
+              py: 1,
+              px: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              '&:hover': {
+                backgroundColor: '#f5f5f5'
+              },
+              '&.Mui-disabled': {
+                opacity: 0.5
+              }
+            }}
+          >
+            <Save fontSize="small" color={!hasChanges ? 'disabled' : 'primary'} />
+            <span style={{ fontSize: 14, fontWeight: 500 }}>Save Settings</span>
+          </MenuItem>
+        )}
+        {!isMasterAdminGlobal && (
+          <MenuItem
+            onClick={() => {
+              setShowResetDialog(true);
+              setMoreActionsAnchor(null);
+            }}
+            disabled={!hasExistingPreferences && !hasChanges}
+            title="Reset grid to default settings"
+            sx={{
+              py: 1,
+              px: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              '&:hover': {
+                backgroundColor: '#f5f5f5'
+              },
+              '&.Mui-disabled': {
+                opacity: 0.5
+              }
+            }}
+          >
+            <Refresh fontSize="small" color={(!hasExistingPreferences && !hasChanges) ? 'disabled' : 'primary'} />
+            <span style={{ fontSize: 14, fontWeight: 500 }}>Reset Settings</span>
+          </MenuItem>
+        )}
       </Menu>
     </>
   );

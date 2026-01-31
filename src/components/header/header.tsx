@@ -6,6 +6,7 @@ import { Profile } from '../other/Profile';
 import { NotificationBell } from '../notifications/NotificationBell';
 import { ThemeSelector } from '../common/ThemeSelector';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 type params={
     onExpandCollapseClick:any,
@@ -13,6 +14,7 @@ type params={
 }
 export const HeaderComponent = (props:params) => {
     const { currentTheme } = useTheme();
+    const { userRole } = useAuthContext();
     
     return (
         <header id="header" className={`header pt-2 pb-2 bggradiant ${props.collapsed ? 'sidebar-collapsed' : ''}`} 
@@ -33,9 +35,11 @@ export const HeaderComponent = (props:params) => {
                             <div className="headicon headbtnbell">
                                 <NotificationBell />
                             </div>
-                            <div className="headicon">
-                                <ThemeSelector />
-                            </div>
+                            {userRole !== 0 && (
+                                <div className="headicon">
+                                    <ThemeSelector />
+                                </div>
+                            )}
                             <Profile />
                         </div>
                     </div>

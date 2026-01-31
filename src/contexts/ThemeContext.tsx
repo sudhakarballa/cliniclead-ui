@@ -1710,6 +1710,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   const setTheme = async (themeId: string) => {
+    // Store previous theme for rollback
+    const previousBaseTheme = baseTheme;
+    const previousCurrentTheme = currentTheme;
+    
     const theme = getThemeById(themeId) || PREDEFINED_THEMES[0];
     setBaseTheme(theme);
     if (!isDarkMode) {
@@ -1740,13 +1744,24 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           userProfile.userId
         );
 
-        await (themePrefs?.id 
+        const response = await (themePrefs?.id 
           ? userPreferencesService.updateUserPreferences(userPrefs)
           : userPreferencesService.addUserPreferences(userPrefs));
+        
+        // Check if response is successful (status 200)
+        if (!response || (response.status && response.status !== 200)) {
+          throw new Error('API response not successful');
+        }
           
         console.log('Theme preference saved successfully');
       } catch (error) {
         console.error('Failed to save theme preference:', error);
+        
+        // Revert to previous theme
+        setBaseTheme(previousBaseTheme);
+        setCurrentTheme(previousCurrentTheme);
+        applyTheme(previousCurrentTheme);
+        
         throw error;
       }
     }

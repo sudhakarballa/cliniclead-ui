@@ -227,7 +227,24 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
 
   useEffect(() => {
-    setPipelines(getPipelines());
+    const loadPipelines = () => {
+      const data = getPipelines();
+      if (data.length > 0) {
+        setPipelines(data);
+        return true;
+      }
+      return false;
+    };
+
+    if (!loadPipelines()) {
+      const interval = setInterval(() => {
+        if (loadPipelines()) {
+          clearInterval(interval);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
   }, []);
 
   const getPipelines = (): Pipeline[] => {
@@ -259,12 +276,11 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
         return [];
       }
       const res = JSON.parse(data);
-    console.log("Raw pipelines with stages:", res); // Log raw data for debugging
 
     res.forEach((pipeline: any) => {
       const obj = {
         pipeLine: pipeline.pipelineName || "Unknown Pipeline",
-        pipelineID: pipeline.pipelineStages?.[0]?.pipelineID || null, // Extract pipelineID from the first stage
+        pipelineID: pipeline.pipelineStages?.[0]?.pipelineID || null,
         stages: (pipeline.pipelineStages || []).map(
           (stage: { stageID: string; stageName: string }) => ({
             stageID: stage.stageID || "Unknown Stage ID",
@@ -283,7 +299,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   };
 
   const valueJSX = (key: string) => {
-    console.log("key is.... " + key);
     switch (key) {
       case "8": // Pipeline
         return (

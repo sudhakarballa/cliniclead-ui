@@ -1,7 +1,7 @@
 window.config = {
- //ServicesBaseURL: "https://localhost:7182/api",
- ServicesBaseURL: "https://api.cliniclead.app/api",
-  SMSServiceURL:"https://api.cliniclead.app/api/send-sms",
+  //ServicesBaseURL: "https://localhost:7182/api",
+  ServicesBaseURL: "https://api.cliniclead.app/api",
+  SMSServiceURL: "https://api.cliniclead.app/api/send-sms",
   DefaultStages: [
     "Qualified",
     "Conact Made",
@@ -9,8 +9,8 @@ window.config = {
     "Proposal Made",
     "Negotiations Started",
   ],
-  HomePage:"/",
-  RedirectUri:"https://cliniclead.app",
+  HomePage: "/",
+  RedirectUri: "https://cliniclead.app",
   UseMockService: false,
   DisableDropdownAPI: true,
   DisableDotDigitalAPI: true,
@@ -26,35 +26,36 @@ window.config = {
         "users",
         "Login",
         "Home",
-        "confirm-email"
+        "confirm-email",
+        "profile",
       ],
     },
     {
       Role: 1,
       NavItems: [
         "Stages",
-          "deal",
-          "pipeline",
-          "pipeline/edit",
-          "Activities",
-          "Person",
-          "Template",
-          "Contact",
-          "Email",
-          "Campaigns",
-          "users",
-          "Admin",
-          "Reporting",
-          "Enquiries",
-          "Login",
-          "Home",
-          "confirm-email",
-          "Clinic",
-          "Source",
-          "Treatment",
-          "profile",
-          "PipeLineType",
-          "Tenant"
+        "deal",
+        "pipeline",
+        "pipeline/edit",
+        "Activities",
+        "Person",
+        "Template",
+        "Contact",
+        "Email",
+        "Campaigns",
+        "users",
+        "Admin",
+        "Reporting",
+        "Enquiries",
+        "Login",
+        "Home",
+        "confirm-email",
+        "Clinic",
+        "Source",
+        "Treatment",
+        "profile",
+        "PipeLineType",
+        "Tenant",
       ],
     },
     {
@@ -62,40 +63,31 @@ window.config = {
       NavItems: [
         "Stages",
         "deal",
-    "pipeline",
-    "pipeline/edit",
-    "Activities",
-    "profile",
-    "Email",   
+        "pipeline",
+        "pipeline/edit",
+        "Activities",
+        "profile",
+        "Email",
       ],
     },
     {
       Role: 3,
-      NavItems: [
-        "Stages",
-        "deal",
-        "pipeline",
-        "Reporting",
-        "Enquiries"
-      ],
+      NavItems: ["Stages", "deal", "pipeline", "Reporting", "Enquiries"],
     },
   ],
   NavItemActiveColor: "#0098e5",
   Pagination: {
     defaultPageSize: 50,
-    pageSizeOptions: [25, 50, 100, 200, 500, 1000]
+    pageSizeOptions: [25, 50, 100, 200, 500, 1000],
   },
   SessionTimeout: {
     idleTimeoutSeconds: 1440,
-    maxSessionTimeoutMinutes: 1440
+    maxSessionTimeoutMinutes: 1440,
   },
   TenantSubdomains: {
     1: "signatureclinic.cliniclead.app",
-    2: "transformus.cliniclead.app"
+    2: "transformus.cliniclead.app",
     // Add more tenants as needed: tenantId: "subdomain.cliniclead.app"
   },
-  EnableSubdomainRedirect: true // Set to true for production, false for local development
+  EnableSubdomainRedirect: true, // Set to true for production, false for local development
 };
-
-   
-  

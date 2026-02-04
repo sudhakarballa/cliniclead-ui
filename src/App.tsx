@@ -5,6 +5,7 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
+import "./datagrid-fix.css";
 import "./styles/themes.css";
 import Login from "./components/login";
 import { SideBar } from "./components/sidebar";

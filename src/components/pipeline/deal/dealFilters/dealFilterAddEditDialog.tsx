@@ -208,7 +208,14 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
     pipelineName: string;
   }
 
+  const [selectedObject, setSelectedObject] = useState(condition.object || "");
+  const [selectedField, setSelectedField] = useState(condition.field || "");
+  const [selectedOperator, setSelectedOperator] = useState(condition.operator || "");
+
   useEffect(() => {
+    setSelectedObject(condition.object || "");
+    setSelectedField(condition.field || "");
+    setSelectedOperator(condition.operator || "");
     setValue(`${conditionType}.${index}.object`, condition.object);
     setValue(`${conditionType}.${index}.field`, condition.field);
     setOperatorsList(
@@ -225,6 +232,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   }, [condition, setValue, index, conditionType]);
 
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const [stages, setStages] = useState<any[]>([]);
 
   useEffect(() => {
     const loadPipelines = () => {
@@ -239,6 +247,27 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
     if (!loadPipelines()) {
       const interval = setInterval(() => {
         if (loadPipelines()) {
+          clearInterval(interval);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadStages = () => {
+      const data = getAllPipeLinesAndStages();
+      if (data.length > 0) {
+        setStages(data);
+        return true;
+      }
+      return false;
+    };
+
+    if (!loadStages()) {
+      const interval = setInterval(() => {
+        if (loadStages()) {
           clearInterval(interval);
         }
       }, 100);
@@ -324,14 +353,16 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           <select
             className="form-control"
             disabled={!getValues(`${conditionType}.${index}.field`)}
-            defaultValue={`${conditionType}.${index}.value`}
+            value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
+            onChange={(e) =>
+              setValue(`${conditionType}.${index}.value`, e.target.value)
+            }
           >
             <option value="">Select</option>
-            {getAllPipeLinesAndStages().map((item, index) => (
-              <>
+            {stages.map((item, idx) => (
+              <React.Fragment key={idx}>
                 <option
-                  key={index}
                   disabled
                   className="non-selectable-option"
                   style={{
@@ -350,7 +381,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
                     &nbsp; &nbsp; {stage.stageName}
                   </option>
                 ))}
-              </>
+              </React.Fragment>
             ))}
           </select>
         );
@@ -359,8 +390,11 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           <select
             className="form-control"
             disabled={!getValues(`${conditionType}.${index}.field`)}
-            defaultValue={`${conditionType}.${index}.value`}
+            value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
+            onChange={(e) =>
+              setValue(`${conditionType}.${index}.value`, e.target.value)
+            }
           >
             <option value="">Select</option>
             {getDropdownListforValueJSX(key).map((option) => (
@@ -463,13 +497,17 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       <div className="col-2">
         <select
           className="form-control"
-          defaultValue={`${conditionType}.${index}.object`}
+          value={selectedObject}
           {...register(`${conditionType}.${index}.object`)}
           onChange={(e: any) => {
+            const newValue = e.target.value;
+            setSelectedObject(newValue);
+            setSelectedField("");
+            setSelectedOperator("");
             setValue(`${conditionType}.${index}.field`, null);
             setValue(`${conditionType}.${index}.operator`, null);
             setValue(`${conditionType}.${index}.value`, null);
-            setValue(`${conditionType}.${index}.object`, e.target.value);
+            setValue(`${conditionType}.${index}.object`, newValue);
           }}
         >
           <option value="">Select</option>
@@ -484,19 +522,22 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       <div className="col-3">
         <select
           className="form-control"
-          defaultValue={`${conditionType}.${index}.field`}
+          value={selectedField}
           {...register(`${conditionType}.${index}.field`)}
-          disabled={!getValues(`${conditionType}.${index}.object`)}
+          disabled={!selectedObject}
           onChange={(e: any) => {
+            const newValue = e.target.value;
+            setSelectedField(newValue);
+            setSelectedOperator("");
             setOperatorsList(
               getOperators(
-                fieldOptions.find((i) => i.value == e.target.value)
+                fieldOptions.find((i) => i.value == newValue)
                   ?.isNumberType as any
               )
             );
             setValue(`${conditionType}.${index}.operator`, null);
             setValue(`${conditionType}.${index}.value`, null);
-            setValue(`${conditionType}.${index}.field`, e.target.value);
+            setValue(`${conditionType}.${index}.field`, newValue);
           }}
         >
           <option value="">Select</option>
@@ -512,9 +553,14 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       <div className="col-2">
         <select
           className="form-control"
-          defaultValue={`${conditionType}.${index}.operator`}
-          disabled={!getValues(`${conditionType}.${index}.field`)}
+          value={selectedOperator}
+          disabled={!selectedField}
           {...register(`${conditionType}.${index}.operator`)}
+          onChange={(e: any) => {
+            const newValue = e.target.value;
+            setSelectedOperator(newValue);
+            setValue(`${conditionType}.${index}.operator`, newValue);
+          }}
         >
           <option value="">Select</option>
           {operatorsList.map((option) => (

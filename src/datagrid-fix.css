@@ -1,0 +1,19 @@
+/* Fix DataGrid filter panel positioning and size */
+.MuiDataGrid-panel {
+  min-width: 1000px !important;
+}
+
+.MuiDataGrid-panelContent {
+  overflow-x: hidden !important;
+}
+
+.MuiDataGrid-filterForm {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.MuiDataGrid-filterFormColumnInput,
+.MuiDataGrid-filterFormOperatorInput,
+.MuiDataGrid-filterFormValueInput {
+  min-width: 150px !important;
+}

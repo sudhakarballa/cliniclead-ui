@@ -10,9 +10,6 @@ export class UtilService extends BaseService<Utility>{
     }
 
     getDropdownValues(axiosCancel?: CancelTokenSource){
-        if (window.config.DisableDropdownAPI) {
-            return Promise.resolve({ data: null });
-        }
         return this.getItemsBySubURL(IsMockService() ? 'mockData/utility.json' : "GetAllDropdonws");
     }
 }

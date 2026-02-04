@@ -21,7 +21,7 @@ const PipeLineTypeList = () => {
   ];
 
   const rowTransform = (item: PipeLineType) => {
-    item.pipelineTypeID = item.pipelineTypeID;
+    (item as any).id = item.pipelineTypeID;
     return item;
   };
 

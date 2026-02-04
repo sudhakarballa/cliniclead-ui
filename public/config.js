@@ -1,5 +1,4 @@
 window.config = {
-  //ServicesBaseURL: "https://localhost:7182/api",
   ServicesBaseURL: "https://api.cliniclead.app/api",
   SMSServiceURL: "https://api.cliniclead.app/api/send-sms",
   DefaultStages: [
@@ -12,7 +11,6 @@ window.config = {
   HomePage: "/",
   RedirectUri: "https://cliniclead.app",
   UseMockService: false,
-  DisableDropdownAPI: true,
   DisableDotDigitalAPI: true,
   CampaignSections: ["Assets", "Tasks"],
   ClientId: "58f8d840-1215-4e4f-8901-da06f1dba5ac",

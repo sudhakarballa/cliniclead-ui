@@ -4549,3 +4549,17 @@ select:focus,
   line-height: 1.2;
 }
 
+
+/* Fix DataGrid filter panel double scrollbars */
+.MuiDataGrid-panel {
+  max-width: 450px !important;
+}
+
+.MuiDataGrid-panelContent {
+  overflow: visible !important;
+}
+
+.MuiDataGrid-filterForm {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}

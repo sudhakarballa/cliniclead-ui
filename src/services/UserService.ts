@@ -45,5 +45,9 @@ confirmEmail(userId: string, token: string) {
 resendConfirmation(userId: number | string) {
   return this.postItemBySubURL({ userId }, "ResendConfirmation", false, true);
 }
+
+unlockUser(userId: number) {
+  return this.postItemBySubURL({}, `unlock/${userId}`, false, true);
+}
 }
 

@@ -222,10 +222,6 @@ const showPwdError = (msg: string) => {
               setUserId(res.userId);
               setEmail(res.email);
               setTenantId(res.tenantId || null);
-            } else if ((res as any)?.status === 401 || (res as any)?.error === 'Invalid credentials') {
-              setLoginError('Invalid email or password. Please try again.' as any);
-            } else {
-              setLoginError(res as any);
             }
           })
          .catch((err) => {
@@ -234,7 +230,7 @@ const showPwdError = (msg: string) => {
   if (msg.toLowerCase().includes("passwordhash")) {
     showPwdError(msg);
   } else {
-    toast.error(msg);
+    setLoginError(msg as any);
   }
 });
       }
@@ -252,10 +248,12 @@ const showPwdError = (msg: string) => {
     if (item.value == "email") {
       obj.email = value;
       methods.clearErrors("email" as any);
+      setLoginError(undefined);
     }
     if (item.value === "passwordHash") {
       obj.passwordHash = value;
       methods.clearErrors("passwordHash" as any);
+      setLoginError(undefined);
     }
 
     setSelectedItem(obj);

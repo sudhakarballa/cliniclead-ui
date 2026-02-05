@@ -28,7 +28,7 @@ export class LoginService{
             }).then((res: AxiosResponse) => {
                 console.log("postItem - res: ", res);
                 if (res.status === 401) {
-                    resolve({ error: 'Invalid credentials', status: 401 });
+                    reject({ response: { data: res.data } });
                 } else if (res?.data) {
                     resolve(res.data);
                 } else {
@@ -36,7 +36,7 @@ export class LoginService{
                 }
             }).catch((err: AxiosError) => {
                 console.log("Exception Occurred - res: ", err, " | Code: ", err.code, " | err.message", err.message,);
-                resolve(err?.response?.data);
+                reject(err);
             });
         });
         return promise;

@@ -10,6 +10,7 @@ import { Spinner } from "react-bootstrap";
 import { Button, Tooltip } from "@mui/material";
 import { toast } from "react-toastify";
 import LockResetIcon from "@mui/icons-material/LockReset";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 import moment from "moment";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import { TenantService } from "../../services/tenantService";
@@ -24,7 +25,7 @@ const UsersList = () => {
   const [actionType, setActionType] = useState("");
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [userItem, setUserItem] = useState<User>(new User());
-  const [loadRowData, setLoadRowData] = useState(true);
+  const [loadRowData, setLoadRowData] = useState(0);
   const [isResendClicked, setIsResendClicked] = useState(false);
   const [tenants, setTenants] = useState<Array<any>>([]);
   const [roles, setRoles] = useState<Array<any>>([]);
@@ -108,27 +109,25 @@ const UsersList = () => {
   };
 
   const unLockUserAccount = (item: User) => {
-    setActionType("Unlock");
     if (isUnlockClicked) return;
     setIsUnlockClicked(true);
     userSvc
-      .postItemBySubURL(item, "UnlockUserAccount", false, true)
+      .unlockUser(item.userId)
       .then((res) => {
-        setIsUnlockClicked(false);
-        if (res) {
-          toast.success(
-            `'${item.name}'  user acount has been successfully unlocked`,
-            { autoClose: 3000 }
-          );
-          setLoadRowData(true);
-        }
-      })
-      .catch((err: any) => {
-        setIsUnlockClicked(false);
-        toast.error(
-          `There is an issue with unlocking '${item.userName}' user acount, please verify...!`,
+        toast.success(
+          `User account has been successfully unlocked`,
           { autoClose: 3000 }
         );
+        setLoadRowData(Date.now());
+      })
+      .catch((err: any) => {
+        toast.error(
+          `Failed to unlock user account. Please try again.`,
+          { autoClose: 3000 }
+        );
+      })
+      .finally(() => {
+        setIsUnlockClicked(false);
       });
   };
 
@@ -166,6 +165,7 @@ const UsersList = () => {
     const isCurrentUser = currentUserId && rowUserId && String(currentUserId) === String(rowUserId);
     const needsConfirmation =
   row?.emailConfirmed === false || row?.EmailConfirmed === false;
+    const isLockedOut = row?.isLockedOut === true;
     return (
       <>
         <Tooltip title={TOOLTIPS.USER.RESET_PASSWORD} placement="top">
@@ -181,6 +181,19 @@ const UsersList = () => {
             ></Button>
           </span>
         </Tooltip>
+        {isLockedOut && isMasterAdmin && (
+          <Tooltip title="Unlock User Account" placement="top">
+            <span>
+              <Button
+                color="warning"
+                startIcon={<LockOpenIcon />}
+                onClick={() => unLockUserAccount(row)}
+                className="rowActionIcon"
+                disabled={isUnlockClicked}
+              />
+            </span>
+          </Tooltip>
+        )}
         {needsConfirmation && (
           <Tooltip title={TOOLTIPS.USER.RESEND_CONFIRMATION} placement="top">
             <span>
@@ -205,6 +218,7 @@ const UsersList = () => {
   ) : (
     <>
       <ItemCollection
+        key={loadRowData}
         itemName={"User"}
         itemType={User}
         columnMetaData={columnMetaData}
@@ -218,6 +232,7 @@ const UsersList = () => {
         customActions={(e: any) => customActions(e)}
         onSelectionModelChange={() => {}}
         defaultSortField={"modifiedDate"}
+        reloadDataOnSignalNotificationIndicator={loadRowData}
         dataGridProps={{
           getRowClassName: (params: any) => {
             return params.row._isDeleted ? 'deleted-user-row' : '';

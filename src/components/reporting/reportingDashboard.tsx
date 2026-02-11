@@ -140,9 +140,30 @@ const ReportingDashboard = () => {
     // Refresh reports from API after save
     refreshReports();
     
-    // Update navigation to show the saved report
+    // Keep the current report view active - don't reset it
     setActiveNavItem(reportData.name);
     setActiveReportId(reportData.id);
+    
+    // Update currentReport to reflect the saved state without resetting the view
+    if (currentReport) {
+      setCurrentReport({
+        ...currentReport,
+        reportDefinition: {
+          id: reportData.id,
+          name: reportData.name,
+          chartType: reportData.chartType || currentReport.reportDefinition?.chartType || 'bar',
+          frequency: reportData.frequency || currentReport.reportDefinition?.frequency || 'daily',
+          isPreview: false,
+          isActive: true,
+          isPublic: true,
+          createdDate: reportData.createdDate || new Date().toISOString(),
+          createdBy: 0,
+          modifiedBy: 0,
+          modifiedDate: reportData.modifiedDate || new Date().toISOString(),
+          reportConditions: reportData.reportConditions || currentReport.reportDefinition?.reportConditions || []
+        }
+      });
+    }
   };
 
   const handleBackToDashboard = () => {
@@ -203,9 +224,21 @@ const ReportingDashboard = () => {
     setCurrentDashboard(null);
   };
 
-  const handleDeleteReport = (reportId: number) => {
+  const handleDeleteReport = async (reportId: number) => {
     // Refresh reports from API after delete
-    refreshReports();
+    const reportService = new ReportService(null);
+    const updatedReports = await reportService.getReports();
+    setCreatedReports(updatedReports || []);
+    
+    // After refresh, show first available report or go back to home
+    if (updatedReports && updatedReports.length > 0) {
+      // Show the first available report
+      handleReportClick(updatedReports[0]);
+    } else {
+      // No reports left, go back to home view
+      setCurrentView('home');
+      setCurrentReport(null);
+    }
   };
 
   const handleReportClick = (report: any) => {

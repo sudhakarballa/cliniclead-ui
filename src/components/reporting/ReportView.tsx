@@ -270,9 +270,10 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
       const currentFullName = `${detectedEntity} ${reportName.trim()}`;
       const nameChanged = currentFullName !== originalReportName;
       const frequencyChanged = frequency !== (reportDefinition?.frequency || "Daily");
-      setHasChanges(filtersChanged || nameChanged || frequencyChanged);
+      const hasNewConditionRow = showAddCondition; // Just showing the add condition row is a change
+      setHasChanges(filtersChanged || nameChanged || frequencyChanged || hasNewConditionRow);
     }
-  }, [appliedFilters, savedFilters, reportSaved, reportName, originalReportName, frequency, detectedEntity, reportDefinition]);
+  }, [appliedFilters, savedFilters, reportSaved, reportName, originalReportName, frequency, detectedEntity, reportDefinition, showAddCondition]);
 
   const validateFilters = async () => {
     const isNameValid = await trigger('reportName');

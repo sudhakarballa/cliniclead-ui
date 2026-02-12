@@ -69,43 +69,6 @@ const CreateButton: React.FC<CreateButtonProps> = ({ onSelect }) => {
         }}
       >
         <MenuItem 
-          onClick={() => handleSelect('generate-report-ai')}
-          sx={{ 
-            padding: '8px 16px',
-            minHeight: 'auto'
-          }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            width: '100%',
-            gap: '12px'
-          }}>
-            <AutoAwesomeIcon sx={{ color: '#8B5CF6', fontSize: '20px' }} />
-            <Box sx={{ 
-              background: 'linear-gradient(45deg, #8B5CF6, #EC4899)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontWeight: 500,
-              fontSize: '14px',
-              flex: 1
-            }}>
-              Generate report (AI)
-            </Box>
-            <Chip 
-              label="AI" 
-              size="small" 
-              sx={{ 
-                backgroundColor: '#8B5CF6', 
-                color: 'white',
-                fontSize: '10px',
-                height: '18px'
-              }} 
-            />
-          </Box>
-        </MenuItem>
-        
-        <MenuItem 
           onClick={() => handleSelect('report')}
           sx={{ 
             padding: '8px 16px',
@@ -120,24 +83,6 @@ const CreateButton: React.FC<CreateButtonProps> = ({ onSelect }) => {
           }}>
             <BarChartIcon sx={{ color: '#000', fontSize: '20px' }} />
             <Box sx={{ fontSize: '14px' }}>Report</Box>
-          </Box>
-        </MenuItem>
-        
-        <MenuItem 
-          onClick={() => handleSelect('goal')}
-          sx={{ 
-            padding: '8px 16px',
-            minHeight: 'auto'
-          }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            width: '100%',
-            gap: '12px'
-          }}>
-            <TrackChangesIcon sx={{ color: '#000', fontSize: '20px' }} />
-            <Box sx={{ fontSize: '14px' }}>Goal</Box>
           </Box>
         </MenuItem>
         

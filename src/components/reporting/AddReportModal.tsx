@@ -25,12 +25,9 @@ const AddReportModal: React.FC<AddReportModalProps> = ({
   const [selectedReportType, setSelectedReportType] = useState<string>("");
 
   const entities = [
-    { name: "Activity", icon: faChartLine },
-    { name: "Campaign", icon: faBullhorn },
-    { name: "Contact", icon: faUser },
-    { name: "Lead", icon: faUserTie },
     { name: "Deal", icon: faHandshake },
-    { name: "Revenue forecast", icon: faChartBar }
+    { name: "Contact", icon: faUser },
+    { name: "Activity", icon: faChartLine }
   ];
 
   const reportTypes: { [key: string]: Array<{ name: string; description: string }> } = {

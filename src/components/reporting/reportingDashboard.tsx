@@ -14,6 +14,7 @@ import ReportView from "./ReportView";
 import { ReportService } from '../../services/reportService';
 import { DashboardFolderService } from '../../services/dashboardFolderService';
 import { ReportDashboardService } from '../../services/reportDashboardService';
+import { StageService } from '../../services/stageService';
 import Util from '../../others/util';
 
 const ReportingDashboard = () => {
@@ -51,37 +52,41 @@ const ReportingDashboard = () => {
   const [showFolderWarningModal, setShowFolderWarningModal] = useState(false);
   const [folderWithReports, setFolderWithReports] = useState<any>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [allDealsData, setAllDealsData] = useState<any[]>([]);
   
   const reportTypes = ["Performance", "Conversion", "Duration", "Progress", "Products"];
 
   // Load reports and folders from API
   useEffect(() => {
     const loadData = async () => {
+      setIsInitialLoading(true);
       try {
-        // Load reports
         const reportService = new ReportService(null);
-        const reports = await reportService.getReports();
-        setCreatedReports(reports || []);
+        const folderService = new DashboardFolderService(null);
+        const dashboardService = new ReportDashboardService(null);
+        const stageService = new StageService(null);
         
-        // Load folders and dashboards from API
         setLoadingFolders(true);
         setLoadingDashboards(true);
         
-        const folderService = new DashboardFolderService(null);
-        const dashboardService = new ReportDashboardService(null);
-        
-        const [folders, dashboards] = await Promise.all([
+        const [reports, folders, dashboards, dealsResponse] = await Promise.all([
+          reportService.getReports(),
           folderService.getAllFolders(),
-          dashboardService.getAllDashboards()
+          dashboardService.getAllDashboards(),
+          stageService.getAllDealsByPipelines(1, 10000)
         ]);
         
+        setCreatedReports(reports || []);
         setDashboardFolders(folders || []);
         setCreatedDashboards(dashboards || []);
+        setAllDealsData(dealsResponse?.dealsDtos?.deals || []);
+        
+        console.log('Loaded deals data:', dealsResponse?.dealsDtos?.deals?.length || 0, 'deals');
         
         // Auto-select first dashboard or report
         if (dashboards && dashboards.length > 0) {
           const firstDashboard = dashboards[0];
-          // Expand the folder containing the first dashboard
           const newExpanded = new Set(expandedFolders);
           newExpanded.add(firstDashboard.folderId.toString());
           setExpandedFolders(newExpanded);
@@ -93,15 +98,15 @@ const ReportingDashboard = () => {
         console.error('Error loading data:', error);
         setCreatedReports([]);
         setDashboardFolders([]);
+        setAllDealsData([]);
       } finally {
         setLoadingFolders(false);
         setLoadingDashboards(false);
+        setIsInitialLoading(false);
       }
     };
     
     loadData();
-    
-
   }, []);
 
   // Refresh reports when needed
@@ -277,6 +282,26 @@ const ReportingDashboard = () => {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
+      {isInitialLoading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          flexDirection: 'column'
+        }}>
+          <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="mt-3 text-primary fw-bold">Loading reporting dashboard...</div>
+        </div>
+      )}
       {/* Navigation Sidebar */}
       <div style={{ 
         width: sidebarCollapsed ? '60px' : '250px', 
@@ -602,12 +627,13 @@ const ReportingDashboard = () => {
             entity={currentReport.entity}
             reportType={currentReport.reportType}
             reportDefinition={currentReport.reportDefinition}
+            allDealsData={allDealsData}
+            existingReports={createdReports}
             onBack={handleBackToDashboard}
             onSave={handleSaveReport}
             onDelete={handleDeleteReport}
             onDashboardUpdate={(updatedDashboards) => {
               setCreatedDashboards(updatedDashboards);
-              // If currently viewing a dashboard, update it
               if (currentDashboard) {
                 const updatedCurrentDashboard = updatedDashboards.find(d => d.id === currentDashboard.id);
                 if (updatedCurrentDashboard) {

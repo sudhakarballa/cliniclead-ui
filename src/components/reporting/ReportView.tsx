@@ -21,6 +21,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useState } from "react";
 import { Badge, Button, Dropdown, Form } from "react-bootstrap";
+import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { DeleteDialog } from '../../common/deleteDialog';
 import { AddEditDialog } from '../../common/addEditDialog';
@@ -29,16 +30,20 @@ import { ReportDefinition, CreateReportRequest } from '../../models/reportModels
 import { ReportService } from '../../services/reportService';
 import { DashboardFolderService } from '../../services/dashboardFolderService';
 import { ReportDashboardService } from '../../services/reportDashboardService';
+import { DealService } from '../../services/dealService';
+import { StageService } from '../../services/stageService';
 import Util from '../../others/util';
 
 interface ReportViewProps {
   entity: string;
   reportType: string;
   reportDefinition?: ReportDefinition;
+  allDealsData?: any[];
   onBack: () => void;
   onSave?: (reportData: any) => void;
   onDelete?: (reportId: number) => void;
   onDashboardUpdate?: (updatedDashboards: any[]) => void;
+  existingReports?: any[];
 }
 
 interface FilterCondition {
@@ -50,9 +55,35 @@ interface FilterCondition {
   displayText: string;
 }
 
-const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefinition, onBack, onSave, onDelete, onDashboardUpdate }) => {
+const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefinition, allDealsData = [], onBack, onSave, onDelete, onDashboardUpdate, existingReports = [] }) => {
+  // Extract entity from report name if in edit mode
+  const getEntityFromName = (name: string) => {
+    const firstWord = name.split(' ')[0];
+    return ['Deal', 'Contact', 'Activity'].includes(firstWord) ? firstWord : entity;
+  };
+  
+  const getNameWithoutEntity = (name: string) => {
+    const firstWord = name.split(' ')[0];
+    return ['Deal', 'Contact', 'Activity'].includes(firstWord) ? name.substring(firstWord.length + 1) : name;
+  };
+  
+  const detectedEntity = reportDefinition?.name ? getEntityFromName(reportDefinition.name) : entity;
+  const nameWithoutEntity = reportDefinition?.name ? getNameWithoutEntity(reportDefinition.name) : `${reportType} Report`;
+  
+  const { control, handleSubmit: handleFormSubmit, formState: { errors }, setValue: setFormValue, trigger, clearErrors } = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      reportName: nameWithoutEntity,
+      field: '',
+      operator: '',
+      value: ''
+    }
+  });
+  
   const [appliedFilters, setAppliedFilters] = useState<FilterCondition[]>([]);
   const [showAddCondition, setShowAddCondition] = useState(false);
+  const [filterErrors, setFilterErrors] = useState<{[key: string]: {field?: string, operator?: string, value?: string}}>({});
+  const [showValidationSummary, setShowValidationSummary] = useState(false);
   const [newCondition, setNewCondition] = useState({
     entity: 'Deal',
     field: '',
@@ -77,9 +108,8 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
   const [existingDashboards, setExistingDashboards] = useState<any[]>([]);
   const [reportSaved, setReportSaved] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [reportName, setReportName] = useState(reportDefinition?.name || `${entity} ${reportType} Report`);
-  const [originalReportName, setOriginalReportName] = useState(reportDefinition?.name || `${entity} ${reportType} Report`);
-  const [reportNameError, setReportNameError] = useState('');
+  const [reportName, setReportName] = useState(nameWithoutEntity);
+  const [originalReportName, setOriginalReportName] = useState(nameWithoutEntity);
   const [hasChanges, setHasChanges] = useState(false);
   const [showCreateDashboard, setShowCreateDashboard] = useState(false);
   const [dashboardName, setDashboardName] = useState('');
@@ -233,15 +263,66 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
 
   // Track changes in filters, report name, and frequency
   React.useEffect(() => {
-    if (reportDefinition && reportSaved) {
+    if (reportSaved) {
       const originalFilters = savedFilters;
       const currentFilters = appliedFilters;
       const filtersChanged = JSON.stringify(originalFilters) !== JSON.stringify(currentFilters);
-      const nameChanged = reportName !== originalReportName;
+      const currentFullName = `${detectedEntity} ${reportName.trim()}`;
+      const nameChanged = currentFullName !== originalReportName;
       const frequencyChanged = frequency !== (reportDefinition?.frequency || "Daily");
       setHasChanges(filtersChanged || nameChanged || frequencyChanged);
     }
-  }, [appliedFilters, savedFilters, reportDefinition, reportSaved, reportName, originalReportName, frequency]);
+  }, [appliedFilters, savedFilters, reportSaved, reportName, originalReportName, frequency, detectedEntity, reportDefinition]);
+
+  const validateFilters = async () => {
+    const isNameValid = await trigger('reportName');
+    
+    // Validate all applied filters are complete
+    const errors: {[key: string]: {field?: string, operator?: string, value?: string}} = {};
+    appliedFilters.forEach(filter => {
+      const filterErrors: {field?: string, operator?: string, value?: string} = {};
+      if (!filter.field) filterErrors.field = 'Field is required';
+      if (!filter.operator) filterErrors.operator = 'Operator is required';
+      if (!filter.value) filterErrors.value = 'Value is required';
+      
+      if (Object.keys(filterErrors).length > 0) {
+        errors[filter.id] = filterErrors;
+      }
+    });
+    
+    setFilterErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
+      setShowValidationSummary(true);
+      return false;
+    }
+    
+    // If no applied filters OR if add condition row is visible, validate the new condition fields
+    if (appliedFilters.length === 0 || showAddCondition) {
+      setShowAddCondition(true);
+      const results = await trigger(['field', 'operator', 'value']);
+      if (!results) {
+        setShowValidationSummary(true);
+      }
+      return isNameValid && results;
+    }
+    
+    setShowValidationSummary(false);
+    return isNameValid;
+  };
+
+  const validateReportName = () => {
+    return trigger('reportName');
+  };
+
+  const validateConditions = async () => {
+    if (appliedFilters.length === 0) {
+      setShowAddCondition(true);
+      const isValid = await trigger('field') && await trigger('operator') && await trigger('value');
+      return isValid;
+    }
+    return true;
+  };
 
   const getFilteredData = () => {
     // Use API data only
@@ -445,8 +526,11 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
       const updatedFilters = [...appliedFilters, condition];
       setAppliedFilters(updatedFilters);
       
-      // Clear the newCondition completely
+      // Clear the newCondition and form values
       setNewCondition({ entity: 'Deal', field: '', operator: '', value: '' });
+      setFormValue('field', '');
+      setFormValue('operator', '');
+      setFormValue('value', '');
     } else {
       setShowAddCondition(true);
     }
@@ -478,7 +562,34 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
     { value: "24", label: "Visible to" }
   ];
 
-  const getFieldOptions = () => fieldOptions;
+  const contactFieldOptions = [
+    { value: "name", label: "Name" },
+    { value: "email", label: "Email" },
+    { value: "phone", label: "Phone" },
+    { value: "owner", label: "Owner" },
+    { value: "created", label: "Created Date", isDateType: true },
+    { value: "updated", label: "Updated Date", isDateType: true }
+  ];
+
+  const activityFieldOptions = [
+    { value: "type", label: "Activity Type" },
+    { value: "subject", label: "Subject" },
+    { value: "dueDate", label: "Due Date", isDateType: true },
+    { value: "done", label: "Done" },
+    { value: "owner", label: "Owner" },
+    { value: "created", label: "Created Date", isDateType: true }
+  ];
+
+  const getFieldOptions = () => {
+    switch(entity) {
+      case 'Contact':
+        return contactFieldOptions;
+      case 'Activity':
+        return activityFieldOptions;
+      default:
+        return fieldOptions;
+    }
+  };
 
   const getValueOptions = (field: string) => {
     const fieldOption = fieldOptions.find(f => f.value === field);
@@ -494,8 +605,11 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
     }
     
     // For other fields, get unique values from data
+    // Use reportDetailsData if available (for existing reports), otherwise use allDealsData (for new reports)
     const uniqueValues = new Set<string>();
-    const dataSource = reportDetailsData.length > 0 ? reportDetailsData : [];
+    const dataSource = reportDetailsData.length > 0 ? reportDetailsData : allDealsData;
+    
+    console.log('getValueOptions - field:', field, 'dataSource length:', dataSource.length, 'allDealsData length:', allDealsData.length);
     
     dataSource.forEach((deal: any) => {
       switch (field) {
@@ -518,7 +632,10 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
           break;
       }
     });
-    return Array.from(uniqueValues).sort().map(value => ({ value, label: value }));
+    
+    const result = Array.from(uniqueValues).sort().map(value => ({ value, label: value }));
+    console.log('getValueOptions - result:', result.length, 'options');
+    return result;
   };
 
   const operatorsForNumberType = [
@@ -870,7 +987,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
 
   const renderChart = () => {
     const data = getReportData();
-    const displayName = reportName || `${entity} ${reportType} Report`;
+    const displayName = reportName || `${reportType} Report`;
     
     if (chartType === 'table') {
       return renderDataGrid(data, displayName);
@@ -1615,7 +1732,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
             fontWeight: '600',
             fontSize: '24px'
           }}>
-            {reportName || `${entity} ${reportType} Report`}
+            {reportName || `${reportType} Report`}
           </h4>
         </div>
         <div className="d-flex gap-2">
@@ -1644,15 +1761,16 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                   size="sm"
                   disabled={isSaving}
                   onClick={async () => {
+                    // Validate all fields
+                    const isValid = await validateFilters();
+                    
+                    if (!isValid) {
+                      setFiltersExpanded(true);
+                      return;
+                    }
+                    
                     setIsSaving(true);
                     try {
-                      // Validate report name
-                      if (!reportName.trim()) {
-                        setReportNameError('Report name is required');
-                        setIsSaving(false);
-                        return;
-                      }
-                      
                       // Include newCondition if it's complete
                       let conditionsToPreview = [...appliedFilters];
                       if (newCondition.field && newCondition.operator && newCondition.value) {
@@ -1664,12 +1782,6 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                           value: newCondition.value,
                           displayText: `${newCondition.field} ${newCondition.operator} ${newCondition.value}`
                         });
-                      }
-                      
-                      if (conditionsToPreview.length === 0) {
-                        toast.warning("Please add at least one condition before preview.");
-                        setIsSaving(false);
-                        return;
                       }
                       
                       // Save preview report
@@ -1722,13 +1834,15 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                 size="sm"
                 disabled={isSaving}
                 onClick={async () => {
-                  setIsSaving(true);
-                  // Validate report name
-                  if (!reportName.trim()) {
-                    setReportNameError('Report name is required');
-                    setIsSaving(false);
+                  // Validate all fields
+                  const isValid = await validateFilters();
+                  
+                  if (!isValid) {
+                    setFiltersExpanded(true);
                     return;
                   }
+                  
+                  setIsSaving(true);
                   
                   // Include newCondition if it's complete
                   let conditionsToSave = [...appliedFilters];
@@ -1743,10 +1857,20 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                     });
                   }
                   
-                  if (conditionsToSave.length === 0) {
-                    toast.warning("Please add at least one condition before saving.");
-                    setIsSaving(false);
-                    return;
+                  const fullReportName = `${detectedEntity} ${reportName.trim()}`;
+                  
+                  // Check for duplicate report name (only for new reports or if name changed)
+                  if (!reportDefinition?.id || fullReportName !== reportDefinition.name) {
+                    const isDuplicate = existingReports.some(report => 
+                      report.name.toLowerCase() === fullReportName.toLowerCase() && 
+                      report.id !== (reportDefinition?.id || previewReportId)
+                    );
+                    
+                    if (isDuplicate) {
+                      toast.error(`A report with the name "${fullReportName}" already exists. Please choose a different name.`);
+                      setIsSaving(false);
+                      return;
+                    }
                   }
                   
                   const reportRequest = new CreateReportRequest();
@@ -1758,7 +1882,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                   reportRequest.updatedDate = new Date();
                   reportRequest.userId = 0;
                   reportRequest.id = reportDefinition?.id || previewReportId || 0;
-                  reportRequest.name = reportName.trim();
+                  reportRequest.name = fullReportName;
                   reportRequest.chartType = chartType;
                   reportRequest.frequency = frequency;
                   reportRequest.isPreview = false;
@@ -1802,7 +1926,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                       // Pass the saved report with proper structure
                       const reportToSave = {
                         id: currentReportId,
-                        name: reportName.trim(),
+                        name: fullReportName,
                         entity: entity,
                         type: reportType,
                         chartType: chartType,
@@ -1815,10 +1939,12 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                     
                     // Conditions are already in appliedFilters, no need to add again
                     setSavedFilters(conditionsToSave);
+                    setOriginalReportName(fullReportName);
                     setNewCondition({ entity: 'Deal', field: '', operator: '', value: '' });
                     setReportSaved(true);
                     setReportCreated(true);
                     setHasChanges(false);
+                    setShowAddCondition(false);
                     toast.success(hasChanges ? "Report updated successfully!" : "Report created successfully!");
                   } catch (error) {
                     console.error('Error saving report:', error);
@@ -2086,21 +2212,37 @@ onClick={async () => {
       {/* Report Name Section */}
       <div className="mb-4">
         <div className="row">
-          <div className="col-md-6">
-            <label className="form-label fw-bold">Report Name</label>
+          <div className="col-md-3">
+            <label className="form-label fw-bold">Entity Type</label>
             <Form.Control
               type="text"
-              value={reportName}
-              onChange={(e) => {
-                setReportName(e.target.value);
-                setReportNameError('');
-              }}
-              placeholder="Enter report name"
-              isInvalid={!!reportNameError}
+              value={detectedEntity}
+              disabled
+              style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
             />
-            {reportNameError && (
-              <Form.Control.Feedback type="invalid">
-                {reportNameError}
+          </div>
+          <div className="col-md-9">
+            <label className="form-label fw-bold">Report Name</label>
+            <Controller
+              name="reportName"
+              control={control}
+              rules={{ required: 'Report name is required' }}
+              render={({ field }) => (
+                <Form.Control
+                  {...field}
+                  type="text"
+                  placeholder="Enter report name"
+                  isInvalid={!!errors.reportName}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setReportName(e.target.value);
+                  }}
+                />
+              )}
+            />
+            {errors.reportName && (
+              <Form.Control.Feedback type="invalid" style={{ display: 'block' }}>
+                {errors.reportName.message}
               </Form.Control.Feedback>
             )}
           </div>
@@ -2154,30 +2296,12 @@ onClick={async () => {
                   }}
                 >
                   <div className="row g-2 align-items-end">
-                    <div className="col-md-2">
-                      <label className="form-label small">Entity</label>
-                      <Form.Select
-                        size="sm"
-                        value={filter.entity}
-                        onChange={(e) => {
-                          const updatedFilters = appliedFilters.map((f) =>
-                            f.id === filter.id
-                              ? { ...f, entity: e.target.value }
-                              : f
-                          );
-                          setAppliedFilters(updatedFilters);
-                        }}
-                      >
-                        <option value="Deal">Deal</option>
-                        <option value="Contact">Contact</option>
-                        <option value="Activity">Activity</option>
-                      </Form.Select>
-                    </div>
                     <div className="col-md-3">
                       <label className="form-label small">Field</label>
                       <Form.Select
                         size="sm"
                         value={filter.field}
+                        style={filterErrors[filter.id]?.field ? { border: '2px solid #dc3545' } : {}}
                         onChange={(e) => {
                           const updatedFilters = appliedFilters.map((f) =>
                             f.id === filter.id
@@ -2185,6 +2309,17 @@ onClick={async () => {
                               : f
                           );
                           setAppliedFilters(updatedFilters);
+                          if (e.target.value && filterErrors[filter.id]?.field) {
+                            const newErrors = {...filterErrors};
+                            delete newErrors[filter.id]?.field;
+                            if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                              delete newErrors[filter.id];
+                            }
+                            setFilterErrors(newErrors);
+                            if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                              setShowValidationSummary(false);
+                            }
+                          }
                         }}
                       >
                         <option value="">Select field</option>
@@ -2200,6 +2335,7 @@ onClick={async () => {
                       <Form.Select
                         size="sm"
                         value={filter.operator}
+                        style={filterErrors[filter.id]?.operator ? { border: '2px solid #dc3545' } : {}}
                         onChange={(e) => {
                           const updatedFilters = appliedFilters.map((f) =>
                             f.id === filter.id
@@ -2207,6 +2343,17 @@ onClick={async () => {
                               : f
                           );
                           setAppliedFilters(updatedFilters);
+                          if (e.target.value && filterErrors[filter.id]?.operator) {
+                            const newErrors = {...filterErrors};
+                            delete newErrors[filter.id]?.operator;
+                            if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                              delete newErrors[filter.id];
+                            }
+                            setFilterErrors(newErrors);
+                            if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                              setShowValidationSummary(false);
+                            }
+                          }
                         }}
                       >
                         <option value="">Select</option>
@@ -2223,6 +2370,7 @@ onClick={async () => {
                         <Form.Select
                           size="sm"
                           value={filter.value}
+                          style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
                           onChange={(e) => {
                             const updatedFilters = appliedFilters.map((f) =>
                               f.id === filter.id
@@ -2230,6 +2378,17 @@ onClick={async () => {
                                 : f
                             );
                             setAppliedFilters(updatedFilters);
+                            if (e.target.value && filterErrors[filter.id]?.value) {
+                              const newErrors = {...filterErrors};
+                              delete newErrors[filter.id]?.value;
+                              if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                delete newErrors[filter.id];
+                              }
+                              setFilterErrors(newErrors);
+                              if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                setShowValidationSummary(false);
+                              }
+                            }
                           }}
                         >
                           <option value="">Select value</option>
@@ -2244,6 +2403,7 @@ onClick={async () => {
                           size="sm"
                           type="number"
                           value={filter.value}
+                          style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
                           onChange={(e) => {
                             const updatedFilters = appliedFilters.map((f) =>
                               f.id === filter.id
@@ -2251,6 +2411,17 @@ onClick={async () => {
                                 : f
                             );
                             setAppliedFilters(updatedFilters);
+                            if (e.target.value && filterErrors[filter.id]?.value) {
+                              const newErrors = {...filterErrors};
+                              delete newErrors[filter.id]?.value;
+                              if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                delete newErrors[filter.id];
+                              }
+                              setFilterErrors(newErrors);
+                              if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                setShowValidationSummary(false);
+                              }
+                            }
                           }}
                           placeholder="Enter number"
                         />
@@ -2259,6 +2430,7 @@ onClick={async () => {
                           size="sm"
                           type="text"
                           value={filter.value}
+                          style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
                           onChange={(e) => {
                             const updatedFilters = appliedFilters.map((f) =>
                               f.id === filter.id
@@ -2266,6 +2438,17 @@ onClick={async () => {
                                 : f
                             );
                             setAppliedFilters(updatedFilters);
+                            if (e.target.value && filterErrors[filter.id]?.value) {
+                              const newErrors = {...filterErrors};
+                              delete newErrors[filter.id]?.value;
+                              if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                delete newErrors[filter.id];
+                              }
+                              setFilterErrors(newErrors);
+                              if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                setShowValidationSummary(false);
+                              }
+                            }
                           }}
                           placeholder="Enter value"
                         />
@@ -2288,129 +2471,193 @@ onClick={async () => {
               {/* Show new condition row only if no applied filters OR if showAddCondition is true */}
               {(appliedFilters.length === 0 || showAddCondition) && (
                 <div className={appliedFilters.length > 0 ? "mt-3" : ""}>
-                  <div className="row g-2 align-items-end">
-                    <div className="col-md-2">
-                      <label className="form-label small fw-bold">Entity</label>
-                      <Form.Select
-                        size="sm"
-                        value={newCondition.entity}
-                        onChange={(e) =>
-                          setNewCondition({
-                            ...newCondition,
-                            entity: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="Deal">Deal</option>
-                        <option value="Contact">Contact</option>
-                        <option value="Activity">Activity</option>
-                      </Form.Select>
-                    </div>
+                  <div className="row g-2">
                     <div className="col-md-3">
                       <label className="form-label small fw-bold">Field</label>
-                      <Form.Select
-                        size="sm"
-                        value={newCondition.field}
-                        onChange={(e) =>
-                          setNewCondition({
-                            ...newCondition,
-                            field: e.target.value,
-                            value: ''
-                          })
-                        }
-                      >
-                        <option value="">Select field</option>
-                        {getFieldOptions().map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </Form.Select>
+                      <Controller
+                        name="field"
+                        control={control}
+                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Field is required' : false }}
+                        render={({ field }) => (
+                          <div>
+                            <Form.Select
+                              {...field}
+                              size="sm"
+                              style={errors.field ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setNewCondition({
+                                  ...newCondition,
+                                  field: e.target.value,
+                                  value: ''
+                                });
+                                if (e.target.value) {
+                                  trigger('field');
+                                }
+                              }}
+                            >
+                              <option value="">Select field</option>
+                              {getFieldOptions().map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          </div>
+                        )}
+                      />
                     </div>
                     <div className="col-md-2">
                       <label className="form-label small fw-bold">
                         Operator
                       </label>
-                      <Form.Select
-                        size="sm"
-                        value={newCondition.operator}
-                        onChange={(e) =>
-                          setNewCondition({
-                            ...newCondition,
-                            operator: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select</option>
-                        {getOperatorOptions(newCondition.field).map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </Form.Select>
+                      <Controller
+                        name="operator"
+                        control={control}
+                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Operator is required' : false }}
+                        render={({ field }) => (
+                          <div>
+                            <Form.Select
+                              {...field}
+                              size="sm"
+                              style={errors.operator ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setNewCondition({
+                                  ...newCondition,
+                                  operator: e.target.value,
+                                });
+                                if (e.target.value) {
+                                  trigger('operator');
+                                }
+                              }}
+                            >
+                              <option value="">Select</option>
+                              {getOperatorOptions(newCondition.field).map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          </div>
+                        )}
+                      />
                     </div>
                     <div className="col-md-3">
                       <label className="form-label small fw-bold">Value</label>
-                      {['statusid', '8', 'ContactPersonID', 'stageid', '7', '1'].includes(newCondition.field) || fieldOptions.find(f => f.value === newCondition.field)?.isDateType ? (
-                        <Form.Select
-                          size="sm"
-                          value={newCondition.value}
-                          onChange={(e) =>
-                            setNewCondition({
-                              ...newCondition,
-                              value: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="">Select value</option>
-                          {getValueOptions(newCondition.field).map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      ) : fieldOptions.find(f => f.value === newCondition.field)?.isNumberType ? (
-                        <Form.Control
-                          size="sm"
-                          type="number"
-                          value={newCondition.value}
-                          onChange={(e) =>
-                            setNewCondition({
-                              ...newCondition,
-                              value: e.target.value,
-                            })
-                          }
-                          placeholder="Enter number"
-                        />
-                      ) : (
-                        <Form.Control
-                          size="sm"
-                          type="text"
-                          value={newCondition.value}
-                          onChange={(e) =>
-                            setNewCondition({
-                              ...newCondition,
-                              value: e.target.value,
-                            })
-                          }
-                          placeholder="Enter value"
-                        />
-                      )}
+                      <Controller
+                        name="value"
+                        control={control}
+                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Value is required' : false }}
+                        render={({ field }) => (
+                          <div>
+                            {['statusid', '8', 'ContactPersonID', 'stageid', '7', '1'].includes(newCondition.field) || fieldOptions.find(f => f.value === newCondition.field)?.isDateType ? (
+                              <Form.Select
+                                {...field}
+                                size="sm"
+                                style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setNewCondition({
+                                    ...newCondition,
+                                    value: e.target.value,
+                                  });
+                                  if (e.target.value) {
+                                    trigger('value');
+                                  }
+                                }}
+                              >
+                                <option value="">Select value</option>
+                                {getValueOptions(newCondition.field).map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            ) : fieldOptions.find(f => f.value === newCondition.field)?.isNumberType ? (
+                              <Form.Control
+                                {...field}
+                                size="sm"
+                                type="number"
+                                placeholder="Enter number"
+                                style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setNewCondition({
+                                    ...newCondition,
+                                    value: e.target.value,
+                                  });
+                                  if (e.target.value) {
+                                    trigger('value');
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <Form.Control
+                                {...field}
+                                size="sm"
+                                type="text"
+                                placeholder="Enter value"
+                                style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setNewCondition({
+                                    ...newCondition,
+                                    value: e.target.value,
+                                  });
+                                  if (e.target.value) {
+                                    trigger('value');
+                                  }
+                                }}
+                              />
+                            )}
+                          </div>
+                        )}
+                      />
                     </div>
                     <div className="col-md-2">
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => {
-                          setNewCondition({ entity: 'Deal', field: '', operator: '', value: '' });
-                          setShowAddCondition(false);
-                        }}
-                        title="Remove this condition"
-                      >
-                        <FontAwesomeIcon icon={faTimes} />
-                      </Button>
+                      <label className="form-label small fw-bold" style={{ visibility: 'hidden' }}>Action</label>
+                      <div>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => {
+                            setNewCondition({ entity: 'Deal', field: '', operator: '', value: '' });
+                            setFormValue('field', '');
+                            setFormValue('operator', '');
+                            setFormValue('value', '');
+                            clearErrors(['field', 'operator', 'value']);
+                            setShowAddCondition(false);
+                          }}
+                          title="Remove this condition"
+                        >
+                          <FontAwesomeIcon icon={faTimes} />
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                </div>
+              )}
+              
+              {/* Validation Error Row - Show at bottom */}
+              {showValidationSummary && (
+                <div className="row g-2 mt-2">
+                  <div className="col-md-3">
+                    {(Object.values(filterErrors).some(e => e.field) || errors.field) && (
+                      <small className="text-danger">Field is required</small>
+                    )}
+                  </div>
+                  <div className="col-md-2">
+                    {(Object.values(filterErrors).some(e => e.operator) || errors.operator) && (
+                      <small className="text-danger">Operator is required</small>
+                    )}
+                  </div>
+                  <div className="col-md-3">
+                    {(Object.values(filterErrors).some(e => e.value) || errors.value) && (
+                      <small className="text-danger">Value is required</small>
+                    )}
+                  </div>
+                  <div className="col-md-2"></div>
                 </div>
               )}
               
@@ -2436,6 +2683,7 @@ onClick={async () => {
                     }
                     if (!showAddCondition) {
                       setShowAddCondition(true);
+                      clearErrors(['field', 'operator', 'value']);
                     }
                   }}
                   title="Add a new filter condition"
@@ -2444,6 +2692,8 @@ onClick={async () => {
                   Add Condition
                 </Button>
               </div>
+
+
 
 
             </div>

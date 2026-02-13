@@ -809,7 +809,16 @@ const DealFilterAddEditDialog = (props: params) => {
             selectedFilter.id > 0 ? " updated " : " created "
           } successfully`
         );
-        props.onSaveChanges();
+        // Refresh the filters list after save
+        dealFiltersSvc.getDealFilters().then((filters) => {
+          if (filters && Array.isArray(filters)) {
+            LocalStorageUtil.setItemObject(
+              Constants.Deal_FILTERS,
+              JSON.stringify(filters)
+            );
+          }
+        });
+        props.onSaveChanges(res.result);
       }
     });
   };

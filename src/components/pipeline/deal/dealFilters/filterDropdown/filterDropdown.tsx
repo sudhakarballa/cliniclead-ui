@@ -38,8 +38,7 @@ type params = {
   setSelectedFilter?: any;
 };
 
-// Static flag to prevent multiple simultaneous API calls
-let isLoadingFilters = false;
+// Static flag removed - allow multiple calls
 
 const FilterDropdown = (props: params) => {
   const {
@@ -121,10 +120,7 @@ const FilterDropdown = (props: params) => {
   }, []);
 
   useEffect(() => {
-    // Only load if filters are not already loaded and not currently loading
-    if (filters.length === 0 && !isLoading) {
-      loadDealFilters();
-    }
+    loadDealFilters();
   }, []);
 
   const toggleFavourite = (type: 'filter' | 'owner', id: number) => {
@@ -159,10 +155,6 @@ const FilterDropdown = (props: params) => {
   };
 
   const loadDealFilters = (forceRefresh = false) => {
-    // Check if already loading globally
-    if (isLoadingFilters) return;
-
-    // Check if filters are already in localStorage and not forcing refresh
     if (!forceRefresh) {
       const cachedFilters = LocalStorageUtil.getItemObject(Constants.Deal_FILTERS);
       if (cachedFilters && Array.isArray(JSON.parse(cachedFilters as string)) && JSON.parse(cachedFilters as string).length > 0) {
@@ -172,12 +164,11 @@ const FilterDropdown = (props: params) => {
       }
     }
 
-    isLoadingFilters = true;
     setIsLoading(true);
     dealFiltersSvc
       .getDealFilters()
       .then((res) => {
-        if (res) {
+        if (res && Array.isArray(res)) {
           setFilters(res);
           if (selectedFilterObj) onFilterSelection(selectedFilterObj);
           LocalStorageUtil.setItemObject(
@@ -188,9 +179,9 @@ const FilterDropdown = (props: params) => {
       })
       .catch((err) => {
         console.error('Error loading deal filters:', err);
+        setFilters([]);
       })
       .finally(() => {
-        isLoadingFilters = false;
         setIsLoading(false);
       });
   };
@@ -202,12 +193,17 @@ const FilterDropdown = (props: params) => {
   const onDeleteConfirm = () => {
     setShowDeleteDialog(false);
     setIsLoading(true);
+    const deletedFilterId = selectedFilter.id;
     dealFiltersSvc
-      .delete(selectedFilter.id)
+      .delete(deletedFilterId)
       .then((res) => {
         setSelectedFilter(new DealFilter());
         if (res) {
           toast.success("Deal filter deleted successfully");
+          // Clear the selected filter if it was the one deleted
+          if (selectedFilterObj?.id === deletedFilterId) {
+            setSelectedFilterObj(null);
+          }
           loadDealFilters(true);
         }
       })

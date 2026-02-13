@@ -21,6 +21,7 @@ import { Utility } from "../../../models/utility";
 import Constants from "../../../others/constants";
 import LocalStorageUtil from "../../../others/LocalStorageUtil";
 import Util from "../../../others/util";
+import { DealFiltersService } from "../../../services/dealFiltersService";
 import { DealService } from "../../../services/dealService";
 import { PipeLineService } from "../../../services/pipeLineService";
 import { StageService } from "../../../services/stageService";
@@ -125,7 +126,8 @@ const DealListView = (props: Params) => {
   const dealSvc = new DealService(ErrorBoundary);
   const pipeLineSvc = new PipeLineService(ErrorBoundary);
  const [pageSize, setPageSize] = useState(10);
- const [resetKey, setResetKey] = useState(0);
+  const dealFiltersSvc = new DealFiltersService(ErrorBoundary);
+  const [filterRefreshTrigger, setFilterRefreshTrigger] = useState(0);
  const marketingColumns = [
   { columnName: "marketing_GCLID",      columnHeaderName: "GCLID",            width: 180 },
   { columnName: "marketing_source",     columnHeaderName: "Source",           width: 140 },
@@ -910,13 +912,11 @@ const handleExportToExcel = async () => {
   const handleResetFilter = () => {
     setSelectedFilterObj(null);
     setSelectedUserId(null);
-    // clear the tick on owners
-  setUsers(prev =>
-    (prev || []).map(u => ({ ...u, isSelected: false }))
-  );
-    // Optionally, also close the filter dropdown
+    setUsers(prev =>
+      (prev || []).map(u => ({ ...u, isSelected: false }))
+    );
     setShowPipeLineFilters(false);
-    setResetKey(k => k + 1);
+    setFilterRefreshTrigger(k => k + 1);
   };
   const handleOpenGroupEmailDialog = async () => {
   if (!selectedRows.length) {
@@ -1021,7 +1021,7 @@ const handleExportToExcel = async () => {
                     aria-labelledby="filters-tab"
                   >
                     <FilterDropdown
-                      key={resetKey} 
+                      key={filterRefreshTrigger}
                       showPipeLineFilters={showPipeLineFilters}
                       setShowPipeLineFilters={setShowPipeLineFilters}
                       selectedFilterObj={selectedFilterObj}
@@ -1255,10 +1255,10 @@ const handleExportToExcel = async () => {
                     </ul>
                     <div className="tab-content pipefiltertab-content" id="myTabContent">
                       <div className="tab-pane fade show active" id="favourites" role="tabpanel">
-                        <FilterDropdown key={resetKey} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} showFavouritesOnly={true} users={users} onPersonSelection={onPersonSelection} setSelectedUserId={setSelectedUserId} setSelectedFilter={setSelectedFilterForEdit} />
+                        <FilterDropdown key={filterRefreshTrigger} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} showFavouritesOnly={true} users={users} onPersonSelection={onPersonSelection} setSelectedUserId={setSelectedUserId} setSelectedFilter={setSelectedFilterForEdit} />
                       </div>
                       <div className="tab-pane fade" id="filters" role="tabpanel">
-                        <FilterDropdown key={resetKey} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} setSelectedFilter={setSelectedFilterForEdit} />
+                        <FilterDropdown key={filterRefreshTrigger} showPipeLineFilters={showPipeLineFilters} setShowPipeLineFilters={setShowPipeLineFilters} selectedFilterObj={selectedFilterObj} setSelectedFilterObj={setSelectedFilterObj} setDialogIsOpen={setDealFilterDialogIsOpen} dialogIsOpen={dealFilterDialogIsOpen} setSelectedFilter={setSelectedFilterForEdit} />
                       </div>
                       <div className="tab-pane fade" id="owners" role="tabpanel">
                         <div className="pipeselectpadlr filterownersbox">
@@ -1685,7 +1685,15 @@ const handleExportToExcel = async () => {
         <DealFilterAddEditDialog
           dialogIsOpen={dealFilterDialogIsOpen}
           setDialogIsOpen={setDealFilterDialogIsOpen}
-          onSaveChanges={() => loadDeals()}
+          onSaveChanges={(newFilter: DealFilter | null) => {
+            dealFiltersSvc.getDealFilters().then((res) => {
+              if (res && Array.isArray(res)) {
+                LocalStorageUtil.setItemObject(Constants.Deal_FILTERS, JSON.stringify(res));
+                setFilterRefreshTrigger(k => k + 1);
+              }
+            });
+            loadDeals();
+          }}
           selectedFilter={selectedFilterForEdit || new DealFilter()}
           setSelectedFilter={setSelectedFilterForEdit}
           onPreview={() => {}}

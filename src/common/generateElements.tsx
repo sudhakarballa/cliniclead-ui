@@ -289,7 +289,7 @@ const GenerateElements: React.FC<props> = (props) => {
                       >
                         {getElement(item)}
                       </div>
-                      <div className="col-sm-2 d-flex">
+                      <div className="col-sm-2 d-flex gap-2">
                         <div
                           hidden={!item.showEdit}
                           className="col-sm-10"

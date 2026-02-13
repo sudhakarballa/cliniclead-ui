@@ -180,26 +180,31 @@ const DealDetailsCustomFields = ({ dealItem }: Params) => {
   const deleteCustomField = () => {
     setShowDeleteDialog(false);
     const field = customFields[selectedFieldIndex];
-    const id =
-      originalCustomFields.find((o) => o.fieldName === field.key)
-        ?.id ?? 0;
+    
+    // Find the matching original field by fieldName and pipelineId
+    const matchingField = originalCustomFields.find(
+      (o) => o.fieldName === field.key && o.pipelineId === field.pipelineId
+    );
+    
+    const id = matchingField?.id ?? 0;
 
     if (id > 0) {
       customFieldsService
         .delete(id)
         .then(() => {
           toast.success("Custom field deleted");
-          const updatedFields = [...customFields];
-          updatedFields.splice(selectedFieldIndex, 1);
+          // Remove from local state immediately
+          const updatedFields = customFields.filter((_, index) => index !== selectedFieldIndex);
           setCustomFields(updatedFields);
+          // Reload to sync with server
           loadCustomFields();
         })
         .catch(() => {
           toast.error("Delete failed");
         });
     } else {
-      const updatedFields = [...customFields];
-      updatedFields.splice(selectedFieldIndex, 1);
+      // Field not saved yet, just remove from local state
+      const updatedFields = customFields.filter((_, index) => index !== selectedFieldIndex);
       setCustomFields(updatedFields);
     }
   };
@@ -208,15 +213,17 @@ const DealDetailsCustomFields = ({ dealItem }: Params) => {
     const fieldsToSave: DealCustomFields[] = customFields.map(
       (field, index) => {
         const cf = new DealCustomFields();
-        cf.id =
-          field.id ??
-          originalCustomFields.find((o) => o.fieldName === field.key)
-            ?.id ??
-          0;
+        
+        // Find existing field by fieldName to get the correct ID
+        const existingField = originalCustomFields.find(
+          (o) => o.fieldName === field.key && o.pipelineId === field.pipelineId
+        );
+        
+        cf.id = field.id ?? existingField?.id ?? 0;
         cf.dealId = dealItem.dealID;
         cf.fieldName = field.key;
-        cf.dealFieldId = originalCustomFields.find((o) => o.fieldName === field.key)
-        ?.dealFieldId as any;
+        cf.dealFieldId = existingField?.dealFieldId ?? 0;
+        
         const isDropdown =
           field.type === ElementType.dropdown ||
           field.type?.toLowerCase?.() === "singleoption";

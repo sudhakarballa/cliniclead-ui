@@ -281,7 +281,7 @@ const ReportingDashboard = () => {
   );
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {isInitialLoading && (
         <div style={{
           position: 'fixed',
@@ -308,9 +308,11 @@ const ReportingDashboard = () => {
         backgroundColor: '#f8f9fa', 
         borderRight: '1px solid #e4cb9a',
         padding: sidebarCollapsed ? '10px' : '20px',
-        overflowY: sidebarCollapsed ? 'visible' : 'auto',
         overflowX: 'visible',
-        transition: 'width 0.3s ease'
+        transition: 'width 0.3s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh'
       }}>
         <div className="d-flex justify-content-between align-items-center mb-3">
           {!sidebarCollapsed && <h5 style={{ marginBottom: '0', color: '#3f3f3f' }}>Navigation</h5>}
@@ -352,6 +354,13 @@ const ReportingDashboard = () => {
           </div>
         </div>}
         
+        {/* Scrollable Menu Container */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          overflowX: 'visible',
+          marginTop: '10px'
+        }}>
         {/* Dashboards Section */}
         <div style={{ marginBottom: '20px' }}>
           {sidebarCollapsed ? (
@@ -516,7 +525,7 @@ const ReportingDashboard = () => {
         </div>
 
         {/* Reports Section */}
-        <div>
+        <div style={{ marginBottom: '20px' }}>
           {sidebarCollapsed ? (
             <div 
               style={{ 
@@ -616,6 +625,7 @@ const ReportingDashboard = () => {
               ))
             )
           )}
+        </div>
         </div>
       </div>
 

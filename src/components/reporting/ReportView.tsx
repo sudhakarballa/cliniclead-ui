@@ -33,6 +33,9 @@ import { ReportDashboardService } from '../../services/reportDashboardService';
 import { DealService } from '../../services/dealService';
 import { StageService } from '../../services/stageService';
 import Util from '../../others/util';
+import Constants from '../../others/constants';
+import LocalStorageUtil from '../../others/LocalStorageUtil';
+import { Utility } from '../../models/utility';
 
 interface ReportViewProps {
   entity: string;
@@ -125,6 +128,10 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
   const [isSaving, setIsSaving] = useState(false);
   const [reportDetailsData, setReportDetailsData] = useState<any[]>([]);
   const [isLoadingReportData, setIsLoadingReportData] = useState(false);
+  
+  const utility: Utility = JSON.parse(
+    LocalStorageUtil.getItemObject(Constants.UTILITY) as any
+  );
 
   // Fetch report details from API
   const fetchReportDetails = async (reportId: number) => {
@@ -385,8 +392,8 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
           break;
         case 'Owner':
           filteredData = filteredData.filter(deal => {
-            const ownerName = deal.ownerName || deal.owner || '';
-            return filter.operator === '=' ? ownerName === filter.value : ownerName !== filter.value;
+            const ownerId = String(deal.assigntoId || deal.AssigntoId || '');
+            return filter.operator === '=' ? ownerId === filter.value : ownerId !== filter.value;
           });
           break;
         case 'Deal value':
@@ -540,12 +547,11 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
   const fieldOptions = [
     { value: "1", label: "Title" },
     { value: "2", label: "Creator" },
-    { value: "ContactPersonID", label: "Owner", isNumberType: true },
+    { value: "AssigntoId", label: "Owner", isNumberType: true },
     { value: "4", label: "Value", isNumberType: true },
     { value: "6", label: "Probability", isNumberType: true },
     { value: "7", label: "Organization" },
     { value: "8", label: "Pipeline" },
-    { value: "AssigntoId", label: "Assign to", isNumberType: true },
     { value: "stageid", label: "Stage", isNumberType: true },
     { value: "11", label: "Label" },
     { value: "statusid", label: "Status", isNumberType: true },
@@ -607,20 +613,32 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
     
     // For other fields, get unique values from data
     // Use reportDetailsData if available (for existing reports), otherwise use allDealsData (for new reports)
-    const uniqueValues = new Set<string>();
     const dataSource = reportDetailsData.length > 0 ? reportDetailsData : allDealsData;
     
     console.log('getValueOptions - field:', field, 'dataSource length:', dataSource.length, 'allDealsData length:', allDealsData.length);
+    
+    // For Owner field (AssigntoId), use assigntoId as value but show ownerName as label
+    if (field === 'AssigntoId') {
+      const ownerIds = new Set<string>();
+      dataSource.forEach((deal: any) => {
+        const ownerId = deal.assigntoId || deal.AssigntoId;
+        if (ownerId) ownerIds.add(String(ownerId));
+      });
+      return utility?.users
+        .filter((u) => u.isActive && ownerIds.has(String(u.id)))
+        .map(({ name, id }) => ({
+          value: String(id),
+          label: name,
+        })) ?? [];
+    }
+    
+    const uniqueValues = new Set<string>();
     
     dataSource.forEach((deal: any) => {
       switch (field) {
         case '8': // Pipeline
           if (deal.pipelineName) uniqueValues.add(deal.pipelineName);
           else if (deal.pipeline) uniqueValues.add(deal.pipeline);
-          break;
-        case 'ContactPersonID': // Owner
-          if (deal.ownerName) uniqueValues.add(deal.ownerName);
-          else if (deal.owner) uniqueValues.add(deal.owner);
           break;
         case 'stageid': // Stage
           if (deal.stageName) uniqueValues.add(deal.stageName);
@@ -2367,7 +2385,7 @@ onClick={async () => {
                     </div>
                     <div className="col-md-3">
                       <label className="form-label small">Value</label>
-                      {['statusid', '8', 'ContactPersonID', 'stageid', '7', '1'].includes(filter.field) || fieldOptions.find(f => f.value === filter.field)?.isDateType ? (
+                      {['statusid', '8', 'AssigntoId', 'stageid', '7', '1'].includes(filter.field) || fieldOptions.find(f => f.value === filter.field)?.isDateType ? (
                         <Form.Select
                           size="sm"
                           value={filter.value}
@@ -2552,7 +2570,7 @@ onClick={async () => {
                         rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Value is required' : false }}
                         render={({ field }) => (
                           <div>
-                            {['statusid', '8', 'ContactPersonID', 'stageid', '7', '1'].includes(newCondition.field) || fieldOptions.find(f => f.value === newCondition.field)?.isDateType ? (
+                            {['statusid', '8', 'AssigntoId', 'stageid', '7', '1'].includes(newCondition.field) || fieldOptions.find(f => f.value === newCondition.field)?.isDateType ? (
                               <Form.Select
                                 {...field}
                                 size="sm"

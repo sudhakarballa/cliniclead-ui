@@ -14,6 +14,7 @@ import LocalStorageUtil from "../../../../others/LocalStorageUtil";
 import Constants from "../../../../others/constants";
 import Util from "../../../../others/util";
 import { DealFiltersService } from "../../../../services/dealFiltersService";
+import { StageService } from "../../../../services/stageService";
 
 const getOperators = (isValueType: false) => {
   return isValueType
@@ -86,28 +87,35 @@ const fieldOptions = [
   { value: "22", label: "Deal closed on", isDateType: true },
   { value: "23", label: "Lost reason" },
   { value: "24", label: "Visible to" },
-  // { value: "26", label: "Total activities" },
-  // { value: "27", label: "Done activities" },
-  // { value: "28", label: "Activities to do" },
-  // { value: "29", label: "Email messages count" },
-  // { value: "30", label: "Expected close date" },
-  // { value: "34", label: "Source origin" },
-  // { value: "35", label: "Source origin ID" },
-  // { value: "36", label: "Source channel" },
-  // { value: "37", label: "Source channel ID" },
-  // { value: "38", label: "MRR" },
-  // { value: "39", label: "ARR" },
-  // { value: "40", label: "ACV" },
-  // { value: "41", label: "Currency" },
-  // { value: "42", label: "Date of entering stage" },
-  // { value: "43", label: "Attached product" },
+];
+
+const personFieldOptions = [
+  { value: "p1", label: "Name" },
+  { value: "p2", label: "Email" },
+  { value: "p3", label: "Phone" },
+  { value: "p4", label: "Organization" },
+  { value: "p5", label: "Owner" },
+  { value: "p6", label: "Label" },
+  { value: "p7", label: "Created", isDateType: true },
+  { value: "p8", label: "Updated", isDateType: true },
+];
+
+const activityFieldOptions = [
+  { value: "a1", label: "Subject" },
+  { value: "a2", label: "Type" },
+  { value: "a3", label: "Due date", isDateType: true },
+  { value: "a4", label: "Done" },
+  { value: "a5", label: "Assigned to" },
+  { value: "a6", label: "Deal" },
+  { value: "a7", label: "Person" },
+  { value: "a8", label: "Organization" },
 ];
 
 const filterTypeOptions = [
   { value: "deal", label: "Deal" },
-  { value: "organization", label: "Organization" },
+  // { value: "organization", label: "Organization" },
   { value: "person", label: "Person" },
-  { value: "product", label: "Product" },
+  // { value: "product", label: "Product" },
   { value: "activity", label: "Activity" },
 ];
 
@@ -211,6 +219,23 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   const [selectedObject, setSelectedObject] = useState(condition.object || "");
   const [selectedField, setSelectedField] = useState(condition.field || "");
   const [selectedOperator, setSelectedOperator] = useState(condition.operator || "");
+  const [filteredFieldOptions, setFilteredFieldOptions] = useState<Array<any>>([]);
+  const [deals, setDeals] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadDeals = async () => {
+      try {
+        const stageService = new StageService(null);
+        const dealsResponse = await stageService.getAllDealsByPipelines(1, 10000);
+        const allDeals = dealsResponse?.dealsDtos?.deals || [];
+        console.log('Loaded deals from API:', allDeals.length);
+        setDeals(allDeals);
+      } catch (error) {
+        console.error('Error loading deals:', error);
+      }
+    };
+    loadDeals();
+  }, []);
 
   useEffect(() => {
     setSelectedObject(condition.object || "");
@@ -229,6 +254,9 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
     }, 10);
 
     setValue(`${conditionType}.${index}.value`, condition.value);
+    
+    // Filter field options based on selected object
+    updateFilteredFieldOptions(condition.object);
   }, [condition, setValue, index, conditionType]);
 
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
@@ -275,6 +303,23 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       return () => clearInterval(interval);
     }
   }, []);
+
+  const updateFilteredFieldOptions = (objectType: string) => {
+    if (!objectType) {
+      setFilteredFieldOptions([]);
+      return;
+    }
+    
+    if (objectType === "deal") {
+      setFilteredFieldOptions(fieldOptions);
+    } else if (objectType === "person") {
+      setFilteredFieldOptions(personFieldOptions);
+    } else if (objectType === "activity") {
+      setFilteredFieldOptions(activityFieldOptions);
+    } else {
+      setFilteredFieldOptions([]);
+    }
+  };
 
   const getPipelines = (): Pipeline[] => {
     try {
@@ -327,18 +372,99 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
     }
   };
 
+  const getValueOptions = (field: string) => {
+    if (!field) return [];
+    console.log('getValueOptions called for field:', field, 'deals count:', deals.length);
+    const fieldOption = [...fieldOptions, ...personFieldOptions, ...activityFieldOptions].find(f => f.value === field);
+    if (fieldOption?.isDateType) return dateValues;
+    if (field === 'statusid') return dealStatusList;
+
+    const uniqueValues = new Set<string>();
+    deals.forEach((deal: any) => {
+      switch (field) {
+        case '1': if (deal.title) uniqueValues.add(deal.title); break;
+        case '2': if (deal.creatorName) uniqueValues.add(deal.creatorName); break;
+        case 'ContactPersonID': if (deal.ownerName) uniqueValues.add(deal.ownerName); break;
+        case '4': if (deal.value) uniqueValues.add(deal.value); break;
+        case '6': if (deal.probability) uniqueValues.add(deal.probability); break;
+        case '7': if (deal.organizationName || deal.name) uniqueValues.add(deal.organizationName || deal.name); break;
+        case 'AssigntoId': if (deal.assignedToName) uniqueValues.add(deal.assignedToName); break;
+        case '11': if (deal.label) uniqueValues.add(deal.label); break;
+        case '23': if (deal.lostReason) uniqueValues.add(deal.lostReason); break;
+        case '24': if (deal.visibleTo) uniqueValues.add(deal.visibleTo); break;
+      }
+    });
+    const result = Array.from(uniqueValues).sort().map(value => ({ value, label: value }));
+    console.log('getValueOptions result:', result.length, 'options');
+    return result;
+  };
+
   const valueJSX = (key: string) => {
+    const options = getValueOptions(key);
+    const hasOptions = options.length > 0;
+    
     switch (key) {
-      case "8": // Pipeline
+      case "1":
+      case "2":
+      case "ContactPersonID":
+      case "4":
+      case "6":
+      case "7":
+      case "AssigntoId":
+      case "11":
+      case "23":
+      case "24":
+      case "p1":
+      case "p2":
+      case "p3":
+      case "p4":
+      case "p5":
+      case "p6":
+      case "a1":
+      case "a2":
+      case "a4":
+      case "a5":
+      case "a6":
+      case "a7":
+      case "a8":
+        if (hasOptions) {
+          return (
+            <select
+              className="form-control form-control-sm"
+              disabled={!getValues(`${conditionType}.${index}.field`)}
+              value={getValues(`${conditionType}.${index}.value`) || ""}
+              {...register(`${conditionType}.${index}.value`)}
+              onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+              style={{ height: '32px' }}
+            >
+              <option value="">Select</option>
+              {options.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          );
+        }
         return (
-          <select
-            className="form-control"
+          <input
+            className="form-control form-control-sm"
+            type="text"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value)
-            }
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            placeholder="Enter value"
+            style={{ height: '32px' }}
+          />
+        );
+      case "8":
+        return (
+          <select
+            className="form-control form-control-sm"
+            disabled={!getValues(`${conditionType}.${index}.field`)}
+            value={getValues(`${conditionType}.${index}.value`) || ""}
+            {...register(`${conditionType}.${index}.value`)}
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            style={{ height: '32px' }}
           >
             <option value="">Select</option>
             {pipelines.map((pipeline) => (
@@ -351,33 +477,21 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       case "stageid":
         return (
           <select
-            className="form-control"
+            className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value)
-            }
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            style={{ height: '32px' }}
           >
             <option value="">Select</option>
             {stages.map((item, idx) => (
               <React.Fragment key={idx}>
-                <option
-                  disabled
-                  className="non-selectable-option"
-                  style={{
-                    fontWeight: "bold",
-                    textAlign: "left",
-                  }}
-                >
+                <option disabled className="non-selectable-option" style={{ fontWeight: "bold", textAlign: "left" }}>
                   {item.pipeLine}
                 </option>
                 {item.stages.map((stage: any) => (
-                  <option
-                    className="pl-4"
-                    key={stage.stageID}
-                    value={stage.stageID}
-                  >
+                  <option className="pl-4" key={stage.stageID} value={stage.stageID}>
                     &nbsp; &nbsp; {stage.stageName}
                   </option>
                 ))}
@@ -388,19 +502,16 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       case "statusid":
         return (
           <select
-            className="form-control"
+            className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value)
-            }
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            style={{ height: '32px' }}
           >
             <option value="">Select</option>
             {getDropdownListforValueJSX(key).map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
+              <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
         );
@@ -415,56 +526,52 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       case "20":
       case "21":
       case "22":
+      case "p7":
+      case "p8":
+      case "a3":
         return (
-          <div className="row align-items-center">
-            <div className="col">
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ flex: 1 }}>
               {useExactDate ? (
                 <Picker
-                  placeholderText="MM/DD/YYYY hh:mm:ss a"
+                  placeholderText="MM/DD/YYYY"
                   showIcon
                   dateFormat={"MM/d/yyyy h:mm aa"}
                   disabled={!getValues(`${conditionType}.${index}.field`)}
                   selected={getValues(`${conditionType}.${index}.value`)}
-                  className="form-control"
-                  onChange={(e: any) =>
-                    setValue(`${conditionType}.${index}.value`, e)
-                  }
+                  className="form-control form-control-sm"
+                  onChange={(e: any) => setValue(`${conditionType}.${index}.value`, e)}
+                  wrapperClassName="w-100"
                 />
               ) : (
                 <select
-                  className="form-control"
+                  className="form-control form-control-sm"
                   value={getValues(`${conditionType}.${index}.value`) || ""}
                   {...register(`${conditionType}.${index}.value`)}
+                  style={{ height: '32px' }}
                 >
                   <option value="">Select</option>
                   {dateValues.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+                    <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               )}
             </div>
-
-            <div className="col-auto">
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id={`useExactDate-${index}`}
-                  checked={useExactDate}
-                  onChange={(e) => {
-                    setValue(`${conditionType}.${index}.value`, null);
-                    setUseExactDate(e.target.checked);
-                  }}
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor={`useExactDate-${index}`}
-                >
-                  Use exact date
-                </label>
-              </div>
+            <div className="form-check" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id={`useExactDate-${conditionType}-${index}`}
+                checked={useExactDate}
+                onChange={(e) => {
+                  setValue(`${conditionType}.${index}.value`, null);
+                  setUseExactDate(e.target.checked);
+                }}
+                style={{ margin: '0 4px 0 0', cursor: 'pointer' }}
+              />
+              <label className="form-check-label" htmlFor={`useExactDate-${conditionType}-${index}`} style={{ fontSize: '11px', cursor: 'pointer', margin: 0 }}>
+                Exact
+              </label>
             </div>
           </div>
         );
@@ -472,12 +579,13 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       default:
         return (
           <input
-            className="form-control"
+            className="form-control form-control-sm"
             type="text"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             defaultValue={conditionType[index].value ?? null}
             {...register(`${conditionType}.${index}.value`)}
             placeholder="Value"
+            style={{ height: '32px' }}
           />
         );
     }
@@ -493,10 +601,20 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   };
 
   return (
-    <div className="form-group row pb-2">
-      <div className="col-2">
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: '140px 180px 140px 1fr auto auto', 
+      gap: '12px', 
+      alignItems: 'start',
+      padding: '12px',
+      backgroundColor: '#fff',
+      borderRadius: '6px',
+      border: '1px solid #e0e0e0',
+      marginBottom: '10px'
+    }}>
+      <div>
         <select
-          className="form-control"
+          className="form-control form-control-sm"
           value={selectedObject}
           {...register(`${conditionType}.${index}.object`)}
           onChange={(e: any) => {
@@ -504,24 +622,25 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             setSelectedObject(newValue);
             setSelectedField("");
             setSelectedOperator("");
+            updateFilteredFieldOptions(newValue);
             setValue(`${conditionType}.${index}.field`, null);
             setValue(`${conditionType}.${index}.operator`, null);
             setValue(`${conditionType}.${index}.value`, null);
             setValue(`${conditionType}.${index}.object`, newValue);
           }}
+          style={{ height: '32px' }}
         >
-          <option value="">Select</option>
+          <option value="">Select Type</option>
           {filterTypeOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+            <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-        {<p className="error-text text-danger">{fieldError?.message}</p>}
+        {fieldError && <div style={{ fontSize: '10px', color: '#dc3545', marginTop: '2px' }}>{fieldError?.message}</div>}
       </div>
-      <div className="col-3">
+      
+      <div>
         <select
-          className="form-control"
+          className="form-control form-control-sm"
           value={selectedField}
           {...register(`${conditionType}.${index}.field`)}
           disabled={!selectedObject}
@@ -531,28 +650,26 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             setSelectedOperator("");
             setOperatorsList(
               getOperators(
-                fieldOptions.find((i) => i.value == newValue)
-                  ?.isNumberType as any
+                filteredFieldOptions.find((i) => i.value == newValue)?.isNumberType as any
               )
             );
             setValue(`${conditionType}.${index}.operator`, null);
             setValue(`${conditionType}.${index}.value`, null);
             setValue(`${conditionType}.${index}.field`, newValue);
           }}
+          style={{ height: '32px' }}
         >
-          <option value="">Select</option>
-          {fieldOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+          <option value="">Select Field</option>
+          {filteredFieldOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-        {<p className="error-text text-danger">{attributeError?.message}</p>}
+        {attributeError && <div style={{ fontSize: '10px', color: '#dc3545', marginTop: '2px' }}>{attributeError?.message}</div>}
       </div>
 
-      <div className="col-2">
+      <div>
         <select
-          className="form-control"
+          className="form-control form-control-sm"
           value={selectedOperator}
           disabled={!selectedField}
           {...register(`${conditionType}.${index}.operator`)}
@@ -561,33 +678,58 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             setSelectedOperator(newValue);
             setValue(`${conditionType}.${index}.operator`, newValue);
           }}
+          style={{ height: '32px' }}
         >
-          <option value="">Select</option>
+          <option value="">Operator</option>
           {operatorsList.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+            <option key={option.value} value={option.value}>{option.label}</option>
           ))}
-
-          {/* Add more operators if needed */}
         </select>
-        {<p className="error-text text-danger">{operatorError?.message}</p>}
+        {operatorError && <div style={{ fontSize: '10px', color: '#dc3545', marginTop: '2px' }}>{operatorError?.message}</div>}
       </div>
 
-      <div className="col-4">
+      <div>
         {valueJSX(getValues(`${conditionType}.${index}.field`))}
-        {<p className="error-text text-danger">{valueError?.message}</p>}
+        {valueError && <div style={{ fontSize: '10px', color: '#dc3545', marginTop: '2px' }}>{valueError?.message}</div>}
       </div>
-      <div className="col-1" style={{ alignContent: "center" }}>
+      
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        minWidth: '50px',
+        height: '32px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '4px',
+        padding: '0 10px',
+        fontSize: '12px',
+        fontWeight: '600',
+        color: '#495057'
+      }}>
         {conditionType === "allConditions" ? "AND" : "OR"}
+      </div>
+      
+      <div style={{ display: 'flex', alignItems: 'center', height: '32px' }}>
         <button
-          hidden={conditionsLength == 1 && conditionType === "allConditions"}
           onClick={(e: any) => {
             e.preventDefault();
             onDelete();
           }}
+          disabled={conditionsLength === 1}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            cursor: conditionsLength === 1 ? 'not-allowed' : 'pointer', 
+            padding: '4px',
+            color: conditionsLength === 1 ? '#ccc' : '#dc3545',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: conditionsLength === 1 ? 0.5 : 1
+          }}
+          title={conditionsLength === 1 ? 'At least one condition is required' : 'Remove condition'}
         >
-          <RemoveCircleIcon />
+          <RemoveCircleIcon style={{ fontSize: '20px' }} />
         </button>
       </div>
     </div>

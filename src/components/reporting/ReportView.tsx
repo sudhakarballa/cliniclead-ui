@@ -277,10 +277,12 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
       const currentFullName = `${detectedEntity} ${reportName.trim()}`;
       const nameChanged = currentFullName !== originalReportName;
       const frequencyChanged = frequency !== (reportDefinition?.frequency || "Daily");
-      const hasNewConditionRow = showAddCondition; // Just showing the add condition row is a change
-      setHasChanges(filtersChanged || nameChanged || frequencyChanged || hasNewConditionRow);
+      const conditionInProgress = Boolean(newCondition.field || newCondition.operator || newCondition.value);
+      const addConditionVisible = showAddCondition;
+      const hasAnyChanges = filtersChanged || nameChanged || frequencyChanged || conditionInProgress || addConditionVisible;
+      setHasChanges(hasAnyChanges);
     }
-  }, [appliedFilters, savedFilters, reportSaved, reportName, originalReportName, frequency, detectedEntity, reportDefinition, showAddCondition]);
+  }, [appliedFilters, savedFilters, reportSaved, reportName, originalReportName, frequency, detectedEntity, reportDefinition, newCondition.field, newCondition.operator, newCondition.value, showAddCondition]);
 
   const validateFilters = async () => {
     const isNameValid = await trigger('reportName');
@@ -1762,9 +1764,17 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                 size="sm"
                 onClick={() => {
                   if (hasChanges) {
-                    // Reset to original filters and name
                     setAppliedFilters(savedFilters);
-                    setReportName(originalReportName);
+                    const nameWithoutEntity = originalReportName.split(' ').slice(1).join(' ');
+                    setReportName(nameWithoutEntity);
+                    setFormValue('reportName', nameWithoutEntity);
+                    setFrequency(reportDefinition?.frequency || "Daily");
+                    setShowAddCondition(false);
+                    setNewCondition({ entity: 'Deal', field: '', operator: '', value: '' });
+                    setFormValue('field', '');
+                    setFormValue('operator', '');
+                    setFormValue('value', '');
+                    clearErrors(['field', 'operator', 'value']);
                     setHasChanges(false);
                   } else {
                     setShowCancelModal(true);
@@ -2308,7 +2318,7 @@ onClick={async () => {
             >
               {appliedFilters.map((filter, index) => (
                 <div
-                  key={filter.id}
+                  key={`${filter.id}-${appliedFilters.length}`}
                   className={index > 0 ? "mt-3 pt-3" : ""}
                   style={{
                     borderTop: index > 0 ? "1px solid #e9ecef" : "none",
@@ -2478,7 +2488,6 @@ onClick={async () => {
                         variant="outline-danger"
                         size="sm"
                         onClick={() => removeFilter(filter.id)}
-                        title="Remove this condition"
                       >
                         <FontAwesomeIcon icon={faTimes} />
                       </Button>

@@ -145,16 +145,20 @@ const ReportingDashboard = () => {
     // Refresh reports from API after save
     refreshReports();
     
+    // Extract the report ID from the response (handle both direct and nested ID)
+    const reportId = reportData.id || reportData.result?.id;
+    
     // Keep the current report view active - don't reset it
     setActiveNavItem(reportData.name);
-    setActiveReportId(reportData.id);
+    setActiveReportId(reportId);
     
     // Update currentReport to reflect the saved state without resetting the view
     if (currentReport) {
       setCurrentReport({
-        ...currentReport,
+        entity: reportData.entity || currentReport.entity,
+        reportType: reportData.type || currentReport.reportType,
         reportDefinition: {
-          id: reportData.id,
+          id: reportId,
           name: reportData.name,
           chartType: reportData.chartType || currentReport.reportDefinition?.chartType || 'bar',
           frequency: reportData.frequency || currentReport.reportDefinition?.frequency || 'daily',
@@ -631,7 +635,22 @@ const ReportingDashboard = () => {
 
       {/* Main Content */}
       <div style={{ flex: 1, padding: currentView === 'report' ? '0' : '20px', overflowY: 'auto', height: '100vh' }}>
-        {currentView === 'report' && currentReport ? (
+        {allDealsData.length === 0 && !isInitialLoading ? (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '60vh',
+            textAlign: 'center',
+            color: '#6c757d'
+          }}>
+            <div>
+              <FontAwesomeIcon icon={faChartBar} size="3x" className="mb-3" style={{ color: '#dc3545' }} />
+              <h5 className="text-danger">No Deals Available</h5>
+              <p>Reports require deal data to function properly. Please create some deals first to use the reporting features.</p>
+            </div>
+          </div>
+        ) : currentView === 'report' && currentReport ? (
           <ReportView 
             key={currentReport.reportDefinition?.id || 'new'}
             entity={currentReport.entity}

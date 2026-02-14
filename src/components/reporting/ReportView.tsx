@@ -252,10 +252,16 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
       setAppliedFilters(existingConditions);
       setSavedFilters(existingConditions);
       
+      // Reset report name and hasChanges for the new report
+      const nameWithoutEntity = reportDefinition.name.split(' ').slice(1).join(' ');
+      setReportName(nameWithoutEntity);
+      setFormValue('reportName', nameWithoutEntity);
+      setHasChanges(false);
+      
       // Fetch report details from API
       fetchReportDetails(reportDefinition.id);
     }
-  }, [reportDefinition]);
+  }, [reportDefinition?.id]);
 
   // Ensure localStorage persistence on component unmount
   React.useEffect(() => {
@@ -601,7 +607,8 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
   };
 
   const getValueOptions = (field: string) => {
-    const fieldOption = fieldOptions.find(f => f.value === field);
+    const currentFieldOptions = getFieldOptions();
+    const fieldOption = currentFieldOptions.find(f => f.value === field);
     
     // Return status options for status field
     if (field === 'statusid') {
@@ -2193,7 +2200,7 @@ onClick={async () => {
                         cloneRequest.updatedDate = new Date();
                         cloneRequest.userId = 0;
                         cloneRequest.id = 0; // New report, so ID is 0
-                        cloneRequest.name = `${reportName} Clone`;
+                        cloneRequest.name = `${detectedEntity} ${reportName} Clone`;
                         cloneRequest.chartType = chartType;
                         cloneRequest.frequency = frequency;
                         cloneRequest.isPreview = false;
@@ -2211,8 +2218,20 @@ onClick={async () => {
                         const clonedReport = await reportService.saveReport(cloneRequest);
                         
                         if (clonedReport) {
+                          const reportId = clonedReport.id || clonedReport.result?.id;
+                          const reportData = clonedReport.result || clonedReport;
+                          const reportToSave = {
+                            ...reportData,
+                            id: reportId,
+                            name: cloneRequest.name,
+                            entity: entity,
+                            type: reportType,
+                            chartType: cloneRequest.chartType,
+                            frequency: cloneRequest.frequency,
+                            reportConditions: reportData.reportConditions || cloneRequest.reportConditions
+                          };
                           if (onSave) {
-                            onSave(clonedReport);
+                            onSave(reportToSave);
                           }
                           toast.success(`Report cloned successfully as "${cloneRequest.name}"!`);
                         } else {

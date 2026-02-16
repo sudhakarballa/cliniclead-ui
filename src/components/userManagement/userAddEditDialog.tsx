@@ -178,9 +178,11 @@ const [usernameError, setUsernameError] = useState<string | undefined>();
       setValue("email" as never, selectedItem.email as never);
       setValue("phoneNumber" as never, selectedItem.phoneNumber as never);
       
-      // Find role ID by matching roleName with roles array
-      const roleId = roles.find((role: any) => role.name === selectedItem.roleName)?.id;
-      setValue("roleId" as never, roleId as never);
+      // Find role ID - check both roleId and RoleID fields
+      const roleIdValue = selectedItem.roleId || selectedItem.RoleID || 
+        roles.find((role: any) => role.name === selectedItem.roleName)?.id;
+      setValue("roleId" as never, roleIdValue as never);
+      
       const tenantValue = selectedItem.tenantId || selectedItem.organizationID || selectedItem.organizationId;
       setValue("tenantId" as never, tenantValue as never);
       // Use the actual boolean value from selectedItem, not the transformed string
@@ -218,10 +220,18 @@ const [usernameError, setUsernameError] = useState<string | undefined>();
     // keep '' as '' so Yup shows "Required"
     const normalized = value === '' ? '' : Number(value);
     methods.setValue(field as any, normalized as any, { shouldValidate: true });
+    
+    // Update selectedItem with both roleId and RoleID for role changes
+    if (field === "roleId") {
+      setSelectedItem((prev: any) => ({ ...prev, roleId: normalized, RoleID: normalized }));
+    } else {
+      setSelectedItem((prev: any) => ({ ...prev, [field]: normalized }));
+    }
     return;
   }
 
   methods.setValue(field as any, value as any, { shouldValidate: true });
+  setSelectedItem((prev: any) => ({ ...prev, [field]: value }));
   };
   const getListofItemsForDropdown = (item: any) => {
     if (item.value === "roleId") {

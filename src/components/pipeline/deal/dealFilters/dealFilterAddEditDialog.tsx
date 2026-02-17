@@ -232,6 +232,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
         setDeals(allDeals);
       } catch (error) {
         console.error('Error loading deals:', error);
+        setDeals([]);
       }
     };
     loadDeals();
@@ -434,7 +435,10 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
               disabled={!getValues(`${conditionType}.${index}.field`)}
               value={getValues(`${conditionType}.${index}.value`) || ""}
               {...register(`${conditionType}.${index}.value`)}
-              onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+              onChange={(e) => {
+                setValue(`${conditionType}.${index}.value`, e.target.value);
+                onChange('value', e.target.value);
+              }}
               style={{ height: '32px' }}
             >
               <option value="">Select</option>
@@ -449,9 +453,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             type="text"
             disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
             placeholder="Enter value"
             style={{ height: '32px' }}
           />
@@ -463,7 +465,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value, { shouldValidate: true, shouldDirty: true })}
             style={{ height: '32px' }}
           >
             <option value="">Select</option>
@@ -481,7 +483,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value, { shouldValidate: true, shouldDirty: true })}
             style={{ height: '32px' }}
           >
             <option value="">Select</option>
@@ -506,7 +508,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
             {...register(`${conditionType}.${index}.value`)}
-            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value)}
+            onChange={(e) => setValue(`${conditionType}.${index}.value`, e.target.value, { shouldValidate: true, shouldDirty: true })}
             style={{ height: '32px' }}
           >
             <option value="">Select</option>
@@ -540,7 +542,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
                   disabled={!getValues(`${conditionType}.${index}.field`)}
                   selected={getValues(`${conditionType}.${index}.value`)}
                   className="form-control form-control-sm"
-                  onChange={(e: any) => setValue(`${conditionType}.${index}.value`, e)}
+                  onChange={(e: any) => setValue(`${conditionType}.${index}.value`, e, { shouldValidate: true, shouldDirty: true })}
                   wrapperClassName="w-100"
                 />
               ) : (
@@ -948,7 +950,7 @@ const DealFilterAddEditDialog = (props: params) => {
       if (res?.result && !isPreview) {
         toast.success(
           `Deal filter ${
-            selectedFilter.id > 0 ? " updated " : " created "
+            dealFilter.id > 0 ? "updated" : "created"
           } successfully`
         );
         // Refresh the filters list after save
@@ -1097,7 +1099,20 @@ const DealFilterAddEditDialog = (props: params) => {
             ContinueEditing
           </button>
           <button
-            onClick={handleSubmit(onSubmit)}
+            onClick={(e) => {
+              console.log('Save button clicked');
+              console.log('Form errors:', errors);
+              console.log('Form values:', getValues());
+              handleSubmit(
+                (data) => {
+                  console.log('Form validation passed, calling onSubmit with:', data);
+                  onSubmit(data);
+                },
+                (errors) => {
+                  console.error('Form validation failed:', errors);
+                }
+              )(e);
+            }}
             className="btn btn-primary btn-sm me-2"
             id="closeDialog"
           >
@@ -1363,3 +1378,9 @@ const DealFilterAddEditDialog = (props: params) => {
 };
 
 export default DealFilterAddEditDialog;
+
+
+
+
+
+

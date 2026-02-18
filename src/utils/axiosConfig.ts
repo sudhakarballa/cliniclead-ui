@@ -22,15 +22,25 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      // Clear auth data and redirect to login
+      // Clear auth data
       LocalStorageUtil.removeItem(Constants.USER_LOGGED_IN);
       LocalStorageUtil.removeItem(Constants.ACCESS_TOKEN);
       LocalStorageUtil.removeItem(Constants.TOKEN_EXPIRATION_TIME);
       sessionStorage.clear();
       
-      // Only redirect if not already on login page
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      // Check if we're on a subdomain and need to redirect to main application
+      const config = (window as any).config;
+      
+      if (config?.EnableSubdomainRedirect) {
+        // Redirect to main application login page
+        const homePage = config.HomePage || '';
+        const redirectUrl = config.RedirectUri + (homePage === '/' ? '' : homePage) + '/login';
+        window.location.href = redirectUrl;
+      } else {
+        // Local development or already on main domain
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

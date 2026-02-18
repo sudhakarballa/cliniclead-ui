@@ -241,14 +241,28 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
       setPreviewReportId(reportDefinition.id);
       setOriginalReportName(reportDefinition.name);
       // Load existing conditions for editing
-      const existingConditions = (reportDefinition.reportConditions || []).map((condition: any) => ({
-        id: (condition.id || Date.now()).toString(),
-        entity: 'Deal',
-        field: condition.field || '',
-        operator: condition.operator || '',
-        value: (condition.value || '').toString(),
-        displayText: `${condition.field || ''} ${condition.operator || ''} ${condition.value || ''}`
-      }));
+      const existingConditions = (reportDefinition.reportConditions || []).map((condition: any) => {
+        let conditionValue = String(condition.value || '');
+        
+        // For stageid field, check if value is a stage name (backward compatibility)
+        // If so, convert it to stage ID by looking up in reportDetailsData
+        if (condition.field === 'stageid' && conditionValue && isNaN(Number(conditionValue))) {
+          // Value is a stage name, need to find the stage ID
+          const stageData = reportDetailsData.find((deal: any) => deal.stageName === conditionValue);
+          if (stageData && (stageData.stageID || stageData.stageid)) {
+            conditionValue = String(stageData.stageID || stageData.stageid);
+          }
+        }
+        
+        return {
+          id: (condition.id || Date.now()).toString(),
+          entity: 'Deal',
+          field: condition.field || '',
+          operator: condition.operator || '',
+          value: conditionValue,
+          displayText: `${condition.field || ''} ${condition.operator || ''} ${conditionValue}`
+        };
+      });
       setAppliedFilters(existingConditions);
       setSavedFilters(existingConditions);
       
@@ -641,6 +655,24 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
         })) ?? [];
     }
     
+    // For Stage field (stageid), use stageID as value but show stageName as label
+    if (field === 'stageid') {
+      const stageMap = new Map<string, string>();
+      dataSource.forEach((deal: any) => {
+        const stageId = deal.stageID || deal.stageid;
+        const stageName = deal.stageName;
+        if (stageId && stageName) {
+          stageMap.set(String(stageId), stageName);
+        }
+      });
+      return Array.from(stageMap.entries())
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .map(([id, name]) => ({
+          value: id,
+          label: name,
+        }));
+    }
+    
     const uniqueValues = new Set<string>();
     
     dataSource.forEach((deal: any) => {
@@ -648,9 +680,6 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
         case '8': // Pipeline
           if (deal.pipelineName) uniqueValues.add(deal.pipelineName);
           else if (deal.pipeline) uniqueValues.add(deal.pipeline);
-          break;
-        case 'stageid': // Stage
-          if (deal.stageName) uniqueValues.add(deal.stageName);
           break;
         case '7': // Organization
           if (deal.name) uniqueValues.add(deal.name);
@@ -2417,7 +2446,15 @@ onClick={async () => {
                       {['statusid', '8', 'AssigntoId', 'stageid', '7', '1'].includes(filter.field) || fieldOptions.find(f => f.value === filter.field)?.isDateType ? (
                         <Form.Select
                           size="sm"
-                          value={filter.value}
+                          value={(() => {
+                            // For stageid field, ensure value is a stage ID (number)
+                            if (filter.field === 'stageid' && filter.value && isNaN(Number(filter.value))) {
+                              // Value is a stage name, convert to stage ID
+                              const stageData = reportDetailsData.find((deal: any) => deal.stageName === filter.value);
+                              return stageData ? String(stageData.stageID || stageData.stageid) : filter.value;
+                            }
+                            return filter.value;
+                          })()}
                           style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
                           onChange={(e) => {
                             const updatedFilters = appliedFilters.map((f) =>

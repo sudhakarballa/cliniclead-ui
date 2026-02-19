@@ -23,6 +23,7 @@ import Util from "../others/util";
 import { DeleteDialog } from "./deleteDialog";
 import LocalStorageUtil from "../others/LocalStorageUtil";
 import { DataGridProps } from "@mui/x-data-grid";
+import { useAuthContext } from "../contexts/AuthContext";
 
 
 const ODD_OPACITY = 0.2;
@@ -151,6 +152,7 @@ export interface ViewEditProps {
 }
 
 const Table: React.FC<TableListProps> = (props) => {
+  const { userProfile } = useAuthContext();
   const [rowData, setRowData] = useState(props.rowData ?? []);
   const [columnMetaData, setColumnMetaRowData] = useState(props.columnMetaData);
   const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([] as unknown as GridRowSelectionModel);
@@ -169,7 +171,6 @@ const Table: React.FC<TableListProps> = (props) => {
   const setDialogIsOpen = props.viewAddEditComponentProps.setDialogIsOpen;
   const [actionType, setActionType] = useState();
   const [isLoading, setIsLoading] = useState(false);
-  const userProfile = Util.UserProfile();
   const itemType = props.itemName;
   const [propNameforDelete, setPropNameforDelete] = useState(
     props.propNameforDelete ? props.propNameforDelete : "name"
@@ -281,6 +282,16 @@ const Table: React.FC<TableListProps> = (props) => {
     isReadOnly: boolean = false,
     isClone: boolean = false
   ) => {
+    // Block editing own account for User itemType
+    if (props.itemName === 'User') {
+      const currentUserId = userProfile?.userId;
+      const rowUserId = cellValues.row?.userId;
+      if (currentUserId && rowUserId && currentUserId === rowUserId) {
+        toast.error('You cannot edit your own account.');
+        event.stopPropagation();
+        return;
+      }
+    }
     
     console.log(
       "TableListBase - onClickEditListener - cellValues.row: ",
@@ -334,6 +345,17 @@ const Table: React.FC<TableListProps> = (props) => {
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     cellValues: GridCellParams
   ) => {
+    // Block deleting own account for User itemType
+    if (props.itemName === 'User') {
+      const currentUserId = userProfile?.userId;
+      const rowUserId = cellValues.row?.userId;
+      if (currentUserId && rowUserId && currentUserId === rowUserId) {
+        toast.error('You cannot delete your own account.');
+        event.stopPropagation();
+        return;
+      }
+    }
+    
     console.log(
       "TableListBase - onClickDeleteListener - cellValues.row: ",
       cellValues.row
@@ -446,35 +468,10 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
         <strong>Actions</strong>
       ),
       renderCell: (cellValues) => {
-        // Prevent edit/delete for current user in users list
-        const isUserList = props.itemName === 'User' || props.itemType?.name === 'User';
-        const currentUserId = userProfile?.userId;
-        const rowUserId = cellValues.row?.userId;
-        const isCurrentUser = isUserList && currentUserId && rowUserId && Number(currentUserId) === Number(rowUserId);
-        
-        if (isCurrentUser) {
-          return (
-            <>
-              <Button
-                color="primary"
-                startIcon={<EditIcon />}
-                title="Cannot edit your own account"
-                className="rowActionIcon"
-                disabled={true}
-                style={{ opacity: 0.3, cursor: 'not-allowed' }}
-              ></Button>
-              <Button
-                color="primary"
-                startIcon={<DeleteIcon />}
-                title="Cannot delete your own account"
-                className="rowActionIcon"
-                disabled={true}
-                style={{ opacity: 0.3, cursor: 'not-allowed' }}
-              ></Button>
-              {props.customActions ? props.customActions(cellValues) : null}
-            </>
-          );
-        }
+        const isOwnAccount = props.itemName === 'User' && 
+          userProfile?.userId && 
+          cellValues.row?.userId && 
+          userProfile.userId === cellValues.row.userId;
         
         return (
           <>
@@ -482,7 +479,7 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
               color="primary"
               startIcon={<EditIcon />}
               title="Edit"
-              id={`$${
+              id={`${
                 propNameforSelector
                   ? "editItem_" +
                     getSelectedItemfromCellValues(cellValues)[
@@ -492,12 +489,19 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
               }`}
               onClick={(event) => onClickEditListener(event, cellValues, false)}
               className="rowActionIcon"
+              disabled={isOwnAccount}
+              sx={{
+                '&.Mui-disabled': {
+                  opacity: 0.4,
+                  cursor: 'not-allowed'
+                }
+              }}
             ></Button>
             <Button
               color="primary"
               startIcon={<DeleteIcon />}
               title="Delete"
-              id={`$${
+              id={`${
                 propNameforSelector
                   ? "deleteItem_" +
                     getSelectedItemfromCellValues(cellValues)[
@@ -507,6 +511,13 @@ const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
               }`}
               onClick={(event) => onClickDeleteListener(event, cellValues)}
               className="rowActionIcon"
+              disabled={isOwnAccount}
+              sx={{
+                '&.Mui-disabled': {
+                  opacity: 0.4,
+                  cursor: 'not-allowed'
+                }
+              }}
             ></Button>
             {props.customActions ? props.customActions(cellValues) : null}
           </>

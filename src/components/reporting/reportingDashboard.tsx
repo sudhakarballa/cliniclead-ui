@@ -363,7 +363,8 @@ const ReportingDashboard = () => {
           flex: 1, 
           overflowY: 'auto', 
           overflowX: 'visible',
-          marginTop: '10px'
+          marginTop: '10px',
+          paddingBottom: '20px'
         }}>
         {/* Dashboards Section */}
         <div style={{ marginBottom: '20px' }}>

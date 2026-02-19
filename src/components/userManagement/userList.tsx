@@ -15,8 +15,10 @@ import moment from "moment";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import { TenantService } from "../../services/tenantService";
 import { TOOLTIPS } from "../../constants/tooltips";
+import { useAuthContext } from "../../contexts/AuthContext";
 
 const UsersList = () => {
+  const { userProfile } = useAuthContext();
   const userSvc = new UserService(ErrorBoundary);
   const tenantSvc = new TenantService();
   const [loadingData, setLoadingData] = useState(true);
@@ -95,6 +97,7 @@ const UsersList = () => {
     const tenant = tenants.find(t => t.id === item.tenantId);
     const role = roles.find(r => r.id === (item as any).roleID || r.id === item.roleId);
     const isActive = item.isActive;
+    
     return {
       ...item,
       roleId: (item as any).roleID || item.roleId,
@@ -104,7 +107,8 @@ const UsersList = () => {
       statusBadge: isActive ? '🟢 Active' : '🔴 Inactive',
       modifiedDate: item.modifiedDate || item.createdDate,
       id: item.userId > 0 ? item.userId : index,
-      _isDeleted: !item.isActive, // Flag for styling
+      userId: item.userId,
+      _isDeleted: !item.isActive,
     };
   };
 
@@ -159,10 +163,9 @@ const UsersList = () => {
 
   const customActions = (item: any) => {
      const row = item?.row;
-    const userProfile = Util.UserProfile();
     const currentUserId = userProfile?.userId;
     const rowUserId = item?.row?.userId;
-    const isCurrentUser = currentUserId && rowUserId && String(currentUserId) === String(rowUserId);
+    const isCurrentUser = currentUserId && rowUserId && currentUserId === rowUserId;
     const needsConfirmation =
   row?.emailConfirmed === false || row?.EmailConfirmed === false;
     const isLockedOut = row?.isLockedOut === true;
@@ -178,6 +181,12 @@ const UsersList = () => {
               }}
               className="rowActionIcon"
               disabled={isCurrentUser}
+              sx={{
+                '&.Mui-disabled': {
+                  opacity: 0.4,
+                  cursor: 'not-allowed'
+                }
+              }}
             ></Button>
           </span>
         </Tooltip>
@@ -200,9 +209,17 @@ const UsersList = () => {
               <Button
                 color="primary"
                 startIcon={<MailOutlineIcon />}
-                onClick={() => resendConfirmation(row)}
+                onClick={() => {
+                  if (!isCurrentUser) resendConfirmation(row);
+                }}
                 className="rowActionIcon"
-                disabled={isResendClicked}
+                disabled={isCurrentUser || isResendClicked}
+                sx={{
+                  '&.Mui-disabled': {
+                    opacity: 0.4,
+                    cursor: 'not-allowed'
+                  }
+                }}
               />
             </span>
           </Tooltip>

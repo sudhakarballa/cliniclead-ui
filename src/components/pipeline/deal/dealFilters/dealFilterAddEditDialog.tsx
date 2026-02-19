@@ -436,8 +436,8 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
               value={getValues(`${conditionType}.${index}.value`) || ""}
               {...register(`${conditionType}.${index}.value`)}
               onChange={(e) => {
-                setValue(`${conditionType}.${index}.value`, e.target.value);
-                onChange('value', e.target.value);
+                e.stopPropagation();
+                setValue(`${conditionType}.${index}.value`, e.target.value, { shouldValidate: true, shouldDirty: true });
               }}
               style={{ height: '32px' }}
             >
@@ -1127,12 +1127,12 @@ const DealFilterAddEditDialog = (props: params) => {
     <FormProvider {...methods}>
       <AddEditDialog
         dialogIsOpen={dialogIsOpen}
-        header={"Add Dealfilter"}
+        header={showPreview ? "Preview Filter" : (selectedFilter.id > 0 ? "Edit Deal Filter" : "Add Deal Filter")}
         dialogSize={"xl"}
         closeDialog={oncloseDialog}
         onClose={oncloseDialog}
         customFooter={customFooter()}
-        hideBody={showPreview}
+        hideBody={false}
         position={showPreview ? "top" : ""}
       >
         {

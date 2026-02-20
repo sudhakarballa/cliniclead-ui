@@ -309,8 +309,8 @@ const ReportingDashboard = () => {
       {/* Navigation Sidebar */}
       <div style={{ 
         width: sidebarCollapsed ? '60px' : '250px', 
-        backgroundColor: '#f8f9fa', 
-        borderRight: '1px solid #e4cb9a',
+        backgroundColor: 'var(--bg-secondary)', 
+        borderRight: '1px solid var(--border-color)',
         padding: sidebarCollapsed ? '10px' : '20px',
         overflowX: 'visible',
         transition: 'width 0.3s ease',
@@ -319,7 +319,7 @@ const ReportingDashboard = () => {
         height: '100vh'
       }}>
         <div className="d-flex justify-content-between align-items-center mb-3">
-          {!sidebarCollapsed && <h5 style={{ marginBottom: '0', color: '#3f3f3f' }}>Navigation</h5>}
+          {!sidebarCollapsed && <h5 style={{ marginBottom: '0', color: 'var(--text-primary)' }}>Navigation</h5>}
           <Button
             variant="outline-secondary"
             size="sm"
@@ -383,11 +383,11 @@ const ReportingDashboard = () => {
                   cursor: 'pointer',
                   borderRadius: '4px',
                   transition: 'background-color 0.2s',
-                  backgroundColor: currentView === 'dashboard' ? '#e4cb9a' : 'transparent'
+                  backgroundColor: currentView === 'dashboard' ? 'var(--hover-bg)' : 'transparent'
                 }}
                 className="collapsed-menu-trigger"
               >
-                <FontAwesomeIcon icon={faTachometerAlt} style={{ fontSize: '18px', color: '#1f2937' }} />
+                <FontAwesomeIcon icon={faTachometerAlt} style={{ fontSize: '18px', color: 'var(--text-primary)' }} />
               </div>
               
               {/* Hover Dropdown */}
@@ -397,8 +397,8 @@ const ReportingDashboard = () => {
                   position: 'absolute',
                   left: '100%',
                   top: '0',
-                  backgroundColor: 'white',
-                  border: '1px solid #e4cb9a',
+                  backgroundColor: 'var(--modal-bg)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '4px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   minWidth: '200px',
@@ -408,7 +408,7 @@ const ReportingDashboard = () => {
                 }}
               >
                 <div style={{ padding: '8px 0' }}>
-                  <div style={{ padding: '8px 16px', fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Dashboards</div>
+                  <div style={{ padding: '8px 16px', fontWeight: 'bold', borderBottom: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>Dashboards</div>
                   {createdDashboards.map(dashboard => (
                     <div 
                       key={dashboard.id}
@@ -416,11 +416,12 @@ const ReportingDashboard = () => {
                         padding: '8px 16px',
                         cursor: 'pointer',
                         fontSize: '14px',
-                        backgroundColor: activeNavItem === dashboard.name ? '#e4cb9a' : 'transparent'
+                        backgroundColor: activeNavItem === dashboard.name ? 'var(--hover-bg)' : 'transparent',
+                        color: 'var(--text-primary)'
                       }}
                       onClick={() => handleDashboardClick(dashboard)}
-                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#f8f9fa'}
-                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = activeNavItem === dashboard.name ? '#e4cb9a' : 'transparent'}
+                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'var(--hover-bg)'}
+                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = activeNavItem === dashboard.name ? 'var(--hover-bg)' : 'transparent'}
                     >
                       {dashboard.name}
                     </div>
@@ -434,7 +435,7 @@ const ReportingDashboard = () => {
             alignItems: 'center', 
             marginBottom: '10px',
             fontWeight: 'bold',
-            color: '#1f2937'
+            color: 'var(--text-primary)'
           }}>
             <FontAwesomeIcon icon={faTachometerAlt} style={{ marginRight: '8px' }} />
             Dashboards {loadingDashboards && <span className="spinner-border spinner-border-sm ms-2" />}
@@ -460,7 +461,7 @@ const ReportingDashboard = () => {
                     justifyContent: 'space-between',
                     fontSize: '14px',
                     fontWeight: '500',
-                    color: '#1f2937'
+                    color: 'var(--text-primary)'
                   }}
                 >
                   <div 
@@ -513,10 +514,11 @@ const ReportingDashboard = () => {
                     style={{ 
                       padding: '6px 16px 6px 40px', 
                       cursor: 'pointer',
-                      backgroundColor: activeNavItem === dashboard.name ? '#e4cb9a' : 'transparent',
+                      backgroundColor: activeNavItem === dashboard.name ? 'var(--hover-bg)' : 'transparent',
                       borderRadius: '4px',
                       marginBottom: '2px',
-                      fontSize: '13px'
+                      fontSize: '13px',
+                      color: 'var(--text-primary)'
                     }}
                     onClick={() => handleDashboardClick(dashboard)}
                   >
@@ -546,11 +548,11 @@ const ReportingDashboard = () => {
                   cursor: 'pointer',
                   borderRadius: '4px',
                   transition: 'background-color 0.2s',
-                  backgroundColor: currentView === 'report' ? '#e4cb9a' : 'transparent'
+                  backgroundColor: currentView === 'report' ? 'var(--hover-bg)' : 'transparent'
                 }}
                 className="collapsed-menu-trigger"
               >
-                <FontAwesomeIcon icon={faChartBar} style={{ fontSize: '18px', color: '#1f2937' }} />
+                <FontAwesomeIcon icon={faChartBar} style={{ fontSize: '18px', color: 'var(--text-primary)' }} />
               </div>
               
               {/* Hover Dropdown */}
@@ -560,8 +562,8 @@ const ReportingDashboard = () => {
                   position: 'absolute',
                   left: '100%',
                   top: '0',
-                  backgroundColor: 'white',
-                  border: '1px solid #e4cb9a',
+                  backgroundColor: 'var(--modal-bg)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '4px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   minWidth: '200px',
@@ -571,7 +573,7 @@ const ReportingDashboard = () => {
                 }}
               >
                 <div style={{ padding: '8px 0' }}>
-                  <div style={{ padding: '8px 16px', fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Reports</div>
+                  <div style={{ padding: '8px 16px', fontWeight: 'bold', borderBottom: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>Reports</div>
                   {createdReports.map(report => (
                     <div 
                       key={report.id}
@@ -579,11 +581,12 @@ const ReportingDashboard = () => {
                         padding: '8px 16px',
                         cursor: 'pointer',
                         fontSize: '14px',
-                        backgroundColor: activeReportId === report.id ? '#e4cb9a' : 'transparent'
+                        backgroundColor: activeReportId === report.id ? 'var(--hover-bg)' : 'transparent',
+                        color: 'var(--text-primary)'
                       }}
                       onClick={() => handleReportClick(report)}
-                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#f8f9fa'}
-                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = activeReportId === report.id ? '#e4cb9a' : 'transparent'}
+                      onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'var(--hover-bg)'}
+                      onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = activeReportId === report.id ? 'var(--hover-bg)' : 'transparent'}
                     >
                       {report.name}
                     </div>
@@ -597,7 +600,7 @@ const ReportingDashboard = () => {
             alignItems: 'center', 
             marginBottom: '10px',
             fontWeight: 'bold',
-            color: '#1f2937'
+            color: 'var(--text-primary)'
           }}>
             <FontAwesomeIcon icon={faChartBar} style={{ marginRight: '8px' }} />
             Reports
@@ -605,7 +608,7 @@ const ReportingDashboard = () => {
           )}
           {!sidebarCollapsed && (
             createdReports.length === 0 ? (
-              <div style={{ padding: '8px 16px', fontSize: '14px', color: '#6c757d' }}>
+              <div style={{ padding: '8px 16px', fontSize: '14px', color: 'var(--text-muted)' }}>
                 No saved reports
               </div>
             ) : (
@@ -615,15 +618,16 @@ const ReportingDashboard = () => {
                   style={{ 
                     padding: '8px 16px', 
                     cursor: 'pointer',
-                    backgroundColor: activeReportId === report.id ? '#e4cb9a' : 'transparent',
+                    backgroundColor: activeReportId === report.id ? 'var(--hover-bg)' : 'transparent',
                     borderRadius: '4px',
                     marginBottom: '5px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    color: 'var(--text-primary)'
                   }}
                   onClick={() => handleReportClick(report)}
                 >
                   <div style={{ fontWeight: 'bold' }}>{report.name}</div>
-                  <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                     {report.entity} {report.type}
                   </div>
                 </div>

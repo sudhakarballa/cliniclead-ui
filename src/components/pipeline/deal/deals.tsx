@@ -551,7 +551,7 @@ export const Deals = (props: params) => {
                           if (scrollContainerRef.current) {
                             scrollContainerRef.current.scrollLeft -= 400;
                           }
-                        }} style={{ position: 'fixed', left: `${sidebarWidth + 20}px`, top: '50%', transform: 'translateY(-50%)', zIndex: 99999, background: '#fff', border: '2px solid #b68d40', borderRadius: '50%', width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 32, fontWeight: 'bold', color: '#b68d40' }}>‹</button>
+                        }} style={{ position: 'fixed', left: `${sidebarWidth + 20}px`, top: '50%', transform: 'translateY(-50%)', zIndex: 99999, background: 'var(--bg-secondary)', border: '2px solid #b68d40', borderRadius: '50%', width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 32, fontWeight: 'bold', color: '#b68d40' }}>‹</button>
                       </Tooltip>
                     )}
                     {showScrollButtons && showRightArrow && (
@@ -560,7 +560,7 @@ export const Deals = (props: params) => {
                           if (scrollContainerRef.current) {
                             scrollContainerRef.current.scrollLeft += 400;
                           }
-                        }} style={{ position: 'fixed', right: 20, top: '50%', transform: 'translateY(-50%)', zIndex: 99999, background: '#fff', border: '2px solid #b68d40', borderRadius: '50%', width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 32, fontWeight: 'bold', color: '#b68d40' }}>›</button>
+                        }} style={{ position: 'fixed', right: 20, top: '50%', transform: 'translateY(-50%)', zIndex: 99999, background: 'var(--bg-secondary)', border: '2px solid #b68d40', borderRadius: '50%', width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontSize: 32, fontWeight: 'bold', color: '#b68d40' }}>›</button>
                       </Tooltip>
                     )}
                   <div className="pdstage-row" hidden={pipeLines.length == 0}>

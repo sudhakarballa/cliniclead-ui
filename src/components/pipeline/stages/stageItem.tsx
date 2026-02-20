@@ -1,4 +1,4 @@
-import { faBell, faInfoCircle, faScaleBalanced, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faInfoCircle, faPlus, faScaleBalanced, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from "react";
 import { Stage } from "../../../models/stage";
@@ -99,7 +99,7 @@ export const StageItem = (props: params) => {
                             <div className="editstage-deleteinn">
                                 <button className="editstage-deletebtn" onClick={(e:any)=>props.onDeleteClick()}><FontAwesomeIcon icon={faTrash} /> <span>Delete Stage</span></button>
                             </div>
-                            <button className="addnewstag-btn" onClick={(e:any)=>props.onAddClick()}><i className="rs-icon rs-icon-plus"></i><span>New stage</span></button>
+                            <button className="addnewstag-btn" onClick={(e:any)=>props.onAddClick()}><FontAwesomeIcon icon={faPlus} /> <span>New stage</span></button>
                         </div>
                     </div>
 

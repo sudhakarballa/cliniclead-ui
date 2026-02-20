@@ -143,8 +143,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           icon.style.setProperty('color', activeNavColor, 'important');
           icon.style.setProperty('fill', activeNavColor, 'important');
         } else {
-          icon.style.setProperty('color', 'black', 'important');
-          icon.style.setProperty('fill', 'black', 'important');
+          icon.style.removeProperty('color');
+          icon.style.removeProperty('fill');
         }
       }
     };
@@ -153,8 +153,13 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     const updateMainMenuIcon = (title: string, isActive: boolean) => {
       const menuItem = document.querySelector(`[title="${title}"] .ps-menu-icon svg`);
       if (menuItem) {
-        menuItem.setAttribute('color', isActive ? activeNavColor : 'black');
-        (menuItem as HTMLElement).style.color = isActive ? activeNavColor : 'black';
+        if (isActive) {
+          menuItem.setAttribute('color', activeNavColor);
+          (menuItem as HTMLElement).style.color = activeNavColor;
+        } else {
+          menuItem.removeAttribute('color');
+          (menuItem as HTMLElement).style.removeProperty('color');
+        }
       }
     };
 
@@ -190,8 +195,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
             icon.style.setProperty('color', activeNavColor, 'important');
             icon.style.setProperty('fill', activeNavColor, 'important');
           } else {
-            icon.style.setProperty('color', 'black', 'important');
-            icon.style.setProperty('fill', 'black', 'important');
+            icon.style.removeProperty('color');
+            icon.style.removeProperty('fill');
           }
         }
       };
@@ -229,7 +234,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       onClick={() => setSelectedNavItem(item.key)}
       rootStyles={{
         ['.' + 'ps-menu-button']: {
-          color: 'black !important',
+          color: 'var(--text-primary) !important',
           backgroundColor: 'transparent !important',
           textDecoration: 'none !important'
         },
@@ -241,7 +246,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       {isActive ? (
         <b style={{ color: activeNavColor }}>{item.displayName || item.title}</b>
       ) : (
-        <span style={{ color: 'black' }}>{item.displayName || item.title}</span>
+        <span style={{ color: 'var(--text-primary)' }}>{item.displayName || item.title}</span>
       )}
     </MenuItem>
   );
@@ -251,7 +256,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "Stages",
       title: "Add Pipeline",
       path: "/Stages",
-      icon: <IconWrapper Icon={HiOutlineFunnel} color={selectedNavItem === "Stages" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={HiOutlineFunnel} color={selectedNavItem === "Stages" ? activeNavColor : "var(--text-primary)"} />,
       iconComponent: HiOutlineFunnel,
       permission: "Stages",
       tooltip: TOOLTIPS.SIDEBAR.ADD_PIPELINE
@@ -260,7 +265,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "pipeline",
       title: "Sales Stage",
       path: "/pipeline",
-      icon: <IconWrapper Icon={GiStairsGoal} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "black"}} />,
+      icon: <IconWrapper Icon={GiStairsGoal} style={{color: selectedNavItem === "pipeline" ? activeNavColor : "var(--text-primary)"}} />,
       iconComponent: GiStairsGoal,
       permission: "pipeline",
       tooltip: TOOLTIPS.SIDEBAR.SALES_STAGE
@@ -269,7 +274,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "Activities",
       title: "Activities",
       path: "/Activities",
-      icon: <IconWrapper Icon={RxActivityLog} color={selectedNavItem === "Activities" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RxActivityLog} color={selectedNavItem === "Activities" ? activeNavColor : "var(--text-primary)"} />,
       iconComponent: RxActivityLog,
       permission: "Activities",
       tooltip: TOOLTIPS.SIDEBAR.ACTIVITIES
@@ -278,7 +283,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "Person",
       title: "Persons",
       path: "/Person",
-      icon: <IconWrapper Icon={RiContactsBookFill} color={selectedNavItem === "Person" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RiContactsBookFill} color={selectedNavItem === "Person" ? activeNavColor : "var(--text-primary)"} />,
       iconComponent: RiContactsBookFill,
       permission: "Person",
       tooltip: TOOLTIPS.SIDEBAR.PERSONS
@@ -288,7 +293,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       title: "Settings",
       displayName: "Users",
       path: "/users",
-      icon: <IconWrapper Icon={IoSettings} color={selectedNavItem === "Settings" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={IoSettings} color={selectedNavItem === "Settings" ? activeNavColor : "var(--text-primary)"} />,
       iconComponent: IoSettings,
       permission: "users",
       tooltip: TOOLTIPS.SIDEBAR.USERS
@@ -297,7 +302,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
       key: "Reporting",
       title: "Reporting",
       path: "/Reporting",
-      icon: <IconWrapper Icon={RiDashboard2Fill} color={selectedNavItem === "Reporting" ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RiDashboard2Fill} color={selectedNavItem === "Reporting" ? activeNavColor : "var(--text-primary)"} />,
       iconComponent: RiDashboard2Fill,
       permission: "Reporting",
       tooltip: TOOLTIPS.SIDEBAR.REPORTING
@@ -308,7 +313,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     {
       key: "Campaigns",
       title: "Campaigns",
-      icon: <IconWrapper Icon={MdCampaign} color={campaignSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={MdCampaign} color={campaignSubMenu.includes(selectedNavItem) ? activeNavColor : "var(--text-primary)"} />,
       permission: "Template",
       tooltip: TOOLTIPS.SIDEBAR.CAMPAIGNS,
       items: [
@@ -316,7 +321,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           key: "Template",
           title: "Template",
           path: "/Template",
-          icon: <IconWrapper Icon={HiTemplate} color={selectedNavItem === "Template" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={HiTemplate} color={selectedNavItem === "Template" ? activeNavColor : "var(--text-primary)"} />,
           iconComponent: HiTemplate,
           permission: "Template",
           tooltip: TOOLTIPS.SIDEBAR.TEMPLATE
@@ -326,7 +331,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
     {
       key: "Admin",
       title: "Admin",
-      icon: <IconWrapper Icon={RiAdminFill} color={adminSubMenu.includes(selectedNavItem) ? activeNavColor : "black"} />,
+      icon: <IconWrapper Icon={RiAdminFill} color={adminSubMenu.includes(selectedNavItem) ? activeNavColor : "var(--text-primary)"} />,
       permission: "Admin",
       tooltip: TOOLTIPS.SIDEBAR.ADMIN,
       items: [
@@ -334,7 +339,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           key: "Clinic",
           title: "Clinic",
           path: "/Clinic",
-          icon: <IconWrapper Icon={FaClinicMedical} color={selectedNavItem === "Clinic" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={FaClinicMedical} color={selectedNavItem === "Clinic" ? activeNavColor : "var(--text-primary)"} />,
           iconComponent: FaClinicMedical,
           permission: "Clinic",
           tooltip: TOOLTIPS.SIDEBAR.CLINIC
@@ -343,7 +348,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           key: "Source",
           title: "Source",
           path: "/Source",
-          icon: <IconWrapper Icon={BiGitBranch} color={selectedNavItem === "Source" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={BiGitBranch} color={selectedNavItem === "Source" ? activeNavColor : "var(--text-primary)"} />,
           iconComponent: BiGitBranch,
           permission: "Source",
           tooltip: TOOLTIPS.SIDEBAR.SOURCE
@@ -352,7 +357,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           key: "Treatment",
           title: "Treatment",
           path: "/Treatment",
-          icon: <IconWrapper Icon={FaNotesMedical} color={selectedNavItem === "Treatment" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={FaNotesMedical} color={selectedNavItem === "Treatment" ? activeNavColor : "var(--text-primary)"} />,
           iconComponent: FaNotesMedical,
           permission: "Treatment",
           tooltip: TOOLTIPS.SIDEBAR.TREATMENT
@@ -361,7 +366,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           key: "PipeLineType",
           title: "Pipeline Type",
           path: "/PipeLineType",
-          icon: <IconWrapper Icon={FaProjectDiagram} color={selectedNavItem === "PipeLineType" ? activeNavColor : "black"} />,
+          icon: <IconWrapper Icon={FaProjectDiagram} color={selectedNavItem === "PipeLineType" ? activeNavColor : "var(--text-primary)"} />,
           iconComponent: FaProjectDiagram,
           permission: "PipeLineType",
           tooltip: TOOLTIPS.SIDEBAR.PIPELINE_TYPE
@@ -398,13 +403,13 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           <MenuItem 
             key={`${item.key}-${selectedNavItem}`}
             hidden={!Util.isAuthorized(item.permission)} 
-            icon={<IconWrapper Icon={item.iconComponent} color={selectedNavItem === item.key ? activeNavColor : "black"} />}
+            icon={<IconWrapper Icon={item.iconComponent} color={selectedNavItem === item.key ? activeNavColor : "var(--text-primary)"} />}
             title={item.tooltip || item.title}
             component={<Link to={item.path} />}
             onClick={() => setSelectedNavItem(item.key)}
             rootStyles={{
               ['.' + 'ps-menu-button']: {
-                color: 'black !important',
+                color: 'var(--text-primary) !important',
                 backgroundColor: 'transparent !important',
                 textDecoration: 'none !important'
               },
@@ -416,7 +421,7 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
             {selectedNavItem === item.key ? (
               <b style={{ color: activeNavColor }}>{item.displayName || item.title}</b>
             ) : (
-              <span style={{ color: 'black' }}>{item.displayName || item.title}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{item.displayName || item.title}</span>
             )}
           </MenuItem>
         ))}
@@ -450,15 +455,15 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
                 }}
                 rootStyles={{
                   ['.' + 'ps-menu-button']: {
-                    color: isSubMenuActive ? `${activeNavColor} !important` : 'black !important',
+                    color: isSubMenuActive ? `${activeNavColor} !important` : 'var(--text-primary) !important',
                     backgroundColor: isSubMenuActive ? 'rgba(13, 104, 197, 0.1) !important' : 'transparent !important'
                   },
                   ['.' + 'ps-menu-icon']: {
-                    color: isSubMenuActive ? `${activeNavColor} !important` : 'black !important'
+                    color: isSubMenuActive ? `${activeNavColor} !important` : 'var(--text-primary) !important'
                   },
                   ['.' + 'ps-menu-icon svg']: {
-                    color: isSubMenuActive ? `${activeNavColor} !important` : 'black !important',
-                    fill: isSubMenuActive ? `${activeNavColor} !important` : 'black !important'
+                    color: isSubMenuActive ? `${activeNavColor} !important` : 'var(--text-primary) !important',
+                    fill: isSubMenuActive ? `${activeNavColor} !important` : 'var(--text-primary) !important'
                   }
                 }}
               />
@@ -484,10 +489,10 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
               label={subMenu.title}
               rootStyles={{
                 ['.' + 'ps-submenu-content']: {
-                  color: isSubMenuActive ? activeNavColor : 'black !important'
+                  color: isSubMenuActive ? activeNavColor : 'var(--text-primary) !important'
                 },
                 ['.' + 'ps-menu-label']: {
-                  color: isSubMenuActive ? activeNavColor : 'black !important'
+                  color: isSubMenuActive ? activeNavColor : 'var(--text-primary) !important'
                 }
               }}
             >
@@ -504,16 +509,16 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
           title={TOOLTIPS.SIDEBAR.TENANTS}
           component={<Link to="/Tenant" />} 
           onClick={() => setSelectedNavItem("Tenant")} 
-          icon={<IconWrapper Icon={FaBuilding} color={selectedNavItem === "Tenant" ? activeNavColor : "black"} />}
+          icon={<IconWrapper Icon={FaBuilding} color={selectedNavItem === "Tenant" ? activeNavColor : "var(--text-primary)"} />}
           rootStyles={{
             ['.' + 'ps-menu-button']: {
-              color: 'black !important',
+              color: 'var(--text-primary) !important',
               backgroundColor: 'transparent !important'
             }
           }}
         >
-          <b hidden={selectedNavItem !== "Tenant"} style={{ color: selectedNavItem === "Tenant" ? activeNavColor : "black" }}>Tenants</b>
-          <p hidden={selectedNavItem === "Tenant"}>Tenants</p>
+          <b hidden={selectedNavItem !== "Tenant"} style={{ color: selectedNavItem === "Tenant" ? activeNavColor : "var(--text-primary)" }}>Tenants</b>
+          <p hidden={selectedNavItem === "Tenant"} style={{ color: 'var(--text-primary)' }}>Tenants</p>
         </MenuItem>
       </Menu>
       
@@ -528,8 +533,8 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
             left: '64px',
             top: `${collapsedSubmenu.top}px`,
             zIndex: 2000,
-            backgroundColor: '#ffffff',
-            border: '1px solid #e4cb9a',
+            backgroundColor: 'var(--modal-bg)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
             minWidth: '200px',
@@ -551,13 +556,13 @@ export const SideBar = ({ collapsed }: SideBarProps) => {
                 alignItems: 'center',
                 padding: '12px 16px',
                 textDecoration: 'none',
-                color: selectedNavItem === item.key ? activeNavColor : '#3f3f3f',
+                color: selectedNavItem === item.key ? activeNavColor : 'var(--text-primary)',
                 backgroundColor: selectedNavItem === item.key ? 'rgba(13, 104, 197, 0.1)' : 'transparent',
-                borderBottom: '1px solid #f0f0f0'
+                borderBottom: '1px solid var(--border-color)'
               }}
               onMouseEnter={(e) => {
                 if (selectedNavItem !== item.key) {
-                  e.currentTarget.style.backgroundColor = '#f3f3f3';
+                  e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
                 }
               }}
               onMouseLeave={(e) => {

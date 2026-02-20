@@ -386,7 +386,7 @@ extractedSubject = "Email Activity";
 
                   <div className="appboxdatarow-foot">
                     <div className="appboxdatafoot-call">
-                      <div className="appboxdatafoot-calltext">
+                      <div className="appboxdatafoot-calltext" style={{ color: 'var(--text-primary)' }}>
                         {item.eventTypeId === EntitType.Email ? (
     <EmailItemRenderer item={item} />
   ) : (

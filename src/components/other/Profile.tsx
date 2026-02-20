@@ -33,16 +33,16 @@ export const Profile = () => {
         <Dropdown.Toggle className="profiledroupdown" variant="" id="dropdown-profile">
             <span className="profileicon"><FontAwesomeIcon icon={faCircleUser} /></span>
         </Dropdown.Toggle>
-        <Dropdown.Menu style={{ zIndex: 9999 }}>
-            <div className="dropdown-header px-3 py-2 border-bottom">
-                <div className="fw-bold">{user}</div>
-                <div className="text-muted small">{email}</div>
+        <Dropdown.Menu style={{ zIndex: 9999, backgroundColor: 'var(--modal-bg)', border: '1px solid var(--border-color)' }}>
+            <div className="dropdown-header px-3 py-2 border-bottom" style={{ backgroundColor: 'var(--bg-secondary)', borderBottomColor: 'var(--border-color) !important' }}>
+                <div className="fw-bold" style={{ color: 'var(--text-primary)' }}>{user}</div>
+                <div className="text-muted small" style={{ color: 'var(--text-secondary)' }}>{email}</div>
             </div>
             <Dropdown.Item onClick={() => {
                 console.log('Navigating to profile page');
                 navigate("/profile");
-            }} title="View and edit your profile">Profile</Dropdown.Item>
-            <Dropdown.Item onClick={(e:any)=>doLogout()} title="Sign out of your account">Logout</Dropdown.Item>
+            }} title="View and edit your profile" style={{ color: 'var(--text-primary) !important', backgroundColor: 'transparent' }} className="profile-menu-item">Profile</Dropdown.Item>
+            <Dropdown.Item onClick={(e:any)=>doLogout()} title="Sign out of your account" style={{ color: 'var(--text-primary) !important', backgroundColor: 'transparent' }} className="profile-menu-item">Logout</Dropdown.Item>
         </Dropdown.Menu>
     </Dropdown>
  

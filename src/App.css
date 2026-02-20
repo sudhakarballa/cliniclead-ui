@@ -1737,6 +1737,7 @@ select.selectfield {
 
 /* Edit Stage CSS Start */
 .editstage-area {
+  background-color: #fff;
   overflow: hidden;
 }
 
@@ -2072,6 +2073,7 @@ select.selectfield {
 }
 
 .addnewstagbox {
+  background-color: #fff;
   min-width: 256px;
   display: flex;
   flex: 1 1 0%;

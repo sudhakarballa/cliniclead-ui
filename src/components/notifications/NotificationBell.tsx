@@ -80,9 +80,9 @@ export const NotificationBell: React.FC = () => {
         )}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu align="end" style={{ minWidth: '350px', maxHeight: '450px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-        <Dropdown.Header className="d-flex justify-content-between align-items-center py-3 px-3 border-bottom" style={{ backgroundColor: '#f8f9fa' }}>
-          <span className="fw-bold text-dark">Notifications</span>
+      <Dropdown.Menu align="end" style={{ minWidth: '350px', maxHeight: '450px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', backgroundColor: 'var(--modal-bg)' }}>
+        <Dropdown.Header className="d-flex justify-content-between align-items-center py-3 px-3 border-bottom" style={{ backgroundColor: 'var(--bg-secondary)', borderBottomColor: 'var(--border-color) !important' }}>
+          <span className="fw-bold" style={{ color: 'var(--text-primary)' }}>Notifications</span>
           {unreadCount > 0 && (
             <button 
               className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
@@ -96,7 +96,7 @@ export const NotificationBell: React.FC = () => {
         </Dropdown.Header>
         
         {notifications.length === 0 ? (
-          <div className="text-center py-4 text-muted">
+          <div className="text-center py-4" style={{ color: 'var(--text-muted)' }}>
             <FontAwesomeIcon icon={faBell} size="2x" className="mb-3 opacity-50" />
             <div>No new notifications</div>
           </div>
@@ -126,20 +126,21 @@ export const NotificationBell: React.FC = () => {
                   style={{ 
                     cursor: 'pointer',
                     transition: 'background-color 0.2s',
-                    backgroundColor: '#fff'
+                    backgroundColor: 'var(--modal-bg)',
+                    borderBottomColor: 'var(--border-color)'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--modal-bg)'}
                 >
                   <div className="d-flex justify-content-between align-items-start">
                     <div className="flex-grow-1 pe-2">
-                      <div className="fw-semibold text-dark mb-1" style={{ fontSize: '0.9rem' }}>
+                      <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                         {notificationData.title || notificationData.Title || 'Notification'}
                       </div>
-                      <div className="text-muted mb-2" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                      <div className="mb-2" style={{ fontSize: '0.85rem', lineHeight: '1.4', color: 'var(--text-secondary)' }}>
                         {notificationData.message || notificationData.Message || 'No message'}
                       </div>
-                      <div className="text-muted d-flex align-items-center" style={{ fontSize: '0.75rem' }}>
+                      <div className="d-flex align-items-center" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         <span>{timeAgo}</span>
                         {notificationData.type && (
                           <span className={`ms-2 badge bg-${getTypeColor(notificationData.type)}`} style={{ fontSize: '0.65rem' }}>
@@ -149,10 +150,10 @@ export const NotificationBell: React.FC = () => {
                       </div>
                     </div>
                     <button 
-                      className="btn btn-sm btn-link p-1 text-muted"
+                      className="btn btn-sm btn-link p-1"
                       onClick={(e) => handleRemoveNotification(notification.id, e)}
                       title="Mark as read"
-                      style={{ fontSize: '0.8rem', minWidth: '24px' }}
+                      style={{ fontSize: '0.8rem', minWidth: '24px', color: 'var(--text-muted)' }}
                     >
                       <FontAwesomeIcon icon={faTimes} />
                     </button>

@@ -102,3 +102,28 @@
   border-color: #999 !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
+
+
+.dark-theme .pipeselect-btns span {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-theme .pipeselect-btns span:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-theme .pipeselectlist li:hover .pipeselect-btns span {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-theme .pipeselectlist li:hover .pipeselect-btns span:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}

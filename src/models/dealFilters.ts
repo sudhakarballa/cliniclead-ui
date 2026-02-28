@@ -29,6 +29,6 @@ export class DealFilter extends AuditItem {
     operator!: string
     object!: string
     value!: string
-    extraValue: string="Test"
+    extraValue: string=""
   }
   

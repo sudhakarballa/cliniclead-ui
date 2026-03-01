@@ -19,6 +19,7 @@ import { StageService } from "../../../../services/stageService";
 import { ClinicService } from "../../../../services/clinicService";
 import { personService } from "../../../../services/personService";
 import { UserService } from "../../../../services/UserService";
+import { PipeLineTypeService } from "../../../../services/pipeLineTypeService";
 
 const getOperators = (isValueType: false) => {
   return isValueType
@@ -160,6 +161,15 @@ const electivaTreatmentsOptions = [
   { "value": "entSurgery", "label": "ENT Surgery" }
 ]
 
+const treatmentOptions = [
+  ...procedureOptions,
+  ...entProcedureOptions,
+  ...gastroenterologyOptions,
+  ...generalSurgeryOptions,
+  ...gynaecologyTreatmentOptions,
+  ...orthopaedicTreatmentOptions
+]
+
 const apiCallOptions = [
   { "value": "1", "label": "1st call" },
   { "value": "2", "label": "2nd call" },
@@ -295,12 +305,26 @@ const getOperatorsByField = (fieldValue: string) => {
     nextActivityDate: operators2,
     nextSteps: operators2,
     operationDate: operators4,
+    probability: operators1,
     referTelephoneNumber: operators3,
+    revenue: operators1,
+    score: operators1,
+    stage: operators8,
+    status: operators7,
+    submissionId: operators3,
+    tcConsent: operators5,
+    title: operators3,
+    totalActivities: operators1,
+    treatment: operators2,
+    updateTime: operators4,
+    value: operators1,
+    wonTime: operators4,
+    zandaInvoiceValue: operators1,
   };
   return fieldOperatorMap[fieldValue] || operators5;
 };
 
-const fieldsWithOperators1 = ['activitiesToDo', 'acv', 'arr', 'clientNumber', 'doneActivities', 'emailMessagesCount'];
+const fieldsWithOperators1 = ['activitiesToDo', 'acv', 'arr', 'clientNumber', 'doneActivities', 'emailMessagesCount', 'probability', 'revenue', 'score', 'totalActivities', 'value', 'zandaInvoiceValue'];
 
 const operatorsForNumberType = [
   { label: "Greater than", value: ">" },
@@ -665,6 +689,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   const [clinics, setClinics] = useState<any[]>([]);
   const [persons, setPersons] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [pipelineTypes, setPipelineTypes] = useState<any[]>([]);
 
   useEffect(() => {
     const loadDeals = async () => {
@@ -719,6 +744,18 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       }
     };
     loadUsers();
+
+    const loadPipelineTypes = async () => {
+      try {
+        const pipelineTypeService = new PipeLineTypeService(null);
+        const pipelineTypesResponse = await pipelineTypeService.getPipelineTypes();
+        setPipelineTypes(pipelineTypesResponse || []);
+      } catch (error) {
+        console.error("Error loading pipeline types:", error);
+        setPipelineTypes([]);
+      }
+    };
+    loadPipelineTypes();
   }, []);
 
   useEffect(() => {
@@ -959,6 +996,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           />
         );
       case "creator":
+      case "owner":
         const activeUsers = users.filter((user: any) => user.isActive !== false);
         const inactiveUsers = users.filter((user: any) => user.isActive === false);
         return (
@@ -1017,6 +1055,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           </select>
         );
       case "consentCheckbox":
+      case "tcConsent":
         return (
           <select
             className="form-control form-control-sm"
@@ -1032,7 +1071,8 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             style={{ height: "32px" }}
           >
             <option value="">Select</option>
-            <option value="Selected">Selected</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
           </select>
         );
       case "clinic":
@@ -1242,6 +1282,29 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             ))}
           </select>
         );
+      case "treatment":
+        return (
+          <select
+            className="form-control form-control-sm"
+            disabled={!getValues(`${conditionType}.${index}.field`)}
+            value={getValues(`${conditionType}.${index}.value`) || ""}
+            {...register(`${conditionType}.${index}.value`)}
+            onChange={(e) => {
+              setValue(`${conditionType}.${index}.value`, e.target.value, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }}
+            style={{ height: "32px" }}
+          >
+            <option value="">Select</option>
+            {treatmentOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        );
       case "archiveTime":
       case "consultDate":
       case "dateOfEnteringStage":
@@ -1254,6 +1317,8 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       case "lastStageChange":
       case "nextActivityDate":
       case "operationDate":
+      case "updateTime":
+      case "wonTime":
         const selectedDateValue = getValues(`${conditionType}.${index}.value`);
         const isExactDate = selectedDateValue instanceof Date;
         
@@ -1414,6 +1479,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           />
         );
       case "8":
+      case "pipeline":
         return (
           <select
             className="form-control form-control-sm"
@@ -1436,7 +1502,31 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             ))}
           </select>
         );
+      case "pipelineType":
+        return (
+          <select
+            className="form-control form-control-sm"
+            disabled={!getValues(`${conditionType}.${index}.field`)}
+            value={getValues(`${conditionType}.${index}.value`) || ""}
+            {...register(`${conditionType}.${index}.value`)}
+            onChange={(e) =>
+              setValue(`${conditionType}.${index}.value`, e.target.value, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+            style={{ height: "32px" }}
+          >
+            <option value="">Select</option>
+            {pipelineTypes.map((pipelineType: any) => (
+              <option key={pipelineType.pipelineTypeID || pipelineType.id} value={pipelineType.pipelineTypeID || pipelineType.id}>
+                {pipelineType.pipelineTypeName || pipelineType.name}
+              </option>
+            ))}
+          </select>
+        );
       case "stageid":
+      case "stage":
         return (
           <select
             className="form-control form-control-sm"
@@ -1475,6 +1565,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           </select>
         );
       case "statusid":
+      case "status":
         return (
           <select
             className="form-control form-control-sm"
@@ -1596,6 +1687,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
   const getDropdownListforValueJSX = (key: string) => {
     switch (key) {
       case "statusid":
+      case "status":
         return dealStatusList;
       default:
         return [];
@@ -1895,9 +1987,33 @@ const DealFilterAddEditDialog = (props: params) => {
     if (selectedFilter.id > 0) {
       obj.allConditions = obj.conditions.find((i) => i.glue === "AND")
         ?.conditionList as any;
+      // Convert exact date strings to Date objects
+      if (obj.allConditions) {
+        obj.allConditions = obj.allConditions.map((cond: any) => {
+          // Check if extraValue is "exact" OR if it's a date string (not a predefined date value)
+          const isExactDate = cond.extraValue === "exact" || 
+            (cond.extraValue && !dateValues.some(dv => dv.value === cond.extraValue));
+          if (isExactDate && cond.value) {
+            return { ...cond, value: new Date(cond.value) };
+          }
+          return cond;
+        });
+      }
       setAllConditions(obj.allConditions ?? []);
       obj.anyConditions = obj.conditions.find((i) => i.glue === "OR")
         ?.conditionList as any;
+      // Convert exact date strings to Date objects
+      if (obj.anyConditions) {
+        obj.anyConditions = obj.anyConditions.map((cond: any) => {
+          // Check if extraValue is "exact" OR if it's a date string (not a predefined date value)
+          const isExactDate = cond.extraValue === "exact" || 
+            (cond.extraValue && !dateValues.some(dv => dv.value === cond.extraValue));
+          if (isExactDate && cond.value) {
+            return { ...cond, value: new Date(cond.value) };
+          }
+          return cond;
+        });
+      }
       setAnyConditions(obj.anyConditions ?? []);
       onFilterTypeChange(selectedFilter.filterType);
     }
@@ -2056,29 +2172,28 @@ const DealFilterAddEditDialog = (props: params) => {
       let conditionCSV = new ConditionCSV();
 
       conditionCSV = { ...objItem };
-      conditionCSV.extraValue = objItem.value; // Default extraValue
 
-      if (objItem.field === "8") {
+      // Check if the value is an exact date (Date object) FIRST
+      if (objItem.value instanceof Date) {
+        conditionCSV.extraValue = "exact";
+      } else if (objItem.field === "8") {
         // Check for Pipeline field
-        console.log("Pipelines: ", pipelines);
-        console.log("Pipeline value from objItem: ", objItem.value);
-
         const pipeline = pipelines.find(
           (p: any) =>
             p.pipelineID === objItem.value || p.pipelineName === objItem.value,
         );
 
         if (pipeline) {
-          console.log("Matched Pipeline: ", pipeline);
           conditionCSV.value = pipeline.pipelineID || "";
           conditionCSV.extraValue = pipeline.pipelineName;
         } else {
-          console.log("No matching pipeline found!");
           conditionCSV.value = objItem.value || "";
+          conditionCSV.extraValue = objItem.value;
         }
+      } else {
+        conditionCSV.extraValue = objItem.value; // Default extraValue
       }
 
-      console.log("Condition CSV before pushing:", conditionCSV);
       condition.conditionList.push(conditionCSV);
     });
 

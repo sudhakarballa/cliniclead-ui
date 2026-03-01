@@ -1139,9 +1139,16 @@ select.selectfield {
 
 .pipelinestage label {
   position: absolute;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   top: 15px;
   color: #2d8647;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+  font-size: 10px;
+  text-align: center;
 }
 
 .pipelinestage-current~.pipelinestage>label {

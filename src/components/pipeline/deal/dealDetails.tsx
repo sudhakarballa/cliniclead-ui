@@ -796,7 +796,7 @@ export const DealDetails = () => {
                 </div>
               </div>
               {/* Scrollable Content Panel */}
-              <div className="app-detail-content" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+              <div className="app-detail-content" style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: 'calc(100vh - 400px)' }}>
                 <div className="app-dealblock">
                   <div className="app-dealblock-inner">
                     <div className="appdealblock-head">

@@ -286,32 +286,41 @@ const GenerateElements: React.FC<props> = (props) => {
                           item.elementSize ? item.elementSize : 6
                         } errmessage`}
                         hidden={item.hidden}
+                        style={{ overflow: "visible", maxWidth: "100%" }}
                       >
                         {getElement(item)}
                       </div>
-                      <div className="col-sm-2 d-flex gap-2">
+                      <div className="col-sm-2 d-flex gap-2 align-items-start" style={{ minWidth: "40px" }}>
                         <div
                           hidden={!item.showEdit}
-                          className="col-sm-10"
+                          style={{ flex: "0 0 auto" }}
                         >
                           <button
-                            className="editstage-deletebtn"
                             onClick={(e: any) => {
+                              e.preventDefault();
                               if (props.onElementEdit) onElementEdit(index);
                             }}
+                            style={{ padding: "0", background: "none", border: "none", cursor: "pointer", color: "#666", transition: "color 0.2s" }}
+                            title="Edit"
+                            onMouseEnter={(e) => e.currentTarget.style.color = "#007bff"}
+                            onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
                           >
-                            <FontAwesomeIcon icon={faEdit} />
+                            <FontAwesomeIcon icon={faEdit} style={{ fontSize: "12px" }} />
                           </button>
                         </div>
-                        <div hidden={!item.showDelete} className="col-sm-2">
+                        <div hidden={!item.showDelete} style={{ flex: "0 0 auto" }}>
                           <button
-                            className="editstage-deletebtn"
                             disabled={item.disableDelete}
                             onClick={(e: any) => {
+                              e.preventDefault();
                               if (props.onElementDelete) onElementDelete(index);
                             }}
+                            style={{ padding: "0", background: "none", border: "none", cursor: item.disableDelete ? "not-allowed" : "pointer", color: item.disableDelete ? "#ccc" : "#666", transition: "color 0.2s" }}
+                            title="Delete"
+                            onMouseEnter={(e) => !item.disableDelete && (e.currentTarget.style.color = "#dc3545")}
+                            onMouseLeave={(e) => !item.disableDelete && (e.currentTarget.style.color = "#666")}
                           >
-                            <FontAwesomeIcon icon={faTrash} />
+                            <FontAwesomeIcon icon={faTrash} style={{ fontSize: "12px" }} />
                           </button>
                         </div>
                       </div>

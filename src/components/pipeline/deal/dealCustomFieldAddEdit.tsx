@@ -260,6 +260,8 @@ const DealCustomFieldAddEdit = ({
       );
       refreshCustomFields();
       setDialogIsOpen(false);
+    } catch (error) {
+      console.error("Error saving custom field:", error);
     } finally {
       setIsSaving(false);
     }
@@ -306,7 +308,13 @@ const DealCustomFieldAddEdit = ({
       updatedBy: Util.UserProfile()?.userId,
     };
 
-    await customFieldsService.postItem({...payload, options:Array.from(optionsList, x=>x).join(",")});
+    try {
+      await customFieldsService.postItem({...payload, options:Array.from(optionsList, x=>x).join(",")});
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error?.message || error?.message || "Failed to save custom field";
+      toast.error(errorMessage);
+      throw error;
+    }
   };
 
   let excludedList = ["checkbox", "custom", "slider","datepicker"];
@@ -487,23 +495,25 @@ const DealCustomFieldAddEdit = ({
           selectedFieldIndex >= 0 ? "Update" : "Save"
         }
       >
-        <GenerateElements
-          controlsList={controlsList.slice(0, 2)}
-          selectedItem={selectedItem}
-          onChange={onChange}
-          getListofItemsForDropdown={getDropdownValues}
-          getSelectedList={getSelectedList}
-        />
-        {fieldType === "dropdown" || fieldType === "multiSelectDropdown"
-          ? customHTMLControl()
-          : null}
-        <GenerateElements
-          controlsList={controlsList.slice(2)}
-          selectedItem={selectedItem}
-          onChange={onChange}
-          getListofItemsForDropdown={getDropdownValues}
-          getSelectedList={getSelectedList}
-        />
+        <form onSubmit={(e) => e.preventDefault()} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}>
+          <GenerateElements
+            controlsList={controlsList.slice(0, 2)}
+            selectedItem={selectedItem}
+            onChange={onChange}
+            getListofItemsForDropdown={getDropdownValues}
+            getSelectedList={getSelectedList}
+          />
+          {fieldType === "dropdown" || fieldType === "multiSelectDropdown"
+            ? customHTMLControl()
+            : null}
+          <GenerateElements
+            controlsList={controlsList.slice(2)}
+            selectedItem={selectedItem}
+            onChange={onChange}
+            getListofItemsForDropdown={getDropdownValues}
+            getSelectedList={getSelectedList}
+          />
+        </form>
       </AddEditDialog>
     </FormProvider>
   );

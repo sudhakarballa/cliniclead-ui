@@ -397,7 +397,8 @@ export const Deals = (props: params) => {
     )
       .then((res) => {
         setIsLoading(false);
-        const sortedStages = Util.sortList(res.stages, "stageOrder");
+        const stagesList = res?.stages?.stagesList ?? res?.stages ?? [];
+        const sortedStages = Util.sortList(stagesList, "stageOrder");
         let totalDealsList: Array<Deal> = [];
         sortedStages.forEach((s: Stage) => {
           s.deals.forEach((d) => {
@@ -409,7 +410,7 @@ export const Deals = (props: params) => {
         setOriginalStages(sortedStages);
         const perStageLimit = size ?? pageSize ?? defaultPageSize;
     setHasMore(
-      stageHasMore(sortedStages, perStageLimit, (res as any)?.countsByStage)
+      stageHasMore(sortedStages, perStageLimit, (res as any)?.stages?.totalCount ?? (res as any)?.countsByStage)
     );
         setIsLoadingMore(false);
        

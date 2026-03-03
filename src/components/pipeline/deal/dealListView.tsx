@@ -362,12 +362,13 @@ const DealListView = (props: Params) => {
     req
       .then((res: any) => {
         const list: Deal[] = [];
-        (res?.stages ?? []).forEach((s: any) => (s?.deals ?? []).forEach((d: any) => list.push(d)));
+        const stagesList = res?.stages?.stagesList ?? res?.stages ?? [];
+        stagesList.forEach((s: any) => (s?.deals ?? []).forEach((d: any) => list.push(d)));
         setDealsList(list);
         setHasInitialLoad(true);
 
         // Prefer API total if present; otherwise fall back so DataGrid can compute pages.
-        const apiTotal = res?.dealsDtos?.totalCount ?? res?.totalCount ?? 0;
+        const apiTotal = res?.stages?.totalCount ?? res?.dealsDtos?.totalCount ?? res?.totalCount ?? 0;
         const inferred = apiTotal || (paginationModel.page * size + list.length + (list.length === size ? size : 0));
         setTotalCount(apiTotal || inferred);
 

@@ -36,6 +36,32 @@ import Util from '../../others/util';
 import Constants from '../../others/constants';
 import LocalStorageUtil from '../../others/LocalStorageUtil';
 import { Utility } from '../../models/utility';
+import { getValueOptionsForField } from '../common/filterUtils';
+import {
+  procedureOptions,
+  entProcedureOptions,
+  gastroenterologyOptions,
+  generalSurgeryOptions,
+  gynaecologyTreatmentOptions,
+  orthopaedicTreatmentOptions,
+  electivaTreatmentsOptions,
+  treatmentOptions,
+  apiCallOptions
+} from './reportConstants';
+import {
+  dealFieldOptions,
+  contactFieldOptions,
+  reportActivityFieldOptions,
+  operators1,
+  operators2,
+  operators3,
+  operators4,
+  operators5,
+  operators6,
+  operators7,
+  operators8,
+  operatorsForNumberType
+} from '../common/fieldConstants';
 
 interface ReportViewProps {
   entity: string;
@@ -566,57 +592,14 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
     }
   };
 
-  const fieldOptions = [
-    { value: "1", label: "Title" },
-    { value: "2", label: "Creator" },
-    { value: "AssigntoId", label: "Owner", isNumberType: true },
-    { value: "4", label: "Value", isNumberType: true },
-    { value: "6", label: "Probability", isNumberType: true },
-    { value: "7", label: "Organization" },
-    { value: "8", label: "Pipeline" },
-    { value: "stageid", label: "Stage", isNumberType: true },
-    { value: "11", label: "Label" },
-    { value: "statusid", label: "Status", isNumberType: true },
-    { value: "13", label: "Deal created", isDateType: true },
-    { value: "14", label: "Update time", isDateType: true },
-    { value: "15", label: "Last stage change", isDateType: true },
-    { value: "16", label: "Next activity date", isDateType: true },
-    { value: "17", label: "Last activity date", isDateType: true },
-    { value: "18", label: "Won time", isDateType: true },
-    { value: "19", label: "Last email received", isDateType: true },
-    { value: "20", label: "Last email sent", isDateType: true },
-    { value: "21", label: "Lost time", isDateType: true },
-    { value: "22", label: "Deal closed on", isDateType: true },
-    { value: "23", label: "Lost reason" },
-    { value: "24", label: "Visible to" }
-  ];
-
-  const contactFieldOptions = [
-    { value: "name", label: "Name" },
-    { value: "email", label: "Email" },
-    { value: "phone", label: "Phone" },
-    { value: "owner", label: "Owner" },
-    { value: "created", label: "Created Date", isDateType: true },
-    { value: "updated", label: "Updated Date", isDateType: true }
-  ];
-
-  const activityFieldOptions = [
-    { value: "type", label: "Activity Type" },
-    { value: "subject", label: "Subject" },
-    { value: "dueDate", label: "Due Date", isDateType: true },
-    { value: "done", label: "Done" },
-    { value: "owner", label: "Owner" },
-    { value: "created", label: "Created Date", isDateType: true }
-  ];
-
   const getFieldOptions = () => {
     switch(entity) {
       case 'Contact':
         return contactFieldOptions;
       case 'Activity':
-        return activityFieldOptions;
+        return reportActivityFieldOptions;
       default:
-        return fieldOptions;
+        return dealFieldOptions;
     }
   };
 
@@ -624,24 +607,20 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
     const currentFieldOptions = getFieldOptions();
     const fieldOption = currentFieldOptions.find(f => f.value === field);
     
-    // Return status options for status field
-    if (field === 'statusid') {
-      return dealStatusList;
-    }
-    
     // Return date values for date fields
     if (fieldOption?.isDateType) {
       return dateValues;
     }
     
-    // For other fields, get unique values from data
-    // Use reportDetailsData if available (for existing reports), otherwise use allDealsData (for new reports)
-    const dataSource = reportDetailsData.length > 0 ? reportDetailsData : allDealsData;
-    
-    console.log('getValueOptions - field:', field, 'dataSource length:', dataSource.length, 'allDealsData length:', allDealsData.length);
+    // Use shared utility for common fields
+    const sharedOptions = getValueOptionsForField(field, reportDetailsData.length > 0 ? reportDetailsData : allDealsData);
+    if (sharedOptions.length > 0) {
+      return sharedOptions;
+    }
     
     // For Owner field (AssigntoId), use assigntoId as value but show ownerName as label
     if (field === 'AssigntoId') {
+      const dataSource = reportDetailsData.length > 0 ? reportDetailsData : allDealsData;
       const ownerIds = new Set<string>();
       dataSource.forEach((deal: any) => {
         const ownerId = deal.assigntoId || deal.AssigntoId;
@@ -655,44 +634,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
         })) ?? [];
     }
     
-    // For Stage field (stageid), use stageID as value but show stageName as label
-    if (field === 'stageid') {
-      const stageMap = new Map<string, string>();
-      dataSource.forEach((deal: any) => {
-        const stageId = deal.stageID || deal.stageid;
-        const stageName = deal.stageName;
-        if (stageId && stageName) {
-          stageMap.set(String(stageId), stageName);
-        }
-      });
-      return Array.from(stageMap.entries())
-        .sort((a, b) => a[1].localeCompare(b[1]))
-        .map(([id, name]) => ({
-          value: id,
-          label: name,
-        }));
-    }
-    
-    const uniqueValues = new Set<string>();
-    
-    dataSource.forEach((deal: any) => {
-      switch (field) {
-        case '8': // Pipeline
-          if (deal.pipelineName) uniqueValues.add(deal.pipelineName);
-          else if (deal.pipeline) uniqueValues.add(deal.pipeline);
-          break;
-        case '7': // Organization
-          if (deal.name) uniqueValues.add(deal.name);
-          break;
-        case '1': // Title
-          if (deal.title) uniqueValues.add(deal.title);
-          break;
-      }
-    });
-    
-    const result = Array.from(uniqueValues).sort().map(value => ({ value, label: value }));
-    console.log('getValueOptions - result:', result.length, 'options');
-    return result;
+    return [];
   };
 
   const operatorsForNumberType = [
@@ -710,22 +652,49 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
   ];
 
   const dateValues = [
-    { label: "Last Quarter", value: "lastQuarter" },
-    { label: "Next Quarter", value: "nextQuarter" },
-    { label: "This Quarter", value: "thisQuarter" },
-    { label: "Last Month", value: "lastMonth" },
-    { label: "Next Month", value: "nextMonth" },
-    { label: "This Month", value: "thisMonth" },
-    { label: "Last Week", value: "lastWeek" },
-    { label: "Next Week", value: "nextWeek" },
-    { label: "This Week", value: "thisWeek" },
-    { label: "Last Year", value: "lastYear" },
-    { label: "Next Year", value: "nextYear" },
-    { label: "This Year", value: "thisYear" },
-    { label: "6 Months Ago", value: "6MonthsAgo" },
-    { label: "5 Months Ago", value: "5MonthsAgo" },
-    { label: "4 Months Ago", value: "4MonthsAgo" },
-    { label: "3 Months Ago", value: "3MonthsAgo" },
+    { category: "Relative Date Intervals", value: "lastQuarter", label: "last quarter" },
+    { category: "Relative Date Intervals", value: "nextQuarter", label: "next quarter" },
+    { category: "Relative Date Intervals", value: "thisQuarter", label: "this quarter" },
+    { category: "Relative Date Intervals", value: "lastMonth", label: "last month" },
+    { category: "Relative Date Intervals", value: "nextMonth", label: "next month" },
+    { category: "Relative Date Intervals", value: "thisMonth", label: "this month" },
+    { category: "Relative Date Intervals", value: "lastWeek", label: "last week" },
+    { category: "Relative Date Intervals", value: "nextWeek", label: "next week" },
+    { category: "Relative Date Intervals", value: "thisWeek", label: "this week" },
+    { category: "Relative Date Intervals", value: "lastYear", label: "last year" },
+    { category: "Relative Date Intervals", value: "nextYear", label: "next year" },
+    { category: "Relative Date Intervals", value: "thisYear", label: "this year" },
+    { category: "Relative Dates", value: "sixMonthsAgo", label: "6 months ago" },
+    { category: "Relative Dates", value: "fiveMonthsAgo", label: "5 months ago" },
+    { category: "Relative Dates", value: "fourMonthsAgo", label: "4 months ago" },
+    { category: "Relative Dates", value: "threeMonthsAgo", label: "3 months ago" },
+    { category: "Relative Dates", value: "twoMonthsAgo", label: "2 months ago" },
+    { category: "Relative Dates", value: "oneMonthAgo", label: "1 month ago" },
+    { category: "Relative Dates", value: "threeWeeksAgo", label: "3 weeks ago" },
+    { category: "Relative Dates", value: "twoWeeksAgo", label: "2 weeks ago" },
+    { category: "Relative Dates", value: "oneWeekAgo", label: "1 week ago" },
+    { category: "Relative Dates", value: "fiveDaysAgo", label: "5 days ago" },
+    { category: "Relative Dates", value: "fourDaysAgo", label: "4 days ago" },
+    { category: "Relative Dates", value: "threeDaysAgo", label: "3 days ago" },
+    { category: "Relative Dates", value: "yesterday", label: "yesterday" },
+    { category: "Relative Dates", value: "beforeToday", label: "before today" },
+    { category: "Relative Dates", value: "today", label: "today" },
+    { category: "Relative Dates", value: "now", label: "now" },
+    { category: "Relative Dates", value: "todayOrLater", label: "today or later" },
+    { category: "Relative Dates", value: "beforeTomorrow", label: "before tomorrow" },
+    { category: "Relative Dates", value: "tomorrow", label: "tomorrow" },
+    { category: "Relative Dates", value: "tomorrowOrLater", label: "tomorrow or later" },
+    { category: "Relative Dates", value: "inOneWeek", label: "in 1 week" },
+    { category: "Relative Dates", value: "inTwoWeeks", label: "in 2 weeks" },
+    { category: "Relative Dates", value: "inThreeWeeks", label: "in 3 weeks" },
+    { category: "Relative Dates", value: "inOneMonth", label: "in 1 month" },
+    { category: "Relative Dates", value: "inTwoMonths", label: "in 2 months" },
+    { category: "Relative Dates", value: "inThreeMonths", label: "in 3 months" },
+    { category: "Relative Dates", value: "inFourMonths", label: "in 4 months" },
+    { category: "Relative Dates", value: "inFiveMonths", label: "in 5 months" },
+    { category: "Relative Dates", value: "inSixMonths", label: "in 6 months" },
+    { category: "Relative Dates", value: "twelveMonthsAgo", label: "12 months ago" },
+    { category: "Deal Specific", value: "rottenTime", label: "Rotten time" },
   ];
 
   const dealStatusList = [
@@ -737,11 +706,86 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
   ];
 
   const getOperatorOptions = (field: string) => {
-    const fieldOption = fieldOptions.find(f => f.value === field);
-    if (fieldOption?.isNumberType) {
-      return operatorOptions.concat(operatorsForNumberType);
-    }
-    return operatorOptions;
+    const fieldOperatorMap: { [key: string]: any[] } = {
+      activitiesToDo: operators1,
+      acv: operators1,
+      apiCallsMade: operators2,
+      appointmentStatus: operators3,
+      archiveTime: operators4,
+      arr: operators1,
+      assignedBdManager: operators3,
+      attachedProduct: operators5,
+      blandDealIdentifier: operators3,
+      clientNumber: operators1,
+      clinic: operators5,
+      company: operators3,
+      consentCheckbox: operators5,
+      consultDate: operators4,
+      contactPerson: operators5,
+      cosmeticProcedure: operators3,
+      creator: operators6,
+      currencyOfValue: operators7,
+      currentPracticeLocation: operators3,
+      dateOfEnteringStage: operators4,
+      dealClosedOn: operators4,
+      dealCreated: operators4,
+      dealStage: operators3,
+      doneActivities: operators1,
+      electiveBreastSurgery: operators2,
+      electivaEntSurgery: operators2,
+      electivaGastroenterology: operators2,
+      electivaGeneralSurgery: operators2,
+      electivaGynaecologyTreatments: operators2,
+      electivaNote: operators2,
+      electivaOrthopaedicTreatments: operators2,
+      electivaTreatments: operators2,
+      electivaUrologyTreatments: operators2,
+      electivaVisionTreatments: operators2,
+      electivaLocations: operators5,
+      emailMessagesCount: operators1,
+      expectedCloseDate: operators4,
+      gmcNumber: operators3,
+      label: operators2,
+      lastActivityDate: operators4,
+      lastEmailReceived: operators4,
+      lastEmailSent: operators4,
+      lastStageChange: operators4,
+      location: operators2,
+      lostReviewReason: operators2,
+      lostReason: operators2,
+      lostTime: operators4,
+      marketingContent: operators2,
+      marketingFBClid: operators2,
+      marketingGClid: operators2,
+      marketingMedium: operators2,
+      marketingSource: operators2,
+      marketingTerm: operators2,
+      mrr: operators1,
+      nextActivityDate: operators2,
+      nextSteps: operators2,
+      operationDate: operators4,
+      owner: operators6,
+      pipeline: operators2,
+      pipelineType: operators2,
+      probability: operators1,
+      referTelephoneNumber: operators3,
+      revenue: operators1,
+      score: operators1,
+      source: operators2,
+      stage: operators8,
+      status: operators7,
+      submissionId: operators3,
+      tcConsent: operators5,
+      title: operators3,
+      totalActivities: operators1,
+      treatment: operators2,
+      updateTime: operators4,
+      value: operators1,
+      wonTime: operators4,
+      zandaInvoiceValue: operators1,
+    };
+    
+    return fieldOperatorMap[field] || operators5;
   };
 
   const getReportData = () => {
@@ -1047,11 +1091,11 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
     const displayName = reportName || `${reportType} Report`;
     
     if (chartType === 'table') {
-      return renderDataGrid(data, displayName);
+      return <>{renderDataGrid(data, displayName)}</>;
     }
     
     if (chartType === 'scorecard') {
-      return renderScoreCard(data, displayName);
+      return <>{renderScoreCard(data, displayName)}</>;
     }
     
     return (
@@ -2120,7 +2164,7 @@ const ReportView: React.FC<ReportViewProps> = ({ entity, reportType, reportDefin
                         return (
                           <Dropdown.Item 
                             key={dashboard.id}
-onClick={async () => {
+                            onClick={async () => {
                               if (!isReportInDashboard && reportDefinition?.id) {
                                 try {
                                   const dashboardService = new ReportDashboardService(null);
@@ -2441,105 +2485,314 @@ onClick={async () => {
                         ))}
                       </Form.Select>
                     </div>
-                    <div className="col-md-3">
+                    <div className="col-md-4">
                       <label className="form-label small">Value</label>
-                      {['statusid', '8', 'AssigntoId', 'stageid', '7', '1'].includes(filter.field) || fieldOptions.find(f => f.value === filter.field)?.isDateType ? (
-                        <Form.Select
-                          size="sm"
-                          value={(() => {
-                            // For stageid field, ensure value is a stage ID (number)
-                            if (filter.field === 'stageid' && filter.value && isNaN(Number(filter.value))) {
-                              // Value is a stage name, convert to stage ID
-                              const stageData = reportDetailsData.find((deal: any) => deal.stageName === filter.value);
-                              return stageData ? String(stageData.stageID || stageData.stageid) : filter.value;
-                            }
-                            return filter.value;
-                          })()}
-                          style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
-                          onChange={(e) => {
-                            const updatedFilters = appliedFilters.map((f) =>
-                              f.id === filter.id
-                                ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
-                                : f
-                            );
-                            setAppliedFilters(updatedFilters);
-                            if (e.target.value && filterErrors[filter.id]?.value) {
-                              const newErrors = {...filterErrors};
-                              delete newErrors[filter.id]?.value;
-                              if (Object.keys(newErrors[filter.id] || {}).length === 0) {
-                                delete newErrors[filter.id];
-                              }
-                              setFilterErrors(newErrors);
-                              if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
-                                setShowValidationSummary(false);
-                              }
-                            }
-                          }}
-                        >
-                          <option value="">Select value</option>
-                          {getValueOptions(filter.field).map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      ) : fieldOptions.find(f => f.value === filter.field)?.isNumberType ? (
-                        <Form.Control
-                          size="sm"
-                          type="number"
-                          value={filter.value}
-                          style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
-                          onChange={(e) => {
-                            const updatedFilters = appliedFilters.map((f) =>
-                              f.id === filter.id
-                                ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
-                                : f
-                            );
-                            setAppliedFilters(updatedFilters);
-                            if (e.target.value && filterErrors[filter.id]?.value) {
-                              const newErrors = {...filterErrors};
-                              delete newErrors[filter.id]?.value;
-                              if (Object.keys(newErrors[filter.id] || {}).length === 0) {
-                                delete newErrors[filter.id];
-                              }
-                              setFilterErrors(newErrors);
-                              if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
-                                setShowValidationSummary(false);
-                              }
-                            }
-                          }}
-                          placeholder="Enter number"
-                        />
-                      ) : (
-                        <Form.Control
-                          size="sm"
-                          type="text"
-                          value={filter.value}
-                          style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
-                          onChange={(e) => {
-                            const updatedFilters = appliedFilters.map((f) =>
-                              f.id === filter.id
-                                ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
-                                : f
-                            );
-                            setAppliedFilters(updatedFilters);
-                            if (e.target.value && filterErrors[filter.id]?.value) {
-                              const newErrors = {...filterErrors};
-                              delete newErrors[filter.id]?.value;
-                              if (Object.keys(newErrors[filter.id] || {}).length === 0) {
-                                delete newErrors[filter.id];
-                              }
-                              setFilterErrors(newErrors);
-                              if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
-                                setShowValidationSummary(false);
-                              }
-                            }
-                          }}
-                          placeholder="Enter value"
-                        />
-                      )}
+                      {/* Enhanced value input with exact date option for date fields */}
+                      {(() => {
+                        const dateFields = [
+                          "archiveTime", "consultDate", "dateOfEnteringStage", "dealClosedOn", "dealCreated",
+                          "expectedCloseDate", "lastActivityDate", "lastEmailReceived", "lastEmailSent",
+                          "lastStageChange", "nextActivityDate", "operationDate", "updateTime", "wonTime", "lostTime"
+                        ];
+                        
+                        if (dateFields.includes(filter.field)) {
+                          const isExactDate = filter.value && filter.value.includes('T');
+                          
+                          return (
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
+                              <div style={{ flex: 1 }}>
+                                {!isExactDate ? (
+                                  <Form.Select
+                                    size="sm"
+                                    value={filter.value || ""}
+                                    style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                                    onChange={(e) => {
+                                      const updatedFilters = appliedFilters.map((f) =>
+                                        f.id === filter.id
+                                          ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
+                                          : f
+                                      );
+                                      setAppliedFilters(updatedFilters);
+                                      if (e.target.value && filterErrors[filter.id]?.value) {
+                                        const newErrors = {...filterErrors};
+                                        delete newErrors[filter.id]?.value;
+                                        if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                          delete newErrors[filter.id];
+                                        }
+                                        setFilterErrors(newErrors);
+                                        if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                          setShowValidationSummary(false);
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <option value="">Select</option>
+                                    <optgroup label="Relative Date Intervals">
+                                      {dateValues.filter(item => item.category === "Relative Date Intervals").map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                    <optgroup label="Relative Dates">
+                                      {dateValues.filter(item => item.category === "Relative Dates").map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                    <optgroup label="Deal Specific">
+                                      {dateValues.filter(item => item.category === "Deal Specific").map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                  </Form.Select>
+                                ) : (
+                                  <div className="position-relative">
+                                    <Form.Control
+                                      size="sm"
+                                      type="datetime-local"
+                                      value={filter.value && filter.value.includes('T') ? filter.value.slice(0, 16) : ""}
+                                      style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                                      onChange={(e) => {
+                                        const updatedFilters = appliedFilters.map((f) =>
+                                          f.id === filter.id
+                                            ? { ...f, value: new Date(e.target.value).toISOString(), displayText: `${f.field} ${f.operator} ${new Date(e.target.value).toLocaleDateString()}` }
+                                            : f
+                                        );
+                                        setAppliedFilters(updatedFilters);
+                                        if (e.target.value && filterErrors[filter.id]?.value) {
+                                          const newErrors = {...filterErrors};
+                                          delete newErrors[filter.id]?.value;
+                                          if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                            delete newErrors[filter.id];
+                                          }
+                                          setFilterErrors(newErrors);
+                                          if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                            setShowValidationSummary(false);
+                                          }
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="form-check" style={{ marginBottom: 0, display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  id={`useExactDate-${filter.id}`}
+                                  checked={!!isExactDate}
+                                  onChange={(e) => {
+                                    const updatedFilters = appliedFilters.map((f) =>
+                                      f.id === filter.id
+                                        ? { ...f, value: e.target.checked ? new Date().toISOString() : "", displayText: `${f.field} ${f.operator} ${e.target.checked ? new Date().toLocaleDateString() : ""}` }
+                                        : f
+                                    );
+                                    setAppliedFilters(updatedFilters);
+                                  }}
+                                  style={{ margin: "0 4px 0 0", cursor: "pointer" }}
+                                />
+                                <label className="form-check-label" htmlFor={`useExactDate-${filter.id}`} style={{ fontSize: "11px", cursor: "pointer", margin: 0 }}>
+                                  Exact
+                                </label>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // Enhanced dropdowns for specific fields
+                        if (filter.field === "creator" || filter.field === "owner") {
+                          // Get users from utility or localStorage
+                          const usersData = JSON.parse(localStorage.getItem('USERS_DATA') || '[]');
+                          const activeUsers = usersData.filter((user: any) => user.isActive !== false);
+                          const inactiveUsers = usersData.filter((user: any) => user.isActive === false);
+                          
+                          return (
+                            <Form.Select
+                              size="sm"
+                              value={filter.value}
+                              style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                const updatedFilters = appliedFilters.map((f) =>
+                                  f.id === filter.id
+                                    ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
+                                    : f
+                                );
+                                setAppliedFilters(updatedFilters);
+                                if (e.target.value && filterErrors[filter.id]?.value) {
+                                  const newErrors = {...filterErrors};
+                                  delete newErrors[filter.id]?.value;
+                                  if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                    delete newErrors[filter.id];
+                                  }
+                                  setFilterErrors(newErrors);
+                                  if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                    setShowValidationSummary(false);
+                                  }
+                                }
+                              }}
+                            >
+                              <option value="">Select</option>
+                              <optgroup label="Active users">
+                                {activeUsers.map((user: any) => (
+                                  <option key={user.userId || user.id} value={user.userId || user.id}>
+                                    👤 {user.userName || user.name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              <optgroup label="Inactive users">
+                                {inactiveUsers.map((user: any) => (
+                                  <option key={user.userId || user.id} value={user.userId || user.id}>
+                                    👤 {user.userName || user.name}
+                                  </option>
+                                ))}
+                                <option value="anyInactiveUser">👤 Any inactive user</option>
+                              </optgroup>
+                            </Form.Select>
+                          );
+                        }
+                        
+                        if (filter.field === "consentCheckbox" || filter.field === "tcConsent") {
+                          return (
+                            <Form.Select
+                              size="sm"
+                              value={filter.value}
+                              style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                const updatedFilters = appliedFilters.map((f) =>
+                                  f.id === filter.id
+                                    ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
+                                    : f
+                                );
+                                setAppliedFilters(updatedFilters);
+                                if (e.target.value && filterErrors[filter.id]?.value) {
+                                  const newErrors = {...filterErrors};
+                                  delete newErrors[filter.id]?.value;
+                                  if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                    delete newErrors[filter.id];
+                                  }
+                                  setFilterErrors(newErrors);
+                                  if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                    setShowValidationSummary(false);
+                                  }
+                                }
+                              }}
+                            >
+                              <option value="">Select</option>
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
+                            </Form.Select>
+                          );
+                        }
+                        
+                        // Check if field has predefined options
+                        const valueOptions = getValueOptions(filter.field);
+                        const hasOptions = valueOptions.length > 0;
+                        
+                        // Default behavior for other fields
+                        return (
+                          hasOptions ? (
+                            <Form.Select
+                              size="sm"
+                              value={(() => {
+                                // For stageid field, ensure value is a stage ID (number)
+                                if (filter.field === 'stageid' && filter.value && isNaN(Number(filter.value))) {
+                                  // Value is a stage name, convert to stage ID
+                                  const stageData = reportDetailsData.find((deal: any) => deal.stageName === filter.value);
+                                  return stageData ? String(stageData.stageID || stageData.stageid) : filter.value;
+                                }
+                                return filter.value;
+                              })()}
+                              style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                const updatedFilters = appliedFilters.map((f) =>
+                                  f.id === filter.id
+                                    ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
+                                    : f
+                                );
+                                setAppliedFilters(updatedFilters);
+                                if (e.target.value && filterErrors[filter.id]?.value) {
+                                  const newErrors = {...filterErrors};
+                                  delete newErrors[filter.id]?.value;
+                                  if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                    delete newErrors[filter.id];
+                                  }
+                                  setFilterErrors(newErrors);
+                                  if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                    setShowValidationSummary(false);
+                                  }
+                                }
+                              }}
+                            >
+                              <option value="">Select value</option>
+                              {getValueOptions(filter.field).map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          ) : getFieldOptions().find(f => f.value === filter.field)?.isNumberType ? (
+                            <Form.Control
+                              size="sm"
+                              type="number"
+                              value={filter.value}
+                              style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                const updatedFilters = appliedFilters.map((f) =>
+                                  f.id === filter.id
+                                    ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
+                                    : f
+                                );
+                                setAppliedFilters(updatedFilters);
+                                if (e.target.value && filterErrors[filter.id]?.value) {
+                                  const newErrors = {...filterErrors};
+                                  delete newErrors[filter.id]?.value;
+                                  if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                    delete newErrors[filter.id];
+                                  }
+                                  setFilterErrors(newErrors);
+                                  if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                    setShowValidationSummary(false);
+                                  }
+                                }
+                              }}
+                              placeholder="Enter number"
+                            />
+                          ) : (
+                            <Form.Control
+                              size="sm"
+                              type="text"
+                              value={filter.value}
+                              style={filterErrors[filter.id]?.value ? { border: '2px solid #dc3545' } : {}}
+                              onChange={(e) => {
+                                const updatedFilters = appliedFilters.map((f) =>
+                                  f.id === filter.id
+                                    ? { ...f, value: e.target.value, displayText: `${f.field} ${f.operator} ${e.target.value}` }
+                                    : f
+                                );
+                                setAppliedFilters(updatedFilters);
+                                if (e.target.value && filterErrors[filter.id]?.value) {
+                                  const newErrors = {...filterErrors};
+                                  delete newErrors[filter.id]?.value;
+                                  if (Object.keys(newErrors[filter.id] || {}).length === 0) {
+                                    delete newErrors[filter.id];
+                                  }
+                                  setFilterErrors(newErrors);
+                                  if (Object.keys(newErrors).length === 0 && !errors.field && !errors.operator && !errors.value) {
+                                    setShowValidationSummary(false);
+                                  }
+                                }
+                              }}
+                              placeholder="Enter value"
+                            />
+                          )
+                        );
+                      })()}
                     </div>
-                    <div className="col-md-2">
+                    <div className="col-md-1">
                       <Button
                         variant="outline-danger"
                         size="sm"
@@ -2561,7 +2814,7 @@ onClick={async () => {
                       <Controller
                         name="field"
                         control={control}
-                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Field is required' : false }}
+                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Field is required' : undefined }}
                         render={({ field }) => (
                           <div>
                             <Form.Select
@@ -2598,7 +2851,7 @@ onClick={async () => {
                       <Controller
                         name="operator"
                         control={control}
-                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Operator is required' : false }}
+                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Operator is required' : undefined }}
                         render={({ field }) => (
                           <div>
                             <Form.Select
@@ -2627,79 +2880,250 @@ onClick={async () => {
                         )}
                       />
                     </div>
-                    <div className="col-md-3">
+                    <div className="col-md-4">
                       <label className="form-label small fw-bold">Value</label>
                       <Controller
                         name="value"
                         control={control}
-                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Value is required' : false }}
+                        rules={{ required: (appliedFilters.length === 0 || showAddCondition) ? 'Value is required' : undefined }}
                         render={({ field }) => (
                           <div>
-                            {['statusid', '8', 'AssigntoId', 'stageid', '7', '1'].includes(newCondition.field) || fieldOptions.find(f => f.value === newCondition.field)?.isDateType ? (
-                              <Form.Select
-                                {...field}
-                                size="sm"
-                                style={errors.value ? { border: '2px solid #dc3545' } : {}}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  setNewCondition({
-                                    ...newCondition,
-                                    value: e.target.value,
-                                  });
-                                  if (e.target.value) {
-                                    trigger('value');
-                                  }
-                                }}
-                              >
-                                <option value="">Select value</option>
-                                {getValueOptions(newCondition.field).map((option) => (
-                                  <option key={option.value} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </Form.Select>
-                            ) : fieldOptions.find(f => f.value === newCondition.field)?.isNumberType ? (
-                              <Form.Control
-                                {...field}
-                                size="sm"
-                                type="number"
-                                placeholder="Enter number"
-                                style={errors.value ? { border: '2px solid #dc3545' } : {}}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  setNewCondition({
-                                    ...newCondition,
-                                    value: e.target.value,
-                                  });
-                                  if (e.target.value) {
-                                    trigger('value');
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <Form.Control
-                                {...field}
-                                size="sm"
-                                type="text"
-                                placeholder="Enter value"
-                                style={errors.value ? { border: '2px solid #dc3545' } : {}}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  setNewCondition({
-                                    ...newCondition,
-                                    value: e.target.value,
-                                  });
-                                  if (e.target.value) {
-                                    trigger('value');
-                                  }
-                                }}
-                              />
-                            )}
+                            {/* Enhanced value input for new condition with exact date option */}
+                            {(() => {
+                              const dateFields = [
+                                "archiveTime", "consultDate", "dateOfEnteringStage", "dealClosedOn", "dealCreated",
+                                "expectedCloseDate", "lastActivityDate", "lastEmailReceived", "lastEmailSent",
+                                "lastStageChange", "nextActivityDate", "operationDate", "updateTime", "wonTime", "lostTime"
+                              ];
+                              
+                              if (dateFields.includes(newCondition.field)) {
+                                const isExactDate = newCondition.value && newCondition.value.includes('T');
+                                
+                                return (
+                                  <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
+                                    <div style={{ flex: 1 }}>
+                                      {!isExactDate ? (
+                                        <Form.Select
+                                          {...field}
+                                          size="sm"
+                                          style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                          onChange={(e) => {
+                                            field.onChange(e);
+                                            setNewCondition({
+                                              ...newCondition,
+                                              value: e.target.value,
+                                            });
+                                            if (e.target.value) {
+                                              trigger('value');
+                                            }
+                                          }}
+                                        >
+                                          <option value="">Select</option>
+                                          <optgroup label="Relative Date Intervals">
+                                            {dateValues.filter(item => item.category === "Relative Date Intervals").map((option) => (
+                                              <option key={option.value} value={option.value}>
+                                                {option.label}
+                                              </option>
+                                            ))}
+                                          </optgroup>
+                                          <optgroup label="Relative Dates">
+                                            {dateValues.filter(item => item.category === "Relative Dates").map((option) => (
+                                              <option key={option.value} value={option.value}>
+                                                {option.label}
+                                              </option>
+                                            ))}
+                                          </optgroup>
+                                          <optgroup label="Deal Specific">
+                                            {dateValues.filter(item => item.category === "Deal Specific").map((option) => (
+                                              <option key={option.value} value={option.value}>
+                                                {option.label}
+                                              </option>
+                                            ))}
+                                          </optgroup>
+                                        </Form.Select>
+                                      ) : (
+                                        <Form.Control
+                                          size="sm"
+                                          type="datetime-local"
+                                          value={newCondition.value && newCondition.value.includes('T') ? newCondition.value.slice(0, 16) : ""}
+                                          style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                          onChange={(e) => {
+                                          const dateValue = new Date(e.target.value).toISOString();
+                                            field.onChange(dateValue);
+                                            setNewCondition({
+                                              ...newCondition,
+                                              value: dateValue,
+                                            });
+                                            if (e.target.value) {
+                                              trigger('value');
+                                            }
+                                          }}
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="form-check" style={{ marginBottom: 0, display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+                                      <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={`useExactDateNew`}
+                                        checked={!!isExactDate}
+                                        onChange={(e) => {
+                                          const newValue = e.target.checked ? new Date().toISOString() : "";
+                                          field.onChange(newValue);
+                                          setNewCondition({
+                                            ...newCondition,
+                                            value: newValue,
+                                          });
+                                        }}
+                                        style={{ margin: "0 4px 0 0", cursor: "pointer" }}
+                                      />
+                                      <label className="form-check-label" htmlFor={`useExactDateNew`} style={{ fontSize: "11px", cursor: "pointer", margin: 0 }}>
+                                        Exact
+                                      </label>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              
+                              // Enhanced dropdowns for specific fields
+                              if (newCondition.field === "creator" || newCondition.field === "owner") {
+                                const usersData = JSON.parse(localStorage.getItem('USERS_DATA') || '[]');
+                                const activeUsers = usersData.filter((user: any) => user.isActive !== false);
+                                const inactiveUsers = usersData.filter((user: any) => user.isActive === false);
+                                
+                                return (
+                                  <Form.Select
+                                    {...field}
+                                    size="sm"
+                                    style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      setNewCondition({
+                                        ...newCondition,
+                                        value: e.target.value,
+                                      });
+                                      if (e.target.value) {
+                                        trigger('value');
+                                      }
+                                    }}
+                                  >
+                                    <option value="">Select</option>
+                                    <optgroup label="Active users">
+                                      {activeUsers.map((user: any) => (
+                                        <option key={user.userId || user.id} value={user.userId || user.id}>
+                                          👤 {user.userName || user.name}
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                    <optgroup label="Inactive users">
+                                      {inactiveUsers.map((user: any) => (
+                                        <option key={user.userId || user.id} value={user.userId || user.id}>
+                                          👤 {user.userName || user.name}
+                                        </option>
+                                      ))}
+                                      <option value="anyInactiveUser">👤 Any inactive user</option>
+                                    </optgroup>
+                                  </Form.Select>
+                                );
+                              }
+                              
+                              if (newCondition.field === "consentCheckbox" || newCondition.field === "tcConsent") {
+                                return (
+                                  <Form.Select
+                                    {...field}
+                                    size="sm"
+                                    style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      setNewCondition({
+                                        ...newCondition,
+                                        value: e.target.value,
+                                      });
+                                      if (e.target.value) {
+                                        trigger('value');
+                                      }
+                                    }}
+                                  >
+                                    <option value="">Select</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                  </Form.Select>
+                                );
+                              }
+                              
+                              // Check if field has predefined options
+                              const valueOptions = getValueOptions(newCondition.field);
+                              const hasOptions = valueOptions.length > 0;
+                              
+                              // Default behavior
+                              return (
+                                hasOptions ? (
+                                  <Form.Select
+                                    {...field}
+                                    size="sm"
+                                    style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      setNewCondition({
+                                        ...newCondition,
+                                        value: e.target.value,
+                                      });
+                                      if (e.target.value) {
+                                        trigger('value');
+                                      }
+                                    }}
+                                  >
+                                    <option value="">Select value</option>
+                                    {getValueOptions(newCondition.field).map((option) => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </Form.Select>
+                                ) : getFieldOptions().find(f => f.value === newCondition.field)?.isNumberType ? (
+                                  <Form.Control
+                                    {...field}
+                                    size="sm"
+                                    type="number"
+                                    placeholder="Enter number"
+                                    style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      setNewCondition({
+                                        ...newCondition,
+                                        value: e.target.value,
+                                      });
+                                      if (e.target.value) {
+                                        trigger('value');
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <Form.Control
+                                    {...field}
+                                    size="sm"
+                                    type="text"
+                                    placeholder="Enter value"
+                                    style={errors.value ? { border: '2px solid #dc3545' } : {}}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      setNewCondition({
+                                        ...newCondition,
+                                        value: e.target.value,
+                                      });
+                                      if (e.target.value) {
+                                        trigger('value');
+                                      }
+                                    }}
+                                  />
+                                )
+                              );
+                            })()}
                           </div>
                         )}
                       />
                     </div>
-                    <div className="col-md-2">
+                    <div className="col-md-1">
                       <label className="form-label small fw-bold" style={{ visibility: 'hidden' }}>Action</label>
                       <div>
                         <Button
@@ -3317,7 +3741,7 @@ onClick={async () => {
                 variant="success"
                 size="sm"
                 disabled={loadingFolders}
-onClick={async () => {
+                onClick={async () => {
                   if (!newFolderName.trim()) {
                     setFolderNameError('Folder name is required');
                     return;

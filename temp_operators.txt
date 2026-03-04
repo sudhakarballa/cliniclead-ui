@@ -1,0 +1,73 @@
+﻿  const operators1 = [
+    { value: "=", label: "= is" },
+    { value: "!=", label: "â‰  is not" },
+    { value: "empty", label: "is empty" },
+    { value: "not_empty", label: "is not empty" },
+    { value: "<=", label: "â‰¤ is less or equal to" },
+    { value: "<", label: "< is less than" },
+    { value: ">=", label: "â‰¥ is more or equal to" },
+    { value: ">", label: "> is more than" },
+  ];
+
+  const operators2 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" },
+    { value: "isEmpty", label: "is empty" },
+    { value: "isNotEmpty", label: "is not empty" },
+    { value: "containsAny", label: "contains any of" },
+    { value: "containsAll", label: "contains" },
+    { value: "notContains", label: "does not contain" }
+  ];
+
+  const operators3 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" },
+    { value: "isEmpty", label: "is empty" },
+    { value: "isNotEmpty", label: "is not empty" },
+    { value: "contains", label: "contains" },
+    { value: "startsWith", label: "starts with" },
+    { value: "notStartsWith", label: "does not start with" }
+  ];
+
+  const operators4 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" },
+    { value: "isEmpty", label: "is empty" },
+    { value: "isNotEmpty", label: "is not empty" },
+    { value: "onOrBefore", label: "is exactly on or before" },
+    { value: "before", label: "is before" },
+    { value: "onOrAfter", label: "is exactly on or after" },
+    { value: "after", label: "is after" }
+  ];
+
+  const operators5 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" },
+    { value: "isEmpty", label: "is empty" },
+    { value: "isNotEmpty", label: "is not empty" }
+  ];
+
+  const operators6 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" },
+    { value: "isEmpty", label: "is empty" },
+    { value: "isNotEmpty", label: "is not empty" },
+    { value: "belongsToTeam", label: "belongs to team" },
+    { value: "restrictedFromPipeline", label: "is restricted from pipeline" }
+  ];
+
+  const operators7 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" }
+  ];
+
+  const operators8 = [
+    { value: "equals", label: "is" },
+    { value: "notEquals", label: "is not" },
+    { value: "isEmpty", label: "is empty" },
+    { value: "isNotEmpty", label: "is not empty" },
+    { value: "isFirstInPipeline", label: "is first in pipeline" },
+    { value: "hasBeen", label: "has been" }
+  ];
+
+

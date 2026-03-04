@@ -20,231 +20,33 @@ import { ClinicService } from "../../../../services/clinicService";
 import { personService } from "../../../../services/personService";
 import { UserService } from "../../../../services/UserService";
 import { PipeLineTypeService } from "../../../../services/pipeLineTypeService";
-
-const getOperators = (isValueType: false) => {
-  return isValueType
-    ? operatorOptions.concat(operatorsForNumberType)
-    : operatorOptions;
-};
-
-const operators1 = [
-  { value: "=", label: "= is" },
-  { value: "!=", label: "≠ is not" },
-  { value: "empty", label: "is empty" },
-  { value: "not_empty", label: "is not empty" },
-  { value: "<=", label: "≤ is less or equal to" },
-  { value: "<", label: "< is less than" },
-  { value: ">=", label: "≥ is more or equal to" },
-  { value: ">", label: "> is more than" },
-];
-
-const operators2 = [
-  { value: "equals", label: "is", description: "Includes only items that exactly match selected options." },
-  { value: "notEquals", label: "is not", description: "Excludes items that exactly match selected options." },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "containsAny", label: "contains any of", description: "Includes items that match any or all selected options." },
-  { value: "containsAll", label: "contains", description: "Includes items that match at least all selected options." },
-  { value: "notContains", label: "does not contain", description: "Excludes items that match at least all selected options." }
-];
-
-const operators3 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "contains", label: "contains" },
-  { value: "startsWith", label: "starts with" },
-  { value: "notStartsWith", label: "does not start with" }
-];
-
-const operators4 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "onOrBefore", label: "is exactly on or before" },
-  { value: "before", label: "is before" },
-  { value: "onOrAfter", label: "is exactly on or after" },
-  { value: "after", label: "is after" }
-];
-
-const operators5 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" }
-];
-
-const operators6 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "belongsToTeam", label: "belongs to team" },
-  { value: "restrictedFromPipeline", label: "is restricted from pipeline" }
-];
-
-const operators7 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" }
-];
-
-const operators8 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "isFirstInPipeline", label: "is first in pipeline" },
-  { value: "hasBeen", label: "has been" }
-];
-
-const procedureOptions =[
-  { "value": "threeDNippleTattooing", "label": "3D Nipple Tattooing" },
-  { "value": "breastAugmentation", "label": "Breast Augmentation" },
-  { "value": "breastReduction", "label": "Breast Reduction" },
-  { "value": "breastLiftMastopexy", "label": "Breast Lift Mastopexy" },
-  { "value": "nippleReconstruction", "label": "Nipple Reconstruction" }
-];
-
-const entProcedureOptions = [
-  { "value": "fess", "label": "FESS" },
-  { "value": "rhinoplasty", "label": "Rhinoplasty" },
-  { "value": "tonsillectomy", "label": "Tonsillectomy" },
-  { "value": "adenoidectomy", "label": "Adenoidectomy" },
-  { "value": "sinusSurgery", "label": "Sinus Surgery" },
-  { "value": "septoplasty", "label": "Septoplasty" }
-]
-
-const gastroenterologyOptions = [
-  { "value": "upperGiEndoscopy", "label": "Upper GI Endoscopy" },
-  { "value": "lowerGiEndoscopy", "label": "Lower GI Endoscopy" }
-]
-
-const generalSurgeryOptions = [
-  { "value": "herniaRepair", "label": "Hernia Repair" },
-  { "value": "laparoscopicCholecystectomy", "label": "Laparoscopic Cholecystectomy" },
-  { "value": "analSkinTag", "label": "Anal Skin Tag" },
-  { "value": "haemorrhoidsPilesTreatment", "label": "Haemorrhoids Piles Treatment" }
-]
-
-const gynaecologyTreatmentOptions = [
-  { "value": "labiaplasty", "label": "Labiaplasty" },
-  { "value": "vaginalTightening", "label": "Vaginal Tightening" },
-  { "value": "endometrialAblation", "label": "Endometrial Ablation" },
-  { "value": "prolapseRepair", "label": "Prolapse Repair" },
-  { "value": "hysterectomy", "label": "Hysterectomy" },
-  { "value": "urinaryIncontinence", "label": "Urinary Incontinence" }
-]
-
-const orthopaedicTreatmentOptions = [
-  { "value": "kneeReplacement", "label": "Knee Replacement" },
-  { "value": "hipReplacement", "label": "Hip Replacement" },
-  { "value": "kneeArthroscopy", "label": "Knee Arthroscopy" },
-  { "value": "shoulderReplacement", "label": "Shoulder Replacement" },
-  { "value": "sportsInjury", "label": "Sports Injury" },
-  { "value": "jointInjections", "label": "Joint Injections" },
-  { "value": "shoulderDecompression", "label": "Shoulder Decompression" },
-  { "value": "shoulderStabilization", "label": "Shoulder Stabilization" },
-  { "value": "rotatorCuffRepair", "label": "Rotator Cuff Repair" },
-  { "value": "elbowReplacement", "label": "Elbow Replacement" },
-  { "value": "tennisElbowRelease", "label": "Tennis Elbow Release" }
-]
-
-const electivaTreatmentsOptions = [
-  { "value": "generalSurgery", "label": "General Surgery" },
-  { "value": "orthopaedics", "label": "Orthopaedics" },
-  { "value": "gynaecology", "label": "Gynaecology" },
-  { "value": "urology", "label": "Urology" },
-  { "value": "gastroenterology", "label": "Gastroenterology" },
-  { "value": "breastSurgery", "label": "Breast Surgery" },
-  { "value": "entSurgery", "label": "ENT Surgery" }
-]
-
-const treatmentOptions = [
-  ...procedureOptions,
-  ...entProcedureOptions,
-  ...gastroenterologyOptions,
-  ...generalSurgeryOptions,
-  ...gynaecologyTreatmentOptions,
-  ...orthopaedicTreatmentOptions
-]
-
-const apiCallOptions = [
-  { "value": "1", "label": "1st call" },
-  { "value": "2", "label": "2nd call" },
-  { "value": "3", "label": "3rd call" },
-  { "value": "4", "label": "4th call" },
-  { "value": "5", "label": "5th call" },
-  { "value": "6", "label": "6th call" },
-  { "value": "7", "label": "7th call" },
-  { "value": "8", "label": "8th call" },
-  { "value": "9", "label": "9th call" },
-  { "value": "10", "label": "10th call" }
-];
-
-const currencyOptions = [
-  { value: "USD", label: "USD - United States Dollar" },
-  { value: "EUR", label: "EUR - Euro" },
-  { value: "GBP", label: "GBP - British Pound Sterling" },
-  { value: "INR", label: "INR - Indian Rupee" },
-  { value: "AUD", label: "AUD - Australian Dollar" },
-  { value: "CAD", label: "CAD - Canadian Dollar" },
-  { value: "JPY", label: "JPY - Japanese Yen" },
-  { value: "CNY", label: "CNY - Chinese Yuan" },
-  { value: "CHF", label: "CHF - Swiss Franc" },
-  { value: "SEK", label: "SEK - Swedish Krona" },
-  { value: "NZD", label: "NZD - New Zealand Dollar" },
-  { value: "SGD", label: "SGD - Singapore Dollar" },
-  { value: "HKD", label: "HKD - Hong Kong Dollar" },
-  { value: "NOK", label: "NOK - Norwegian Krone" },
-  { value: "KRW", label: "KRW - South Korean Won" },
-  { value: "TRY", label: "TRY - Turkish Lira" },
-  { value: "RUB", label: "RUB - Russian Ruble" },
-  { value: "BRL", label: "BRL - Brazilian Real" },
-  { value: "ZAR", label: "ZAR - South African Rand" },
-  { value: "MXN", label: "MXN - Mexican Peso" },
-  { value: "AED", label: "AED - United Arab Emirates Dirham" },
-  { value: "SAR", label: "SAR - Saudi Riyal" },
-  { value: "THB", label: "THB - Thai Baht" },
-  { value: "MYR", label: "MYR - Malaysian Ringgit" },
-  { value: "IDR", label: "IDR - Indonesian Rupiah" },
-  { value: "PHP", label: "PHP - Philippine Peso" },
-  { value: "PLN", label: "PLN - Polish Zloty" },
-  { value: "DKK", label: "DKK - Danish Krone" },
-  { value: "CZK", label: "CZK - Czech Koruna" },
-  { value: "HUF", label: "HUF - Hungarian Forint" },
-  { value: "ILS", label: "ILS - Israeli New Shekel" },
-  { value: "CLP", label: "CLP - Chilean Peso" },
-  { value: "ARS", label: "ARS - Argentine Peso" },
-  { value: "COP", label: "COP - Colombian Peso" },
-  { value: "EGP", label: "EGP - Egyptian Pound" },
-  { value: "PKR", label: "PKR - Pakistani Rupee" },
-  { value: "BDT", label: "BDT - Bangladeshi Taka" },
-  { value: "VND", label: "VND - Vietnamese Dong" },
-  { value: "NGN", label: "NGN - Nigerian Naira" },
-  { value: "UAH", label: "UAH - Ukrainian Hryvnia" },
-  { value: "RON", label: "RON - Romanian Leu" },
-  { value: "QAR", label: "QAR - Qatari Riyal" },
-  { value: "KWD", label: "KWD - Kuwaiti Dinar" },
-  { value: "OMR", label: "OMR - Omani Rial" },
-  { value: "BHD", label: "BHD - Bahraini Dinar" },
-  { value: "JOD", label: "JOD - Jordanian Dinar" },
-  { value: "LKR", label: "LKR - Sri Lankan Rupee" },
-  { value: "NPR", label: "NPR - Nepalese Rupee" },
-  { value: "KES", label: "KES - Kenyan Shilling" },
-  { value: "GHS", label: "GHS - Ghanaian Cedi" },
-  { value: "MAD", label: "MAD - Moroccan Dirham" },
-  { value: "TND", label: "TND - Tunisian Dinar" },
-  { value: "DZD", label: "DZD - Algerian Dinar" },
-  { value: "PEN", label: "PEN - Peruvian Sol" },
-  { value: "UYU", label: "UYU - Uruguayan Peso" },
-  { value: "VEF", label: "VEF - Venezuelan Bolívar" },
-  { value: "ISK", label: "ISK - Icelandic Króna" },
-  { value: "HRK", label: "HRK - Croatian Kuna" },
-  { value: "BGN", label: "BGN - Bulgarian Lev" },
-  { value: "RSD", label: "RSD - Serbian Dinar" },
-];
+import { getValueOptionsForField } from "../../../common/filterUtils";
+import {
+  procedureOptions,
+  entProcedureOptions,
+  gastroenterologyOptions,
+  generalSurgeryOptions,
+  gynaecologyTreatmentOptions,
+  orthopaedicTreatmentOptions,
+  electivaTreatmentsOptions,
+  treatmentOptions,
+  apiCallOptions,
+  currencyOptions
+} from "../../../reporting/reportConstants";
+import {
+  dealFieldOptions as fieldOptions,
+  personFieldOptions,
+  activityFieldOptions,
+  operators1,
+  operators2,
+  operators3,
+  operators4,
+  operators5,
+  operators6,
+  operators7,
+  operators8,
+  operatorsForNumberType
+} from "../../../common/fieldConstants";
 
 const getOperatorsByField = (fieldValue: string) => {
   const fieldOperatorMap: { [key: string]: any[] } = {
@@ -326,13 +128,6 @@ const getOperatorsByField = (fieldValue: string) => {
 
 const fieldsWithOperators1 = ['activitiesToDo', 'acv', 'arr', 'clientNumber', 'doneActivities', 'emailMessagesCount', 'probability', 'revenue', 'score', 'totalActivities', 'value', 'zandaInvoiceValue'];
 
-const operatorsForNumberType = [
-  { label: "Greater than", value: ">" },
-  { label: "Less than", value: "<" },
-  { label: "Greater than or equal to", value: ">=" },
-  { label: "Less than or equal to", value: "<=" },
-];
-
 const operatorOptions = [
   { label: "Is empty", value: "IS NULL" },
   { label: "Is not empty", value: "IS NOT NULL" },
@@ -393,168 +188,6 @@ const dealStatusList = [
   { value: "3", label: "Lost" },
   { value: "4", label: "Closed" },
   { value: "5", label: "Deleted" },
-];
-
-const fieldOptions = [
-  { value: "activitiesToDo", label: "Activities to do" },
-
-  { value: "acv", label: "ACV", isNumberType: true },
-  { value: "apiCallsMade", label: "API Calls Made", isNumberType: true },
-
-  { value: "appointmentStatus", label: "Appointment Status" },
-  { value: "archiveTime", label: "Archive time", isDateType: true },
-  { value: "arr", label: "ARR", isNumberType: true },
-
-  { value: "assignedBdManager", label: "Assigned BD Manager" },
-  { value: "attachedProduct", label: "Attached product" },
-  { value: "blandDealIdentifier", label: "Bland Deal Identifier" },
-  { value: "clientNumber", label: "Client Number" },
-  { value: "clinic", label: "Clinic" },
-  { value: "company", label: "Company" },
-  { value: "consentCheckbox", label: "Consent Checkbox" },
-
-  { value: "consultDate", label: "Consult Date", isDateType: true },
-
-  { value: "contactPerson", label: "Contact person" },
-  { value: "cosmeticProcedure", label: "Cosmetic Procedure" },
-  { value: "creator", label: "Creator" },
-  { value: "currencyOfACV", label: "Currency of ACV" },
-  { value: "currencyOfARR", label: "Currency of ARR" },
-  { value: "currencyOfMRR", label: "Currency of MRR" },
-  { value: "currencyOfRevenue", label: "Currency of Revenue" },
-  { value: "currencyOfValue", label: "Currency of Value" },
-  { value: "currencyOfZandaInvoiceValue", label: "Currency of Zanda Invoice Value" },
-  { value: "currentPracticeLocation", label: "Current Practice Location" },
-
-  {
-    value: "dateOfEnteringStage",
-    label: "Date of entering stage",
-    isDateType: true,
-  },
-  { value: "dealClosedOn", label: "Deal closed on", isDateType: true },
-  { value: "dealCreated", label: "Deal created", isDateType: true },
-
-  { value: "dealStage", label: "Deal Stage" },
-
-  { value: "doneActivities", label: "Done activities", isNumberType: true },
-
-  { value: "electiveBreastSurgery", label: "Elective Breast Surgery" },
-  { value: "electivaEntSurgery", label: "Electiva ENT Surgery" },
-  { value: "electivaGastroenterology", label: "Electiva Gastroenterology" },
-  { value: "electivaGeneralSurgery", label: "Electiva General Surgery" },
-  { value: "electivaGynaecologyTreatments", label: "Electiva Gynaecology Treatments" },
-  { value: "electivaNote", label: "Electiva Note" },
-  { value: "electivaOrthopaedicTreatments", label: "Electiva Orthopaedic Treatments" },
-  { value: "electivaTreatments", label: "Electiva Treatments" },
-  { value: "electivaUrologyTreatments", label: "Electiva Urology Treatments" },
-  { value: "electivaVisionTreatments", label: "Electiva Vision Treatments" },
-  { value: "electivaLocations", label: "Electiva Locations" },
-   { value: "enquiry", label: "Enquiry" },
-
-  {
-    value: "emailMessagesCount",
-    label: "Email messages count",
-    isNumberType: true,
-  },
-
-  {
-    value: "expectedCloseDate",
-    label: "Expected close date",
-    isDateType: true,
-  },
-
-  { value: "gmcNumber", label: "GMC Number" },
-  { value: "identiteLocation", label: "Identite Location" },
-  { value: "identiteProcedure", label: "Identite Procedure" },
-  { value: "label", label: "Label" },
-  { value: "lastActivityDate", label: "Last activity date", isDateType: true },
-  {
-    value: "lastEmailReceived",
-    label: "Last email received",
-    isDateType: true,
-  },
-  { value: "lastEmailSent", label: "Last email sent"},
-  { value: "lastStageChange", label: "Last stage change"},
-    { value: "location", label: "Location (City)"},
-    { value: "lostReviewReason", label: "Lost Review Reason"},
-        { value: "lostReason", label: "Lost Reason"},
-  { value: "lostTime", label: "Lost time", isDateType: true },
-
-  { value: "marketingContent", label: "Marketing Content" },
-   { value: "marketingFBClid", label: "Marketing_FBClid" },
-    { value: "marketingGClid", label: "Marketing_GCLID" },
-  { value: "marketingMedium", label: "Marketing Medium" },
-  { value: "marketingSource", label: "Marketing Source" },
-  { value: "marketingTerm", label: "Marketing Term" },
-  { value: "marketingConsent", label: "Marketing Consent" },
-    { value: "medicalForm", label: "Medical_Form" },
-  { value: "mrr", label: "MRR", isNumberType: true },
-
-  { value: "nextActivityDate", label: "Next activity date", isDateType: true },
-    { value: "nextSteps", label: "Next Steps" },
-  { value: "operationDate", label: "Operation Date", isDateType: true },
-    { value: "organization", label: "Organization" },
-  { value: "owner", label: "Owner" },
-  { value: "pipeline", label: "Pipeline" },
-  { value: "pipelineType", label: "Pipeline Type" },
-
-  { value: "probability", label: "Probability", isNumberType: true },
-
-  { value: "referTelephoneNumber", label: "Does The Refer Telephone Number exists" },
-
-  { value: "revenue", label: "Revenue", isNumberType: true },
-
-  { value: "score", label: "Score", isNumberType: true },
-
-  { value: "source", label: "Source" },
-  { value: "sourceChannel", label: "Source channel" },
-
-  { value: "stage", label: "Stage" },
-  { value: "status", label: "Status" },
-
-  { value: "submissionId", label: "Submission Id" },
-
-  { value: "tcConsent", label: "TC Consent" },
-
-  { value: "title", label: "Title" },
-
-  { value: "totalActivities", label: "Total activities", isNumberType: true },
-
-  { value: "treatment", label: "Treatment" },
-
-  { value: "updateTime", label: "Update time", isDateType: true },
-
-  { value: "value", label: "Value", isNumberType: true },
-
-  { value: "wonTime", label: "Won time", isDateType: true },
-
-  {
-    value: "zandaInvoiceValue",
-    label: "Zanda Invoice Value",
-    isNumberType: true,
-  },
-];
-
-const personFieldOptions = [
-  { value: "p1", label: "Name" },
-  { value: "p2", label: "Email" },
-  { value: "p3", label: "Phone" },
-  { value: "p4", label: "Organization" },
-  { value: "p5", label: "Owner" },
-  { value: "p6", label: "Label" },
-  { value: "p7", label: "Created", isDateType: true },
-  { value: "p8", label: "Updated", isDateType: true },
-];
-
-const activityFieldOptions = [
-  { value: "a1", label: "Subject" },
-  { value: "a2", label: "Type" },
-  { value: "a3", label: "Due date", isDateType: true },
-  { value: "a4", label: "Done" },
-  { value: "a5", label: "Assigned to" },
-  { value: "a6", label: "Deal" },
-  { value: "a7", label: "Person" },
-  { value: "a8", label: "Organization" },
 ];
 
 const filterTypeOptions = [
@@ -890,31 +523,18 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
 
   const getValueOptions = (field: string) => {
     if (!field) return [];
-    console.log(
-      "getValueOptions called for field:",
-      field,
-      "deals count:",
-      deals.length,
-    );
     const fieldOption = [
       ...fieldOptions,
       ...personFieldOptions,
       ...activityFieldOptions,
     ].find((f) => f.value === field);
     if (fieldOption?.isDateType) return dateValues;
-    if (field === "statusid") return dealStatusList;
-    if (field === "electiveBreastSurgery") return procedureOptions;
-    if (field === "apiCallsMade") return apiCallOptions;
-    if (field === "clinic") return clinics.map((clinic: any) => ({ value: clinic.clinicID || clinic.id, label: clinic.clinicName || clinic.name }));
-    if (field === "contactPerson") return persons.map((person: any) => ({ value: person.personID || person.id, label: person.personName || person.name }));
-    if (field === "creator") {
-      const userOptions = users.map((user: any) => ({
-        value: user.userId || user.id,
-        label: user.isActive === false ? `${user.userName || user.name} (Inactive)` : (user.userName || user.name)
-      }));
-      return [...userOptions, { value: "anyInactiveUser", label: "Any inactive user" }];
-    }
-
+    
+    // Use shared utility for common fields
+    const sharedOptions = getValueOptionsForField(field, deals);
+    if (sharedOptions.length > 0) return sharedOptions;
+    
+    // Handle legacy field mappings
     const uniqueValues = new Set<string>();
     deals.forEach((deal: any) => {
       switch (field) {
@@ -951,11 +571,9 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           break;
       }
     });
-    const result = Array.from(uniqueValues)
+    return Array.from(uniqueValues)
       .sort()
       .map((value) => ({ value, label: value }));
-    console.log("getValueOptions result:", result.length, "options");
-    return result;
   };
 
   const valueJSX = (key: string) => {

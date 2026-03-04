@@ -175,6 +175,11 @@ function AppContent() {
       return false;
     }
     
+    // Allow root path for logged-in users
+    if (location.pathname === '/' && LocalStorageUtil.getItem(Constants.USER_LOGGED_IN) === "true") {
+      return false;
+    }
+    
     return !Util.isAuthorized(location.pathname.replace(/^\/+/, ""));
   };
 
@@ -184,6 +189,17 @@ function AppContent() {
     
     // Skip redirect if we have auth data (auto-login in progress)
     if (authData) return;
+    
+    // Redirect logged-in users from root to pipeline or child app
+    if (location.pathname === '/' && LocalStorageUtil.getItem(Constants.USER_LOGGED_IN) === "true") {
+      const childAppUrl = window.config?.HomePage;
+      if (childAppUrl && childAppUrl.startsWith('http')) {
+        window.location.href = childAppUrl;
+      } else {
+        navigate('/pipeline', { replace: true });
+      }
+      return;
+    }
     
     if (
       LocalStorageUtil.getItem(Constants.USER_LOGGED_IN) != "true" &&
@@ -197,7 +213,7 @@ function AppContent() {
       const queryString = location.search;
     navigate(`/confirm-email${queryString}`);
     }
-  }, []);
+  }, [location.pathname]);
 
   const checkSession = () => {
     const currentDateTime = moment().format("MM/DD/YYYY hh:mm:ss a");

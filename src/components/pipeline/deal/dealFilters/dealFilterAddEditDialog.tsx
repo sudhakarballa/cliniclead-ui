@@ -395,18 +395,14 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
     setSelectedObject(condition.object || "");
     setSelectedField(condition.field || "");
     setSelectedOperator(condition.operator || "");
-    setValue(`${conditionType}.${index}.object`, condition.object);
-    setValue(`${conditionType}.${index}.field`, condition.field);
-    setOperatorsList(getOperatorsByField(condition.field));
-    setTimeout(() => {
-      setValue(`${conditionType}.${index}.operator`, condition.operator);
-    }, 10);
-
-    setValue(`${conditionType}.${index}.value`, condition.value);
-
-    // Filter field options based on selected object
     updateFilteredFieldOptions(condition.object);
-  }, [condition, setValue, index, conditionType]);
+    setOperatorsList(getOperatorsByField(condition.field));
+    
+    // Set value after field is set
+    if (condition.value !== undefined && condition.value !== null) {
+      setValue(`${conditionType}.${index}.value`, condition.value);
+    }
+  }, [condition.object, condition.field, condition.operator, condition.value]);
 
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [stages, setStages] = useState<any[]>([]);
@@ -622,7 +618,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -655,7 +650,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -679,7 +673,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -699,7 +692,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -722,7 +714,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -745,7 +736,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -768,7 +758,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -791,7 +780,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -814,7 +802,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -837,7 +824,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -860,7 +846,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -883,7 +868,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -906,7 +890,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -1103,7 +1086,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) =>
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -1126,7 +1108,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) =>
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -1150,7 +1131,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) =>
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -1189,7 +1169,6 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             disabled={!getValues(`${conditionType}.${index}.field`)}
             value={getValues(`${conditionType}.${index}.value`) || ""}
-            {...register(`${conditionType}.${index}.value`)}
             onChange={(e) =>
               setValue(`${conditionType}.${index}.value`, e.target.value, {
                 shouldValidate: true,
@@ -1293,8 +1272,13 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             className="form-control form-control-sm"
             type={isNumberField ? "number" : "text"}
             disabled={!getValues(`${conditionType}.${index}.field`)}
-            defaultValue={conditionType[index].value ?? null}
-            {...register(`${conditionType}.${index}.value`)}
+            value={getValues(`${conditionType}.${index}.value`) ?? ""}
+            onChange={(e) => {
+              setValue(`${conditionType}.${index}.value`, e.target.value, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }}
             placeholder={isNumberField ? "Enter a number" : "Value"}
             style={{ height: "32px" }}
           />
@@ -1593,53 +1577,76 @@ const DealFilterAddEditDialog = (props: params) => {
   } = methods;
 
   useEffect(() => {
-    let obj = {
-      ...selectedFilter,
+    if (!dialogIsOpen) return;
+
+    let obj: any = {
+      name: selectedFilter.name || "",
       visibility: Util.isNullOrUndefinedOrEmpty(selectedFilter.isPublic)
         ? "Private"
         : selectedFilter.isPublic
           ? "Public"
           : "Private",
+      filterType: selectedFilter.filterType || "",
+      filterAction: selectedFilter.filterAction || "",
+      allConditions: [],
+      anyConditions: [],
     };
 
     if (selectedFilter.id > 0) {
-      obj.allConditions = obj.conditions.find((i) => i.glue === "AND")
-        ?.conditionList as any;
-      // Convert exact date strings to Date objects
-      if (obj.allConditions) {
-        obj.allConditions = obj.allConditions.map((cond: any) => {
-          // Check if extraValue is "exact" OR if it's a date string (not a predefined date value)
-          const isExactDate = cond.extraValue === "exact" || 
-            (cond.extraValue && !dateValues.some(dv => dv.value === cond.extraValue));
-          if (isExactDate && cond.value) {
-            return { ...cond, value: new Date(cond.value) };
-          }
-          return cond;
-        });
-      }
-      setAllConditions(obj.allConditions ?? []);
-      obj.anyConditions = obj.conditions.find((i) => i.glue === "OR")
-        ?.conditionList as any;
-      // Convert exact date strings to Date objects
-      if (obj.anyConditions) {
-        obj.anyConditions = obj.anyConditions.map((cond: any) => {
-          // Check if extraValue is "exact" OR if it's a date string (not a predefined date value)
-          const isExactDate = cond.extraValue === "exact" || 
-            (cond.extraValue && !dateValues.some(dv => dv.value === cond.extraValue));
-          if (isExactDate && cond.value) {
-            return { ...cond, value: new Date(cond.value) };
-          }
-          return cond;
-        });
-      }
-      setAnyConditions(obj.anyConditions ?? []);
+      const allConds = selectedFilter.conditions?.find((i) => i.glue === "AND")
+        ?.conditionList || [];
+      const anyConds = selectedFilter.conditions?.find((i) => i.glue === "OR")
+        ?.conditionList || [];
+
+      obj.allConditions = allConds.map((cond: any) => {
+        const fieldOption = [
+          ...fieldOptions,
+          ...personFieldOptions,
+          ...activityFieldOptions,
+        ].find((f) => f.value === cond.field);
+        
+        const isDateField = fieldOption?.isDateType;
+        const isExactDate = isDateField && (cond.extraValue === "exact" || 
+          (cond.extraValue && !dateValues.some(dv => dv.value === cond.extraValue)));
+        
+        return {
+          object: cond.object || "",
+          field: cond.field || "",
+          operator: cond.operator || "",
+          value: isExactDate && cond.value ? new Date(cond.value) : (cond.value || "")
+        };
+      });
+
+      obj.anyConditions = anyConds.map((cond: any) => {
+        const fieldOption = [
+          ...fieldOptions,
+          ...personFieldOptions,
+          ...activityFieldOptions,
+        ].find((f) => f.value === cond.field);
+        
+        const isDateField = fieldOption?.isDateType;
+        const isExactDate = isDateField && (cond.extraValue === "exact" || 
+          (cond.extraValue && !dateValues.some(dv => dv.value === cond.extraValue)));
+        
+        return {
+          object: cond.object || "",
+          field: cond.field || "",
+          operator: cond.operator || "",
+          value: isExactDate && cond.value ? new Date(cond.value) : (cond.value || "")
+        };
+      });
+
+      setAllConditions(obj.allConditions.length > 0 ? obj.allConditions : [{ object: "", field: "", operator: "", value: "" }]);
+      setAnyConditions(obj.anyConditions);
       onFilterTypeChange(selectedFilter.filterType);
+    } else {
+      obj.allConditions = [{ object: "", field: "", operator: "", value: "" }];
+      setAllConditions(obj.allConditions);
+      setAnyConditions([]);
     }
 
-    if (dialogIsOpen) {
-      reset(obj); // Set the form values to the binding object when the dialog opens
-    }
-  }, [dialogIsOpen, reset]);
+    reset(obj);
+  }, [dialogIsOpen, selectedFilter, reset]);
 
   const [filterName, setFilterName] = useState<string>("");
   const [visibility, setVisibility] = useState<string>("");

@@ -193,7 +193,9 @@ export const operators6 = [
 
 export const operators7 = [
   { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" }
+  { value: "notEquals", label: "is not" },
+  { value: "isAnyOf", label: "is any of" },
+  { value: "isNotAnyOf", label: "is not any of" }
 ];
 
 export const operators8 = [

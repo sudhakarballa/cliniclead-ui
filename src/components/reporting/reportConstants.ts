@@ -50,6 +50,113 @@ export const orthopaedicTreatmentOptions = [
   { value: "tennisElbowRelease", label: "Tennis Elbow Release" }
 ];
 
+export const urologyTreatmentOptions = [
+  { value: "Circumcision", label: "Circumcision" },
+  { value: "Vasectomy", label: "Vasectomy" },
+  { value: "Kidney Stone", label: "Kidney Stone" },
+  { value: "Hydrocele", label: "Hydrocele" }
+];
+
+export const visionTreatmentOptions = [
+  { value: "Laser Eye Surgery", label: "Laser Eye Surgery" },
+  { value: "Lens Replacement", label: "Lens Replacement" },
+  { value: "Advice Required", label: "Advice Required" },
+  { value: "Cataract Surgery", label: "Cataract Surgery" }
+];
+
+export const labelOptions = [
+  { value: "THINKERS", label: "THINKERS" },
+  { value: "2 WEEK NURTURE", label: "2 WEEK NURTURE" },
+  { value: "HOT PROSPECT", label: "HOT PROSPECT" },
+  { value: "FOLLOW UP REQUIRED", label: "FOLLOW UP REQUIRED" },
+  { value: "SLIMMING CLINIC", label: "SLIMMING CLINIC" },
+  { value: "BMI TOO HIGH", label: "BMI TOO HIGH" },
+  { value: "BALLOON MARKETING CAMPAIGN", label: "BALLOON MARKETING CAMPAIGN" },
+  { value: "ALLURION", label: "ALLURION" },
+  { value: "REFERRAL FROM COSMETIC", label: "REFERRAL FROM COSMETIC" },
+  { value: "LIVE CHAT", label: "LIVE CHAT" },
+  { value: "DELAY EMAILS UNTIL LATER", label: "DELAY EMAILS UNTIL LATER" },
+  { value: "BMI TOO HIGH COS TO WL", label: "BMI TOO HIGH COS TO WL" },
+  { value: "S/C DOCTOR LED CONSULT DECLINED", label: "S/C DOCTOR LED CONSULT DECLINED" },
+  { value: "S/C DOCTOR LED CONSULT BOOKED", label: "S/C DOCTOR LED CONSULT BOOKED" },
+  { value: "CLOSED OPPORTUNITY", label: "CLOSED OPPORTUNITY" },
+  { value: "DTS", label: "DTS" },
+  { value: "COSMETIC/INJECTIONS", label: "COSMETIC/INJECTIONS" },
+  { value: "EXCLUSIVE PACKAGE BA & LIPO", label: "EXCLUSIVE PACKAGE BA & LIPO" }
+];
+
+export const lostReasonOptions = [
+  { value: "Remove From Mailing", label: "Remove From Mailing" },
+  { value: "Not Ready Yet - Call Back Arranged", label: "Not Ready Yet - Call Back Arranged" },
+  { value: "Treated Elsewhere", label: "Treated Elsewhere" },
+  { value: "Never Got a Call Back", label: "Never Got a Call Back" },
+  { value: "BMI Too High", label: "BMI Too High" },
+  { value: "Could Not Contact", label: "Could Not Contact" },
+  { value: "Cost", label: "Cost" },
+  { value: "Decided Against", label: "Decided Against" },
+  { value: "Duplicate", label: "Duplicate" },
+  { value: "Gone to Competitor", label: "Gone to Competitor" },
+  { value: "Hung Up", label: "Hung Up" },
+  { value: "IOL - Will Not Travel", label: "IOL - Will Not Travel" },
+  { value: "Incorrect Number", label: "Incorrect Number" },
+  { value: "Not Suitable for Treatment", label: "Not Suitable for Treatment" },
+  { value: "Already Booked", label: "Already Booked" },
+  { value: "Not Specified", label: "Not Specified" },
+  { value: "Test", label: "Test" }
+];
+
+export const yesNoOptions = [
+  { value: "Yes", label: "Yes" },
+  { value: "No", label: "No" }
+];
+
+export const enquiryOptions = [
+  { value: "Procedure Price Check", label: "Procedure Price Check" },
+  { value: "Request A Call Back", label: "Request A Call Back" },
+  { value: "Test Enquiry", label: "Test Enquiry" },
+  { value: "Request a weight loss brochure", label: "Request a weight loss brochure" },
+  { value: "Find out about your finance options", label: "Find out about your finance options" },
+  { value: "Are you ready to book your free consultation?", label: "Are you ready to book your free consultation?" },
+  { value: "Request A Brochure", label: "Request A Brochure" },
+  { value: "Request a cosmetic brochure", label: "Request a cosmetic brochure" },
+  { value: "Enquire about pricing & finance", label: "Enquire about pricing & finance" },
+  { value: "Request a brochure", label: "Request a brochure" },
+  { value: "Request a Call", label: "Request a Call" },
+  { value: "Book Your Free Non-Surgical Weight Loss Consultation", label: "Book Your Free Non-Surgical Weight Loss Consultation" },
+  { value: "Book A Free Consultation", label: "Book A Free Consultation" },
+  { value: "Send An Enquiry", label: "Send An Enquiry" },
+  { value: "Request a medical aesthetics brochure", label: "Request a medical aesthetics brochure" },
+  { value: "Enquire Today", label: "Enquire Today" },
+  { value: "Medical Aesthetics Enquiry Form", label: "Medical Aesthetics Enquiry Form" },
+  { value: "SC - Request A Call Back", label: "SC - Request A Call Back" }
+];
+
+export const identiteLocationOptions = [
+  { value: "Bristol", label: "Bristol" },
+  { value: "Newcastle", label: "Newcastle" },
+  { value: "Manchester", label: "Manchester" },
+  { value: "Bromsgrove", label: "Bromsgrove" },
+  { value: "Torquay", label: "Torquay" },
+  { value: "London - Finchley Central", label: "London - Finchley Central" },
+  { value: "London - Harley Street", label: "London - Harley Street" },
+  { value: "Nottingham", label: "Nottingham" },
+  { value: "London - Fitzroy Square", label: "London - Fitzroy Square" },
+  { value: "Glasgow", label: "Glasgow" }
+];
+
+export const identiteProcedureOptions = [
+  { value: "Facial Feminisation and Enhancement", label: "Facial Feminisation and Enhancement" },
+  { value: "Body Feminisation", label: "Body Feminisation" },
+  { value: "Facial Masculinisation", label: "Facial Masculinisation" },
+  { value: "Body Masculinisation", label: "Body Masculinisation" },
+  { value: "Voice and Throat", label: "Voice and Throat" }
+];
+
+export const electivaLocationOptions = [
+  { value: "Burcot Hall Hospital - Birmingham", label: "Burcot Hall Hospital - Birmingham" },
+  { value: "The Pines Hospital - Manchester", label: "The Pines Hospital - Manchester" }
+];
+
 export const electivaTreatmentsOptions = [
   { value: "generalSurgery", label: "General Surgery" },
   { value: "orthopaedics", label: "Orthopaedics" },

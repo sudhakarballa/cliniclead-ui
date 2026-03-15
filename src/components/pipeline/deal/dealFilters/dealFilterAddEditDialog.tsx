@@ -6,7 +6,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import { AddEditDialog } from "../../../../common/addEditDialog";
 import { ConditionCSV, DealFilter, Rule } from "../../../../models/dealFilters";
 import { DotdigitalCampagin } from "../../../../models/dotdigitalCampagin";
@@ -31,7 +31,16 @@ import {
   electivaTreatmentsOptions,
   treatmentOptions,
   apiCallOptions,
-  currencyOptions
+  currencyOptions,
+  urologyTreatmentOptions,
+  visionTreatmentOptions,
+  electivaLocationOptions,
+  enquiryOptions,
+  identiteLocationOptions,
+  identiteProcedureOptions,
+  labelOptions,
+  lostReasonOptions,
+  yesNoOptions
 } from "../../../reporting/reportConstants";
 import {
   dealFieldOptions as fieldOptions,
@@ -47,6 +56,27 @@ import {
   operators8,
   operatorsForNumberType
 } from "../../../common/fieldConstants";
+
+const CompactMultiValue = (props: any) => {
+  const { index, getValue } = props;
+  const selected = getValue();
+  if (index === 0) {
+    return (
+      <components.MultiValue {...props}>
+        {props.data.label}{selected.length > 1 ? `, +${selected.length - 1}` : ""}
+      </components.MultiValue>
+    );
+  }
+  return null;
+};
+
+const compactMultiSelectStyles = {
+  control: (base: any) => ({ ...base, minHeight: "32px", height: "auto" }),
+  valueContainer: (base: any) => ({ ...base, padding: "0 6px", flexWrap: "nowrap" as const }),
+  input: (base: any) => ({ ...base, margin: "0px" }),
+  indicatorsContainer: (base: any) => ({ ...base, height: "32px" }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+};
 
 const getOperatorsByField = (fieldValue: string) => {
   const fieldOperatorMap: { [key: string]: any[] } = {
@@ -211,7 +241,7 @@ const conditionSchema = Yup.object().shape({
   operator: Yup.string().required("Operator is required"),
   value: Yup.string().when(['operator', 'field'], {
     is: (operator: string, field: string) => {
-      if (operator === 'isEmpty' || operator === 'isNotEmpty' || operator === 'empty' || operator === 'not_empty') {
+      if (operator === 'isEmpty' || operator === 'isNotEmpty' || operator === 'empty' || operator === 'not_empty' || operator === 'restrictedFromPipeline') {
         return false;
       }
       return true;
@@ -572,9 +602,10 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       .map((value) => ({ value, label: value }));
   };
 
-  const valueJSX = (key: string) => {
+  const valueJSX = (key: string, forceDisabled: boolean = false) => {
     const options = getValueOptions(key);
     const hasOptions = options.length > 0;
+    const isDisabled = forceDisabled || !getValues(`${conditionType}.${index}.field`);
 
     switch (key) {
       case "currencyOfACV":
@@ -597,314 +628,272 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
                 shouldDirty: true,
               });
             }}
-            isDisabled={!getValues(`${conditionType}.${index}.field`)}
+            isDisabled={isDisabled}
             placeholder="Select currencies..."
             menuPortalTarget={document.body}
-            styles={{
-              control: (base) => ({ ...base, minHeight: "32px", height: "auto" }),
-              valueContainer: (base) => ({ ...base, padding: "0 6px" }),
-              input: (base) => ({ ...base, margin: "0px" }),
-              indicatorsContainer: (base) => ({ ...base, height: "32px" }),
-              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-            }}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
           />
         );
       case "creator":
-      case "owner":
-        const activeUsers = users.filter((user: any) => user.isActive !== false);
-        const inactiveUsers = users.filter((user: any) => user.isActive === false);
+        if (selectedOperator === "belongsToTeam") {
+          return (
+            <input
+              className="form-control form-control-sm"
+              type="text"
+              disabled={isDisabled}
+              value={getValues(`${conditionType}.${index}.value`) ?? ""}
+              onChange={(e) => {
+                setValue(`${conditionType}.${index}.value`, e.target.value, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }}
+              placeholder="Enter team name"
+              style={{ height: "32px" }}
+            />
+          );
+        }
+        if (selectedOperator === "restrictedFromPipeline") {
+          return null;
+        }
+        const creatorUserOptions = users.map((user: any) => ({
+          value: String(user.userId || user.id),
+          label: `👤 ${user.userName || user.name}`,
+          isActive: user.isActive !== false,
+        }));
+        const creatorGroupedOptions = [
+          { label: "Active users", options: creatorUserOptions.filter((u: any) => u.isActive) },
+          { label: "Inactive users", options: [...creatorUserOptions.filter((u: any) => !u.isActive), { value: "anyInactiveUser", label: "👤 Any inactive user", isActive: false }] },
+        ];
+        const selectedCreatorValue = getValues(`${conditionType}.${index}.value`);
+        const selectedCreatorArray = selectedCreatorValue ? selectedCreatorValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={creatorGroupedOptions}
+            value={creatorUserOptions.filter((opt: any) => selectedCreatorArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            <optgroup label="Active users">
-              {activeUsers.map((user: any) => (
-                <option key={user.userId || user.id} value={user.userId || user.id}>
-                  👤 {user.userName || user.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Inactive users">
-              {inactiveUsers.map((user: any) => (
-                <option key={user.userId || user.id} value={user.userId || user.id}>
-                  👤 {user.userName || user.name}
-                </option>
-              ))}
-              <option value="anyInactiveUser">👤 Any inactive user</option>
-            </optgroup>
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select users..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
+        );
+      case "owner":
+        const ownerUserOptions = users.map((user: any) => ({
+          value: String(user.userId || user.id),
+          label: `👤 ${user.userName || user.name}`,
+          isActive: user.isActive !== false,
+        }));
+        const ownerGroupedOptions = [
+          { label: "Active users", options: ownerUserOptions.filter((u: any) => u.isActive) },
+          { label: "Inactive users", options: [...ownerUserOptions.filter((u: any) => !u.isActive), { value: "anyInactiveUser", label: "👤 Any inactive user", isActive: false }] },
+        ];
+        const selectedOwnerValue = getValues(`${conditionType}.${index}.value`);
+        const selectedOwnerArray = selectedOwnerValue ? selectedOwnerValue.split(',').map((v: string) => v.trim()) : [];
+        return (
+          <Select
+            isMulti
+            options={ownerGroupedOptions}
+            value={ownerUserOptions.filter((opt: any) => selectedOwnerArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select users..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "contactPerson":
+        const personOptions = persons.map((person: any) => ({
+          value: String(person.personID || person.id),
+          label: `👤 ${person.personName || person.name}`,
+        }));
+        const selectedPersonValue = getValues(`${conditionType}.${index}.value`);
+        const selectedPersonArray = selectedPersonValue ? selectedPersonValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={personOptions}
+            value={personOptions.filter((opt: any) => selectedPersonArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {persons.map((person: any) => (
-              <option key={person.personID || person.id} value={person.personID || person.id}>
-                👤 {person.personName || person.name}
-              </option>
-            ))}
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select persons..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "consentCheckbox":
       case "tcConsent":
+        const selectedConsentValue = getValues(`${conditionType}.${index}.value`);
+        const selectedConsentArray = selectedConsentValue ? selectedConsentValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={yesNoOptions}
+            value={yesNoOptions.filter((opt: any) => selectedConsentArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "clinic":
+        const clinicOptions = clinics.map((clinic: any) => ({
+          value: clinic.clinicID || clinic.id,
+          label: clinic.clinicName || clinic.name,
+        }));
+        const selectedClinicValue = getValues(`${conditionType}.${index}.value`);
+        const selectedClinicArray = selectedClinicValue ? selectedClinicValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={clinicOptions}
+            value={clinicOptions.filter((opt: any) => selectedClinicArray.includes(String(opt.value)))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {clinics.map((clinic: any) => (
-              <option key={clinic.clinicID || clinic.id} value={clinic.clinicID || clinic.id}>
-                {clinic.clinicName || clinic.name}
-              </option>
-            ))}
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select clinic..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "apiCallsMade":
+        const selectedApiValue = getValues(`${conditionType}.${index}.value`);
+        const selectedApiArray = selectedApiValue ? selectedApiValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={apiCallOptions}
+            value={apiCallOptions.filter(option => selectedApiArray.includes(option.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {apiCallOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select API calls..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "electiveBreastSurgery":
-        return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
-                shouldValidate: true,
-                shouldDirty: true,
-              });
-            }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {procedureOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
       case "electivaEntSurgery":
-        return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
-                shouldValidate: true,
-                shouldDirty: true,
-              });
-            }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {entProcedureOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
       case "electivaGastroenterology":
-        return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
-                shouldValidate: true,
-                shouldDirty: true,
-              });
-            }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {gastroenterologyOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
       case "electivaGeneralSurgery":
-        return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
-                shouldValidate: true,
-                shouldDirty: true,
-              });
-            }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {generalSurgeryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
       case "electivaGynaecologyTreatments":
-        return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
-                shouldValidate: true,
-                shouldDirty: true,
-              });
-            }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {gynaecologyTreatmentOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
       case "electivaOrthopaedicTreatments":
-        return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
-                shouldValidate: true,
-                shouldDirty: true,
-              });
-            }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {orthopaedicTreatmentOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
       case "electivaTreatments":
+      case "electivaLocations":
+      case "electivaUrologyTreatments":
+      case "electivaVisionTreatments":
+      case "enquiry":
+      case "identiteLocation":
+      case "identiteProcedure":
+      case "label":
+      case "lostReason":
+      case "marketingConsent":
+      case "medicalForm":
+        const electivaOptionsMap: { [k: string]: any[] } = {
+          electiveBreastSurgery: procedureOptions,
+          electivaEntSurgery: entProcedureOptions,
+          electivaGastroenterology: gastroenterologyOptions,
+          electivaGeneralSurgery: generalSurgeryOptions,
+          electivaGynaecologyTreatments: gynaecologyTreatmentOptions,
+          electivaOrthopaedicTreatments: orthopaedicTreatmentOptions,
+          electivaTreatments: electivaTreatmentsOptions,
+          electivaLocations: electivaLocationOptions,
+          electivaUrologyTreatments: urologyTreatmentOptions,
+          electivaVisionTreatments: visionTreatmentOptions,
+          enquiry: enquiryOptions,
+          identiteLocation: identiteLocationOptions,
+          identiteProcedure: identiteProcedureOptions,
+          label: labelOptions,
+          lostReason: lostReasonOptions,
+          marketingConsent: yesNoOptions,
+          medicalForm: yesNoOptions,
+        };
+        const electivaOpts = electivaOptionsMap[key] || [];
+        const selectedElectivaValue = getValues(`${conditionType}.${index}.value`);
+        const selectedElectivaArray = selectedElectivaValue ? selectedElectivaValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={electivaOpts}
+            value={electivaOpts.filter((opt: any) => selectedElectivaArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {electivaTreatmentsOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "treatment":
+        const selectedTreatmentValue = getValues(`${conditionType}.${index}.value`);
+        const selectedTreatmentArray = selectedTreatmentValue ? selectedTreatmentValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) => {
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={treatmentOptions}
+            value={treatmentOptions.filter((opt: any) => selectedTreatmentArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {treatmentOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            isDisabled={isDisabled}
+            placeholder="Select treatment..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "archiveTime":
       case "consultDate":
@@ -929,7 +918,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
               {!isExactDate ? (
                 <select
                   className="form-control form-control-sm"
-                  disabled={!getValues(`${conditionType}.${index}.field`)}
+                  disabled={isDisabled}
                   value={selectedDateValue instanceof Date ? "" : (selectedDateValue || "")}
                   {...register(`${conditionType}.${index}.value`)}
                   onChange={(e) => {
@@ -968,7 +957,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
                   placeholderText="MM/DD/YYYY"
                   showIcon
                   dateFormat={"MM/d/yyyy h:mm aa"}
-                  disabled={!getValues(`${conditionType}.${index}.field`)}
+                  disabled={isDisabled}
                   selected={selectedDateValue instanceof Date ? selectedDateValue : null}
                   className="form-control form-control-sm"
                   onChange={(date: any) =>
@@ -995,7 +984,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
                 type="checkbox"
                 id={`useExactDate-${conditionType}-${index}`}
                 checked={isExactDate}
-                disabled={!getValues(`${conditionType}.${index}.field`)}
+                disabled={isDisabled}
                 onChange={(e) => {
                   if (e.target.checked) {
                     setValue(`${conditionType}.${index}.value`, new Date(), {
@@ -1045,35 +1034,33 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       case "a7":
       case "a8":
         if (hasOptions) {
+          const selectedLegacyValue = getValues(`${conditionType}.${index}.value`);
+          const selectedLegacyArray = selectedLegacyValue ? String(selectedLegacyValue).split(',').map((v: string) => v.trim()) : [];
           return (
-            <select
-              className="form-control form-control-sm"
-              disabled={!getValues(`${conditionType}.${index}.field`)}
-              value={getValues(`${conditionType}.${index}.value`) || ""}
-              {...register(`${conditionType}.${index}.value`)}
-              onChange={(e) => {
-                e.stopPropagation();
-                setValue(`${conditionType}.${index}.value`, e.target.value, {
+            <Select
+              isMulti
+              options={options}
+              value={options.filter((opt: any) => selectedLegacyArray.includes(String(opt.value)))}
+              onChange={(selected: any) => {
+                const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+                setValue(`${conditionType}.${index}.value`, values, {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
               }}
-              style={{ height: "32px" }}
-            >
-              <option value="">Select</option>
-              {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              isDisabled={isDisabled}
+              placeholder="Select..."
+              menuPortalTarget={document.body}
+              components={{ MultiValue: CompactMultiValue }}
+              styles={compactMultiSelectStyles}
+            />
           );
         }
         return (
           <input
             className="form-control form-control-sm"
             type="text"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
+            disabled={isDisabled}
             {...register(`${conditionType}.${index}.value`)}
             placeholder="Enter value"
             style={{ height: "32px" }}
@@ -1081,109 +1068,102 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
         );
       case "8":
       case "pipeline":
+        const pipelineOpts = pipelines.map((p) => ({ value: p.pipelineID, label: p.pipelineName }));
+        const selectedPipelineValue = getValues(`${conditionType}.${index}.value`);
+        const selectedPipelineArray = selectedPipelineValue ? selectedPipelineValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={pipelineOpts}
+            value={pipelineOpts.filter((opt: any) => selectedPipelineArray.includes(String(opt.value)))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
-              })
-            }
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {pipelines.map((pipeline) => (
-              <option key={pipeline.pipelineID} value={pipeline.pipelineID}>
-                {pipeline.pipelineName}
-              </option>
-            ))}
-          </select>
+              });
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select pipeline..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "pipelineType":
+        const pipelineTypeOpts = pipelineTypes.map((pt: any) => ({ value: String(pt.pipelineTypeID || pt.id), label: pt.pipelineTypeName || pt.name }));
+        const selectedPTValue = getValues(`${conditionType}.${index}.value`);
+        const selectedPTArray = selectedPTValue ? selectedPTValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={pipelineTypeOpts}
+            value={pipelineTypeOpts.filter((opt: any) => selectedPTArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
-              })
-            }
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {pipelineTypes.map((pipelineType: any) => (
-              <option key={pipelineType.pipelineTypeID || pipelineType.id} value={pipelineType.pipelineTypeID || pipelineType.id}>
-                {pipelineType.pipelineTypeName || pipelineType.name}
-              </option>
-            ))}
-          </select>
+              });
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select pipeline type..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "stageid":
       case "stage":
+        const stageGroupedOpts = stages.map((item: any) => ({
+          label: item.pipeLine,
+          options: item.stages.map((s: any) => ({ value: s.stageID, label: s.stageName })),
+        }));
+        const allStageOpts = stages.flatMap((item: any) => item.stages.map((s: any) => ({ value: s.stageID, label: s.stageName })));
+        const selectedStageValue = getValues(`${conditionType}.${index}.value`);
+        const selectedStageArray = selectedStageValue ? selectedStageValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={stageGroupedOpts}
+            value={allStageOpts.filter((opt: any) => selectedStageArray.includes(String(opt.value)))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
-              })
-            }
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {stages.map((item, idx) => (
-              <React.Fragment key={idx}>
-                <option
-                  disabled
-                  className="non-selectable-option"
-                  style={{ fontWeight: "bold", textAlign: "left" }}
-                >
-                  {item.pipeLine}
-                </option>
-                {item.stages.map((stage: any) => (
-                  <option
-                    className="pl-4"
-                    key={stage.stageID}
-                    value={stage.stageID}
-                  >
-                    &nbsp; &nbsp; {stage.stageName}
-                  </option>
-                ))}
-              </React.Fragment>
-            ))}
-          </select>
+              });
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select stage..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
       case "statusid":
       case "status":
+        const statusOpts = getDropdownListforValueJSX(key).map((opt) => ({ value: opt.value, label: opt.label }));
+        const selectedStatusValue = getValues(`${conditionType}.${index}.value`);
+        const selectedStatusArray = selectedStatusValue ? selectedStatusValue.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            disabled={!getValues(`${conditionType}.${index}.field`)}
-            value={getValues(`${conditionType}.${index}.value`) || ""}
-            onChange={(e) =>
-              setValue(`${conditionType}.${index}.value`, e.target.value, {
+          <Select
+            isMulti
+            options={statusOpts}
+            value={statusOpts.filter((opt: any) => selectedStatusArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
-              })
-            }
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {getDropdownListforValueJSX(key).map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+              });
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select status..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
 
       case "13":
@@ -1271,7 +1251,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           <input
             className="form-control form-control-sm"
             type={isNumberField ? "number" : "text"}
-            disabled={!getValues(`${conditionType}.${index}.field`)}
+            disabled={isDisabled}
             value={getValues(`${conditionType}.${index}.value`) ?? ""}
             onChange={(e) => {
               setValue(`${conditionType}.${index}.value`, e.target.value, {
@@ -1301,13 +1281,9 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       style={{
         display: "grid",
         gridTemplateColumns: selectedField === "dateOfEnteringStage" ? "140px 180px 140px 140px 1fr auto auto" : "140px 180px 140px 1fr auto auto",
-        gap: "12px",
+        gap: "8px",
         alignItems: "start",
-        padding: "12px",
-        backgroundColor: "#fff",
-        borderRadius: "6px",
-        border: "1px solid #e0e0e0",
-        marginBottom: "10px",
+        marginBottom: "6px",
       }}
     >
       <div>
@@ -1414,6 +1390,10 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             const newValue = e.target.value;
             setSelectedOperator(newValue);
             setValue(`${conditionType}.${index}.operator`, newValue);
+            setValue(`${conditionType}.${index}.value`, "", {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
           }}
           style={{ height: "32px" }}
         >
@@ -1432,7 +1412,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       </div>
 
       <div>
-        {(selectedOperator === "isEmpty" || selectedOperator === "isNotEmpty" || selectedOperator === "empty" || selectedOperator === "not_empty") ? null : valueJSX(getValues(`${conditionType}.${index}.field`))}
+        {selectedOperator === "isEmpty" || selectedOperator === "isNotEmpty" || selectedOperator === "empty" || selectedOperator === "not_empty" || selectedOperator === "restrictedFromPipeline" ? null : valueJSX(getValues(`${conditionType}.${index}.field`), !selectedOperator)}
         {valueError && (
           <div style={{ fontSize: "10px", color: "#dc3545", marginTop: "2px" }}>
             {valueError?.message}
@@ -1464,20 +1444,20 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             e.preventDefault();
             onDelete();
           }}
-          disabled={conditionsLength === 1}
+          disabled={conditionType === "allConditions" && conditionsLength === 1}
           style={{
             background: "none",
             border: "none",
-            cursor: conditionsLength === 1 ? "not-allowed" : "pointer",
+            cursor: conditionType === "allConditions" && conditionsLength === 1 ? "not-allowed" : "pointer",
             padding: "4px",
-            color: conditionsLength === 1 ? "#ccc" : "#dc3545",
+            color: conditionType === "allConditions" && conditionsLength === 1 ? "#ccc" : "#dc3545",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            opacity: conditionsLength === 1 ? 0.5 : 1,
+            opacity: conditionType === "allConditions" && conditionsLength === 1 ? 0.5 : 1,
           }}
           title={
-            conditionsLength === 1
+            conditionType === "allConditions" && conditionsLength === 1
               ? "At least one condition is required"
               : "Remove condition"
           }
@@ -1573,8 +1553,22 @@ const DealFilterAddEditDialog = (props: params) => {
     handleSubmit,
     getValues,
     setValue,
+    watch,
     formState: { errors },
   } = methods;
+
+  const watchedAllConditions = watch("allConditions") as Condition[] | undefined;
+  const watchedAnyConditions = watch("anyConditions") as Condition[] | undefined;
+
+  const isConditionComplete = (cond: Condition): boolean => {
+    if (!cond.object || !cond.field || !cond.operator) return false;
+    const skipValue = ["isEmpty", "isNotEmpty", "empty", "not_empty", "restrictedFromPipeline"].includes(cond.operator);
+    if (!skipValue && (!cond.value || (typeof cond.value === "string" && cond.value.trim() === ""))) return false;
+    return true;
+  };
+
+  const allConditionsComplete = (watchedAllConditions || []).every(isConditionComplete);
+  const anyConditionsComplete = (watchedAnyConditions || []).length === 0 || (watchedAnyConditions || []).every(isConditionComplete);
 
   useEffect(() => {
     if (!dialogIsOpen) return;
@@ -1980,6 +1974,9 @@ const DealFilterAddEditDialog = (props: params) => {
                     event.preventDefault();
                     handleAddCondition(setAllConditions);
                   }}
+                  disabled={!allConditionsComplete}
+                  style={{ opacity: !allConditionsComplete ? 0.5 : 1, cursor: !allConditionsComplete ? "not-allowed" : "pointer" }}
+                  title={!allConditionsComplete ? "Please complete all existing conditions first" : ""}
                 >
                   + Add condition
                 </button>
@@ -1999,6 +1996,9 @@ const DealFilterAddEditDialog = (props: params) => {
                     event.preventDefault();
                     handleAddCondition(setAnyConditions);
                   }}
+                  disabled={!allConditionsComplete}
+                  style={{ opacity: !allConditionsComplete ? 0.5 : 1, cursor: !allConditionsComplete ? "not-allowed" : "pointer" }}
+                  title={!allConditionsComplete ? "Please complete all existing conditions first" : ""}
                 >
                   + Add Any conditions
                 </button>
@@ -2068,6 +2068,9 @@ const DealFilterAddEditDialog = (props: params) => {
                     event.preventDefault();
                     handleAddCondition(setAnyConditions);
                   }}
+                  disabled={!anyConditionsComplete}
+                  style={{ opacity: !anyConditionsComplete ? 0.5 : 1, cursor: !anyConditionsComplete ? "not-allowed" : "pointer" }}
+                  title={!anyConditionsComplete ? "Please complete all existing conditions first" : ""}
                 >
                   + Add condition
                 </button>

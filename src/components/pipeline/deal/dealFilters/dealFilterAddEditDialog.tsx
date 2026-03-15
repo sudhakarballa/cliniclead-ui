@@ -57,26 +57,7 @@ import {
   operatorsForNumberType
 } from "../../../common/fieldConstants";
 
-const CompactMultiValue = (props: any) => {
-  const { index, getValue } = props;
-  const selected = getValue();
-  if (index === 0) {
-    return (
-      <components.MultiValue {...props}>
-        {props.data.label}{selected.length > 1 ? `, +${selected.length - 1}` : ""}
-      </components.MultiValue>
-    );
-  }
-  return null;
-};
-
-const compactMultiSelectStyles = {
-  control: (base: any) => ({ ...base, minHeight: "32px", height: "auto" }),
-  valueContainer: (base: any) => ({ ...base, padding: "0 6px", flexWrap: "nowrap" as const }),
-  input: (base: any) => ({ ...base, margin: "0px" }),
-  indicatorsContainer: (base: any) => ({ ...base, height: "32px" }),
-  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
-};
+import { CompactMultiValue, compactMultiSelectStyles } from "../../../common/FilterValueField";
 
 const getOperatorsByField = (fieldValue: string) => {
   const fieldOperatorMap: { [key: string]: any[] } = {

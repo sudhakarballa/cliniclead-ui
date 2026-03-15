@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import Picker from "react-datepicker";
 import { DateRangePicker } from "../../elements/dateRangePicker";
 import SelectDropdown from "../../elements/SelectDropdown";
@@ -9,140 +9,62 @@ import { personService } from "../../services/personService";
 import { UserService } from "../../services/UserService";
 import { PipeLineTypeService } from "../../services/pipeLineTypeService";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import {
+  dealFieldOptions as fieldOptions,
+  operators1,
+  operators2,
+  operators3,
+  operators4,
+} from "../common/fieldConstants";
+import {
+  procedureOptions,
+  entProcedureOptions,
+  gastroenterologyOptions,
+  generalSurgeryOptions,
+  gynaecologyTreatmentOptions,
+  orthopaedicTreatmentOptions,
+  electivaTreatmentsOptions,
+  treatmentOptions,
+  apiCallOptions,
+  currencyOptions,
+  urologyTreatmentOptions,
+  visionTreatmentOptions,
+  electivaLocationOptions,
+  enquiryOptions,
+  identiteLocationOptions,
+  identiteProcedureOptions,
+  labelOptions,
+  lostReasonOptions,
+  yesNoOptions,
+} from "./reportConstants";
 
-// Import exact operators from dealFilterAddEditDialog
-const operators2 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "containsAny", label: "contains any of" },
-  { value: "containsAll", label: "contains" },
-  { value: "notContains", label: "does not contain" }
-];
+const CompactMultiValue = (props: any) => {
+  const { index, getValue } = props;
+  const selected = getValue();
+  if (index === 0) {
+    return (
+      <components.MultiValue {...props}>
+        {props.data.label}{selected.length > 1 ? `, +${selected.length - 1}` : ""}
+      </components.MultiValue>
+    );
+  }
+  return null;
+};
 
-const operators3 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "contains", label: "contains" },
-  { value: "startsWith", label: "starts with" },
-  { value: "notStartsWith", label: "does not start with" }
-];
+const compactMultiSelectStyles = {
+  control: (base: any) => ({ ...base, minHeight: "32px", height: "auto" }),
+  valueContainer: (base: any) => ({ ...base, padding: "0 6px", flexWrap: "nowrap" as const }),
+  input: (base: any) => ({ ...base, margin: "0px" }),
+  indicatorsContainer: (base: any) => ({ ...base, height: "32px" }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+};
 
-const operators4 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "onOrBefore", label: "is exactly on or before" },
-  { value: "before", label: "is before" },
-  { value: "onOrAfter", label: "is exactly on or after" },
-  { value: "after", label: "is after" }
-];
-
-const operators1 = [
-  { value: "=", label: "= is" },
-  { value: "!=", label: "≠ is not" },
-  { value: "empty", label: "is empty" },
-  { value: "not_empty", label: "is not empty" },
-  { value: "<=", label: "≤ is less or equal to" },
-  { value: "<", label: "< is less than" },
-  { value: ">=", label: "≥ is more or equal to" },
-  { value: ">", label: "> is more than" },
-];
-
-// Import exact field options from dealFilterAddEditDialog
-const fieldOptions = [
-  { value: "activitiesToDo", label: "Activities to do" },
-  { value: "acv", label: "ACV", isNumberType: true },
-  { value: "apiCallsMade", label: "API Calls Made", isNumberType: true },
-  { value: "appointmentStatus", label: "Appointment Status" },
-  { value: "archiveTime", label: "Archive time", isDateType: true },
-  { value: "arr", label: "ARR", isNumberType: true },
-  { value: "assignedBdManager", label: "Assigned BD Manager" },
-  { value: "attachedProduct", label: "Attached product" },
-  { value: "blandDealIdentifier", label: "Bland Deal Identifier" },
-  { value: "clientNumber", label: "Client Number" },
-  { value: "clinic", label: "Clinic" },
-  { value: "company", label: "Company" },
-  { value: "consentCheckbox", label: "Consent Checkbox" },
-  { value: "consultDate", label: "Consult Date", isDateType: true },
-  { value: "contactPerson", label: "Contact person" },
-  { value: "cosmeticProcedure", label: "Cosmetic Procedure" },
-  { value: "creator", label: "Creator" },
-  { value: "currencyOfACV", label: "Currency of ACV" },
-  { value: "currencyOfARR", label: "Currency of ARR" },
-  { value: "currencyOfMRR", label: "Currency of MRR" },
-  { value: "currencyOfRevenue", label: "Currency of Revenue" },
-  { value: "currencyOfValue", label: "Currency of Value" },
-  { value: "currencyOfZandaInvoiceValue", label: "Currency of Zanda Invoice Value" },
-  { value: "currentPracticeLocation", label: "Current Practice Location" },
-  { value: "dateOfEnteringStage", label: "Date of entering stage", isDateType: true },
-  { value: "dealClosedOn", label: "Deal closed on", isDateType: true },
-  { value: "dealCreated", label: "Deal created", isDateType: true },
-  { value: "dealStage", label: "Deal Stage" },
-  { value: "doneActivities", label: "Done activities", isNumberType: true },
-  { value: "electiveBreastSurgery", label: "Elective Breast Surgery" },
-  { value: "electivaEntSurgery", label: "Electiva ENT Surgery" },
-  { value: "electivaGastroenterology", label: "Electiva Gastroenterology" },
-  { value: "electivaGeneralSurgery", label: "Electiva General Surgery" },
-  { value: "electivaGynaecologyTreatments", label: "Electiva Gynaecology Treatments" },
-  { value: "electivaNote", label: "Electiva Note" },
-  { value: "electivaOrthopaedicTreatments", label: "Electiva Orthopaedic Treatments" },
-  { value: "electivaTreatments", label: "Electiva Treatments" },
-  { value: "electivaUrologyTreatments", label: "Electiva Urology Treatments" },
-  { value: "electivaVisionTreatments", label: "Electiva Vision Treatments" },
-  { value: "electivaLocations", label: "Electiva Locations" },
-  { value: "enquiry", label: "Enquiry" },
-  { value: "emailMessagesCount", label: "Email messages count", isNumberType: true },
-  { value: "expectedCloseDate", label: "Expected close date", isDateType: true },
-  { value: "gmcNumber", label: "GMC Number" },
-  { value: "identiteLocation", label: "Identite Location" },
-  { value: "identiteProcedure", label: "Identite Procedure" },
-  { value: "label", label: "Label" },
-  { value: "lastActivityDate", label: "Last activity date", isDateType: true },
-  { value: "lastEmailReceived", label: "Last email received", isDateType: true },
-  { value: "lastEmailSent", label: "Last email sent" },
-  { value: "lastStageChange", label: "Last stage change" },
-  { value: "location", label: "Location (City)" },
-  { value: "lostReviewReason", label: "Lost Review Reason" },
-  { value: "lostReason", label: "Lost Reason" },
-  { value: "lostTime", label: "Lost time", isDateType: true },
-  { value: "marketingContent", label: "Marketing Content" },
-  { value: "marketingFBClid", label: "Marketing_FBClid" },
-  { value: "marketingGClid", label: "Marketing_GCLID" },
-  { value: "marketingMedium", label: "Marketing Medium" },
-  { value: "marketingSource", label: "Marketing Source" },
-  { value: "marketingTerm", label: "Marketing Term" },
-  { value: "marketingConsent", label: "Marketing Consent" },
-  { value: "medicalForm", label: "Medical_Form" },
-  { value: "mrr", label: "MRR", isNumberType: true },
-  { value: "nextActivityDate", label: "Next activity date", isDateType: true },
-  { value: "nextSteps", label: "Next Steps" },
-  { value: "operationDate", label: "Operation Date", isDateType: true },
-  { value: "organization", label: "Organization" },
-  { value: "owner", label: "Owner" },
-  { value: "pipeline", label: "Pipeline" },
-  { value: "pipelineType", label: "Pipeline Type" },
-  { value: "probability", label: "Probability", isNumberType: true },
-  { value: "referTelephoneNumber", label: "Does The Refer Telephone Number exists" },
-  { value: "revenue", label: "Revenue", isNumberType: true },
-  { value: "score", label: "Score", isNumberType: true },
-  { value: "source", label: "Source" },
-  { value: "sourceChannel", label: "Source channel" },
-  { value: "stage", label: "Stage" },
-  { value: "status", label: "Status" },
-  { value: "submissionId", label: "Submission Id" },
-  { value: "tcConsent", label: "TC Consent" },
-  { value: "title", label: "Title" },
-  { value: "totalActivities", label: "Total activities", isNumberType: true },
-  { value: "treatment", label: "Treatment" },
-  { value: "updateTime", label: "Update time", isDateType: true },
-  { value: "value", label: "Value", isNumberType: true },
-  { value: "wonTime", label: "Won time", isDateType: true },
-  { value: "zandaInvoiceValue", label: "Zanda Invoice Value", isNumberType: true },
+const dealStatusList = [
+  { value: "1", label: "Open" },
+  { value: "2", label: "Won" },
+  { value: "3", label: "Lost" },
+  { value: "4", label: "Closed" },
+  { value: "5", label: "Deleted" },
 ];
 
 const getOperatorsByField = (fieldValue: string) => {
@@ -223,6 +145,44 @@ const getOperatorsByField = (fieldValue: string) => {
   return fieldOperatorMap[fieldValue] || operators2;
 };
 
+// Map of field -> static options for multi-select
+const staticOptionsMap: { [key: string]: any[] } = {
+  electiveBreastSurgery: procedureOptions,
+  electivaEntSurgery: entProcedureOptions,
+  electivaGastroenterology: gastroenterologyOptions,
+  electivaGeneralSurgery: generalSurgeryOptions,
+  electivaGynaecologyTreatments: gynaecologyTreatmentOptions,
+  electivaOrthopaedicTreatments: orthopaedicTreatmentOptions,
+  electivaTreatments: electivaTreatmentsOptions,
+  electivaLocations: electivaLocationOptions,
+  electivaUrologyTreatments: urologyTreatmentOptions,
+  electivaVisionTreatments: visionTreatmentOptions,
+  enquiry: enquiryOptions,
+  identiteLocation: identiteLocationOptions,
+  identiteProcedure: identiteProcedureOptions,
+  label: labelOptions,
+  lostReason: lostReasonOptions,
+  marketingConsent: yesNoOptions,
+  medicalForm: yesNoOptions,
+  consentCheckbox: yesNoOptions,
+  tcConsent: yesNoOptions,
+  apiCallsMade: apiCallOptions,
+  treatment: treatmentOptions,
+  status: dealStatusList,
+  currencyOfACV: currencyOptions,
+  currencyOfARR: currencyOptions,
+  currencyOfMRR: currencyOptions,
+  currencyOfRevenue: currencyOptions,
+  currencyOfValue: currencyOptions,
+  currencyOfZandaInvoiceValue: currencyOptions,
+};
+
+const dateFields = [
+  "archiveTime", "consultDate", "dateOfEnteringStage", "dealClosedOn", "dealCreated",
+  "expectedCloseDate", "lastActivityDate", "lastEmailReceived", "lastEmailSent",
+  "lastStageChange", "nextActivityDate", "operationDate", "updateTime", "wonTime", "lostTime"
+];
+
 type AdvancedFiltersProps = {
   selectedStartDate: any;
   setSelectedStartDate: any;
@@ -274,7 +234,6 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         setUsers(usersRes || []);
         setPipelineTypes(pipelineTypesRes || []);
         
-        // Load pipelines and stages from localStorage
         const pipelinesData = localStorage.getItem("allPipeLines");
         if (pipelinesData) {
           setPipelines(JSON.parse(pipelinesData));
@@ -319,6 +278,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       updated[index].operator = "";
       updated[index].value = "";
     }
+    if (key === "operator") {
+      updated[index].value = "";
+    }
     setConditions(updated);
   };
 
@@ -331,29 +293,45 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     });
   };
 
+  const renderMultiSelect = (opts: any[], condition: any, index: number, placeholder: string) => {
+    const selectedArray = condition.value ? condition.value.split(',').map((v: string) => v.trim()) : [];
+    return (
+      <Select
+        isMulti
+        options={opts}
+        value={opts.filter((opt: any) => selectedArray.includes(String(opt.value)))}
+        onChange={(selected: any) => {
+          const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+          handleConditionChange(index, "value", values);
+        }}
+        isDisabled={!condition.operator}
+        placeholder={placeholder}
+        menuPortalTarget={document.body}
+        components={{ MultiValue: CompactMultiValue }}
+        styles={compactMultiSelectStyles}
+      />
+    );
+  };
+
   const renderValueInput = (condition: any, index: number) => {
     const { field, operator } = condition;
     
     if (operator === "isEmpty" || operator === "isNotEmpty" || operator === "empty" || operator === "not_empty") {
       return null;
     }
+
+    const isDisabled = !operator;
     
-    // Date fields with exact date option
-    const dateFields = [
-      "archiveTime", "consultDate", "dateOfEnteringStage", "dealClosedOn", "dealCreated",
-      "expectedCloseDate", "lastActivityDate", "lastEmailReceived", "lastEmailSent",
-      "lastStageChange", "nextActivityDate", "operationDate", "updateTime", "wonTime", "lostTime"
-    ];
-    
+    // Date fields
     if (dateFields.includes(field)) {
       const isExactDate = condition.value instanceof Date;
-      
       return (
         <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
           <div style={{ flex: 1 }}>
             {!isExactDate ? (
               <select
                 className="form-control form-control-sm"
+                disabled={isDisabled}
                 value={condition.value instanceof Date ? "" : (condition.value || "")}
                 onChange={(e) => handleConditionChange(index, "value", e.target.value)}
                 style={{ height: "32px" }}
@@ -405,12 +383,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               type="checkbox"
               id={`useExactDate-${index}`}
               checked={isExactDate}
+              disabled={isDisabled}
               onChange={(e) => {
-                if (e.target.checked) {
-                  handleConditionChange(index, "value", new Date());
-                } else {
-                  handleConditionChange(index, "value", "");
-                }
+                handleConditionChange(index, "value", e.target.checked ? new Date() : "");
               }}
               style={{ margin: "0 4px 0 0", cursor: "pointer" }}
             />
@@ -421,163 +396,108 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         </div>
       );
     }
+
+    // Static options multi-select (electiva, label, lostReason, consent, status, currency, etc.)
+    if (staticOptionsMap[field]) {
+      return renderMultiSelect(staticOptionsMap[field], condition, index, "Select...");
+    }
     
+    // Dynamic data multi-selects
     switch (field) {
-      case "clinic":
-        return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-          >
-            <option value="">Select Clinic</option>
-            {clinics.map((clinic: any) => (
-              <option key={clinic.clinicID} value={clinic.clinicID}>
-                {clinic.clinicName}
-              </option>
-            ))}
-          </select>
-        );
-      case "contactPerson":
-        return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-          >
-            <option value="">Select Person</option>
-            {persons.map((person: any) => (
-              <option key={person.personID} value={person.personID}>
-                {person.personName}
-              </option>
-            ))}
-          </select>
-        );
+      case "clinic": {
+        const clinicOpts = clinics.map((c: any) => ({ value: String(c.clinicID || c.id), label: c.clinicName || c.name }));
+        return renderMultiSelect(clinicOpts, condition, index, "Select clinic...");
+      }
+      case "contactPerson": {
+        const personOpts = persons.map((p: any) => ({ value: String(p.personID || p.id), label: `👤 ${p.personName || p.name}` }));
+        return renderMultiSelect(personOpts, condition, index, "Select persons...");
+      }
       case "owner":
-      case "creator":
-        const activeUsers = users.filter((user: any) => user.isActive !== false);
-        const inactiveUsers = users.filter((user: any) => user.isActive === false);
+      case "creator": {
+        const userOpts = users.map((u: any) => ({
+          value: String(u.userId || u.id),
+          label: `👤 ${u.userName || u.name}`,
+          isActive: u.isActive !== false,
+        }));
+        const groupedUserOpts = [
+          { label: "Active users", options: userOpts.filter((u: any) => u.isActive) },
+          { label: "Inactive users", options: [...userOpts.filter((u: any) => !u.isActive), { value: "anyInactiveUser", label: "👤 Any inactive user", isActive: false }] },
+        ];
+        const selectedArray = condition.value ? condition.value.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            <optgroup label="Active users">
-              {activeUsers.map((user: any) => (
-                <option key={user.userId || user.id} value={user.userId || user.id}>
-                  👤 {user.userName || user.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Inactive users">
-              {inactiveUsers.map((user: any) => (
-                <option key={user.userId || user.id} value={user.userId || user.id}>
-                  👤 {user.userName || user.name}
-                </option>
-              ))}
-              <option value="anyInactiveUser">👤 Any inactive user</option>
-            </optgroup>
-          </select>
+          <Select
+            isMulti
+            options={groupedUserOpts}
+            value={userOpts.filter((opt: any) => selectedArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              handleConditionChange(index, "value", values);
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select users..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
-      case "consentCheckbox":
-      case "tcConsent":
+      }
+      case "pipeline": {
+        const pipelineOpts = pipelines.map((p: any) => ({ value: String(p.pipelineID), label: p.pipelineName }));
+        return renderMultiSelect(pipelineOpts, condition, index, "Select pipeline...");
+      }
+      case "pipelineType": {
+        const ptOpts = pipelineTypes.map((pt: any) => ({ value: String(pt.pipelineTypeID || pt.id), label: pt.pipelineTypeName || pt.name }));
+        return renderMultiSelect(ptOpts, condition, index, "Select pipeline type...");
+      }
+      case "stage": {
+        const stageGroupedOpts = stages.map((item: any) => ({
+          label: item.pipelineName || item.pipeLine,
+          options: (item.pipelineStages || item.stages || []).map((s: any) => ({ value: String(s.stageID), label: s.stageName })),
+        }));
+        const allStageOpts = stages.flatMap((item: any) => (item.pipelineStages || item.stages || []).map((s: any) => ({ value: String(s.stageID), label: s.stageName })));
+        const selectedArray = condition.value ? condition.value.split(',').map((v: string) => v.trim()) : [];
         return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
+          <Select
+            isMulti
+            options={stageGroupedOpts}
+            value={allStageOpts.filter((opt: any) => selectedArray.includes(opt.value))}
+            onChange={(selected: any) => {
+              const values = selected ? selected.map((item: any) => item.value).join(',') : '';
+              handleConditionChange(index, "value", values);
+            }}
+            isDisabled={isDisabled}
+            placeholder="Select stage..."
+            menuPortalTarget={document.body}
+            components={{ MultiValue: CompactMultiValue }}
+            styles={compactMultiSelectStyles}
+          />
         );
-      case "pipeline":
-        return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-          >
-            <option value="">Select Pipeline</option>
-            {pipelines.map((pipeline: any) => (
-              <option key={pipeline.pipelineID} value={pipeline.pipelineID}>
-                {pipeline.pipelineName}
-              </option>
-            ))}
-          </select>
-        );
-      case "pipelineType":
-        return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-          >
-            <option value="">Select Type</option>
-            {pipelineTypes.map((type: any) => (
-              <option key={type.pipelineTypeID} value={type.pipelineTypeID}>
-                {type.pipelineTypeName}
-              </option>
-            ))}
-          </select>
-        );
-      case "stage":
-        return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-            style={{ height: "32px" }}
-          >
-            <option value="">Select</option>
-            {stages.map((item, idx) => (
-              <React.Fragment key={idx}>
-                <option disabled className="non-selectable-option" style={{ fontWeight: "bold", textAlign: "left" }}>
-                  {item.pipeLine}
-                </option>
-                {item.stages?.map((stage: any) => (
-                  <option className="pl-4" key={stage.stageID} value={stage.stageID}>
-                    &nbsp; &nbsp; {stage.stageName}
-                  </option>
-                ))}
-              </React.Fragment>
-            ))}
-          </select>
-        );
-      case "status":
-        return (
-          <select
-            className="form-control form-control-sm"
-            value={condition.value}
-            onChange={(e) => handleConditionChange(index, "value", e.target.value)}
-          >
-            <option value="">Select Status</option>
-            <option value="1">Open</option>
-            <option value="2">Won</option>
-            <option value="3">Lost</option>
-            <option value="4">Closed</option>
-            <option value="5">Deleted</option>
-          </select>
-        );
-      default:
+      }
+      default: {
         const fieldOption = fieldOptions.find(f => f.value === field);
         return (
           <input
             type={fieldOption?.isNumberType ? "number" : "text"}
             className="form-control form-control-sm"
             placeholder={fieldOption?.isNumberType ? "Enter a number" : "Value"}
+            disabled={isDisabled}
             value={condition.value}
             onChange={(e) => handleConditionChange(index, "value", e.target.value)}
             style={{ height: "32px" }}
           />
         );
+      }
     }
   };
+
+  const isConditionComplete = (cond: any): boolean => {
+    if (!cond.field || !cond.operator) return false;
+    const skipValue = ["isEmpty", "isNotEmpty", "empty", "not_empty"].includes(cond.operator);
+    if (!skipValue && (!cond.value || (typeof cond.value === "string" && cond.value.trim() === ""))) return false;
+    return true;
+  };
+
+  const allComplete = conditions.every(isConditionComplete);
 
   return (
     <div
@@ -720,6 +640,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           <button
             className="btn btn-sm btn-secondary"
             onClick={handleAddCondition}
+            disabled={!allComplete}
+            style={{ opacity: !allComplete ? 0.5 : 1, cursor: !allComplete ? "not-allowed" : "pointer" }}
+            title={!allComplete ? "Please complete all existing conditions first" : ""}
           >
             + Add Condition
           </button>

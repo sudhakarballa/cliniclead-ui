@@ -41,6 +41,7 @@ import { sendEmail } from "./activities/email/emailService";
 import NotesAddEdit from "./activities/notes/notesAddEdit";
 import { TaskAddEdit } from "./activities/tasks/taskAddEdit";
 import DealOverView from "./overview/dealOverView";
+import { DealAddEditDialog } from "./dealAddEditDialog";
 import DealDetailsCustomFields from "./dealDetailsCustomFields";
 import DealsDialog from "./DealsDialog";
 import JustCallComponent from "./justcall";
@@ -102,6 +103,8 @@ export const DealDetails = () => {
   const [isDealsModalOpen, setIsDealsModalOpen] = useState(false);
   const [isDealsLoading, setIsDealsLoading] = useState(false);
   const [relatedDeals, setRelatedDeals] = useState([]);
+  const [editDealDialogOpen, setEditDealDialogOpen] = useState(false);
+  const [pipeLinesList, setPipeLinesList] = useState<any[]>([]);
 
   const [openDealsCount, setOpenDealsCount] = useState(
     dealItem.openDealsCount || 0
@@ -123,6 +126,21 @@ export const DealDetails = () => {
       setDealValue(dealItem.value);
     }
   }, [dealItem.value]);
+
+  // Load pipelines for edit dialog
+  useEffect(() => {
+    try {
+      const data = localStorage.getItem("getAllPipeLinesAndStages");
+      if (data) {
+        const parsed = JSON.parse(data);
+        const list = parsed.map((p: any) => ({
+          pipelineID: p.pipelineStages?.[0]?.pipelineID || 0,
+          pipelineName: p.pipelineName || "",
+        }));
+        setPipeLinesList(list);
+      }
+    } catch {}
+  }, []);
 
   const convertUTCtoISO = (utcDateString: string) => {
     // Create a Date object from the UTC string
@@ -593,12 +611,22 @@ export const DealDetails = () => {
                 <div className="app-dealblock-inner">
                   <div className="appdealblock-title">
                     <h3>{dealItem?.treatmentName}</h3>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={(e: any) => onDealModified()}
-                    >
-                      Save
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Tooltip title="Edit Deal" placement="top">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => setEditDealDialogOpen(true)}
+                        >
+                          <FontAwesomeIcon icon={faPencil} />
+                        </button>
+                      </Tooltip>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={(e: any) => onDealModified()}
+                      >
+                        Save
+                      </button>
+                    </div>
                   </div>
                   <div className="appdealblock-data">
                     <div className="appdealblock-row">
@@ -1275,6 +1303,17 @@ export const DealDetails = () => {
                 dealItem={dealItem}
               />
             ) : null}
+            {editDealDialogOpen && pipeLinesList.length > 0 && (
+              <DealAddEditDialog
+                dialogIsOpen={editDealDialogOpen}
+                setDialogIsOpen={setEditDealDialogOpen}
+                onSaveChanges={() => fetchDealData(+dealId, +pipeLineId)}
+                pipeLinesList={pipeLinesList}
+                selectedPipeLineId={dealItem.pipelineID}
+                selectedStageId={dealItem.stageID}
+                editDeal={dealItem}
+              />
+            )}
           </div>
         </div>
       )}

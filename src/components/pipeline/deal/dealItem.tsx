@@ -6,6 +6,7 @@ import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import MoveDeal from "./moveDeal";
+import { DealAddEditDialog } from "./dealAddEditDialog";
 import { PipeLine } from "../../../models/pipeline";
 import { Utility } from "../../../models/utility";
 import Util, { IsMockService } from "../../../others/util";
@@ -32,6 +33,7 @@ export const DealItem = (props: params) => {
 
   const { deal, isDragging, isGroupedOver, provided, style, isClone, index, onDeleteClick, pipeLinesList, onDealModify } = props;
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -168,6 +170,24 @@ export const DealItem = (props: params) => {
             padding: '8px 0'
           }}
         >
+          <Tooltip title="Edit deal details" placement="left">
+            <div
+              onClick={() => {
+                setEditDialogOpen(true);
+                setShowDropdown(false);
+              }}
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                borderBottom: '1px solid #f0f0f0',
+                color: '#3f3f3f'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f3f3'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              Edit
+            </div>
+          </Tooltip>
           <Tooltip title={TOOLTIPS.DEAL.DELETE_DEAL} placement="left">
             <div
               onClick={() => {
@@ -232,6 +252,17 @@ export const DealItem = (props: params) => {
         </div>,
         document.body
       )}
+      {
+        editDialogOpen && <DealAddEditDialog
+                            dialogIsOpen={editDialogOpen}
+                            setDialogIsOpen={setEditDialogOpen}
+                            onSaveChanges={() => props.onDealModify()}
+                            pipeLinesList={pipeLinesList}
+                            selectedPipeLineId={deal?.pipelineID}
+                            selectedStageId={deal?.stageID}
+                            editDeal={deal}
+                          />
+      }
       {
         dialogIsOpen && <MoveDeal dialogIsOpen={dialogIsOpen}
                                   pipeLinesList={pipeLinesList}

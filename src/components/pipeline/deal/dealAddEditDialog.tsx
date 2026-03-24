@@ -32,17 +32,36 @@ type params = {
     pipeLinesList: Array<PipeLine>
     selectedPipeLineId?: number;
     selectedStageId?:any;
+    editDeal?: Deal;
 }
 export const DealAddEditDialog = (props: params) => {
     
-    const { dialogIsOpen, setDialogIsOpen, onSaveChanges, index, pipeLinesList, selectedPipeLineId, selectedStageId, ...others } = props;
+    const { dialogIsOpen, setDialogIsOpen, onSaveChanges, index, pipeLinesList, selectedPipeLineId, selectedStageId, editDeal, ...others } = props;
+    const isEditMode = !!editDeal;
     const [stages, setStages] = useState<Array<Stage>>([]);
     const [pipelineTypes, setPipelineTypes] = useState<Array<{ name: string, value: number }>>([]);
     
     const [selectedItem, setSelectedItem] = useState<SelectedItem>({
         ...new Deal(),
-        pipelineID: selectedPipeLineId ?? pipeLinesList[0]?.pipelineID,
-        contactPersonID: null,
+        ...(editDeal ? {
+            dealID: editDeal.dealID,
+            title: editDeal.title,
+            value: editDeal.value,
+            probability: editDeal.probability,
+            phone: editDeal.phone,
+            email: editDeal.email,
+            pipelineID: editDeal.pipelineID,
+            stageID: editDeal.stageID,
+            contactPersonID: editDeal.contactPersonID,
+            treatmentID: editDeal.treatmentID,
+            clinicID: editDeal.clinicID,
+            sourceID: editDeal.sourceID,
+            pipelineTypeID: editDeal.pipelineTypeID,
+            expectedCloseDate: editDeal.expectedCloseDate,
+            operationDate: editDeal.operationDate,
+        } : {}),
+        pipelineID: editDeal?.pipelineID ?? selectedPipeLineId ?? pipeLinesList[0]?.pipelineID,
+        contactPersonID: editDeal?.contactPersonID ?? null,
         newContact: {
             personName: "",
             email: "",
@@ -51,7 +70,9 @@ export const DealAddEditDialog = (props: params) => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedContact, setSelectedContact] = useState<any>(null);
+    const [selectedContact, setSelectedContact] = useState<any>(
+        editDeal ? { personName: editDeal.personName, contactPersonID: editDeal.contactPersonID } : null
+    );
     const dealsSvc = new DealService(ErrorBoundary);
     const stagesSvc = new StageService(ErrorBoundary);
     const pipeLineTypeSvc = new PipeLineTypeService(ErrorBoundary);
@@ -192,6 +213,27 @@ export const DealAddEditDialog = (props: params) => {
    
 
     useEffect(() => {
+        if (isEditMode && editDeal) {
+            const fields: Record<string, any> = {
+                title: editDeal.title,
+                value: editDeal.value,
+                probability: editDeal.probability,
+                phone: editDeal.phone,
+                email: editDeal.email,
+                contactPersonID: editDeal.contactPersonID,
+                treatmentID: editDeal.treatmentID,
+                pipelineID: editDeal.pipelineID,
+                stageID: editDeal.stageID,
+                clinicID: editDeal.clinicID,
+                pipelineTypeID: editDeal.pipelineTypeID,
+                leadSourceID: editDeal.sourceID,
+                expectedCloseDate: editDeal.expectedCloseDate ? new Date(editDeal.expectedCloseDate) : null,
+                operationDate: editDeal.operationDate ? new Date(editDeal.operationDate) : null,
+            };
+            Object.entries(fields).forEach(([key, val]) => {
+                if (val !== undefined && val !== null) setValue(key as never, val as never);
+            });
+        }
         
         setIsLoading(true);
         sourceSvc.getSources().then(res => {
@@ -374,15 +416,19 @@ export const DealAddEditDialog = (props: params) => {
         console.log("Payload being sent: ", payload);
     
         // Send the payload to the API
-        dealsSvc.postItemBySubURL(payload, "saveDealDetails").then((res) => {
-            if (res.success && res.dealID > 0) {
-                toast.success("Deal added successfully");
+        const apiCall = isEditMode
+            ? dealsSvc.putItemBySubURL({ ...addUpdateItem, dealID: editDeal!.dealID }, "" + editDeal!.dealID)
+            : dealsSvc.postItemBySubURL(payload, "saveDealDetails");
+
+        apiCall.then((res) => {
+            if (isEditMode || (res.success && res.dealID > 0)) {
+                toast.success(isEditMode ? "Deal updated successfully" : "Deal added successfully");
                 setTimeout(() => {
                     setDialogIsOpen(false);
                     props.onSaveChanges();
                 }, 500);
             } else {
-                toast.error(res.message || "Unable to add Deal");
+                toast.error(res.message || "Unable to save Deal");
             }
         }).catch((error) => {
             console.error("Error saving deal: ", error);
@@ -713,7 +759,7 @@ export const DealAddEditDialog = (props: params) => {
             {
                 <FormProvider {...methods}>
                     <AddEditDialog dialogIsOpen={dialogIsOpen}
-                        header={"Add Deal"}
+                        header={isEditMode ? "Edit Deal" : "Add Deal"}
                         closeDialog={oncloseDialog}
                         onClose={oncloseDialog}
                         onSave={handleSubmit(onSubmit, (errors) => {

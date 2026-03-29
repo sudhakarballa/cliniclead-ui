@@ -2,8 +2,8 @@ export const msalConfig = {
     auth: {
       clientId: window.config.ClientId,
       authority: 'https://login.microsoftonline.com/common',
-      redirectUri: window.config.RedirectUri,
-      postLogoutRedirectUri: window.config.RedirectUri,
+      redirectUri: window.location.origin,
+      postLogoutRedirectUri: window.location.origin,
     },
     cache: {
       cacheLocation: "localStorage",

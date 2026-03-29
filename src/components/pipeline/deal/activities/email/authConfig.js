@@ -10,11 +10,8 @@ export const msalConfig = {
       storeAuthStateInCookie: false,
     }
   };
-
-export const popupRedirectUri = (window.config.RedirectUri || window.location.origin) + "/auth-redirect.html";
   
   export const loginRequest = {
     scopes: ["openid", "profile", "User.Read", "Mail.Send", "Mail.Read", 
       "Mail.ReadWrite.Shared" , "Mail.ReadWrite", "Tasks.ReadWrite", 'Calendars.ReadWrite.Shared'],
   };
-  

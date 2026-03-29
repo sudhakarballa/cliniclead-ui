@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { DeleteDialog } from "../../../../../common/deleteDialog";
 import { EmailCompose } from "../../../../../models/emailCompose";
 import Util from "../../../../../others/util";
-import { loginRequest, popupRedirectUri } from "./authConfig";
+import { loginRequest } from "./authConfig";
 import EmailComposeDialog from "./emailComposeDialog";
 import { deleteEmail, getSentEmails, sendEmail } from "./emailService"; // Assuming you have a function to fetch sent emails
 import SentEmailsList from "./sentEmailsList";
@@ -36,9 +36,13 @@ function EmailActivities(props: params) {
   const dealEmailLogService = new DealEmailLogService(ErrorBoundary)
   const emailTemplateSvc = new EmailTemplateService(ErrorBoundary);
   const [personEmail, setPersonEmail] = useState("");
+  const [loginAttempted, setLoginAttempted] = useState(false);
+
   useEffect(() => {
-    if (accounts.length == 0) {
+    if (accounts.length === 0 && !loginAttempted) {
+      setLoginAttempted(true);
       handleLogin();
+      return;
     }
 
     if (accounts.length > 0 && instance) {
@@ -50,7 +54,7 @@ function EmailActivities(props: params) {
         fetchData();
       });
     }
-  }, [(instance as any)?.controller?.initialized, accounts]);
+  }, [accounts.length]);
 
   useEffect(() => {
     if (!dealId) return;
@@ -129,10 +133,7 @@ function EmailActivities(props: params) {
 
   const handleLogin = async () => {
     try {
-      let res = await instance.loginPopup({
-        ...loginRequest,
-        redirectUri: popupRedirectUri,
-      });
+      let res = await instance.loginPopup(loginRequest);
       console.log("Login successful", res);
     } catch (error) {
       console.error("Login failed", error);

@@ -34,7 +34,7 @@ import Util, { IsMockService } from "../../../others/util";
 import { useAuthContext } from "../../../contexts/AuthContext";
 import { DealService } from "../../../services/dealService";
 import { StageService } from "../../../services/stageService";
-import { loginRequest, popupRedirectUri } from "./activities/email/authConfig";
+import { loginRequest } from "./activities/email/authConfig";
 import { prepareEmailBody } from "./activities/email/emailActivites";
 import EmailComposeDialog from "./activities/email/emailComposeDialog";
 import { sendEmail } from "./activities/email/emailService";
@@ -496,10 +496,7 @@ export const DealDetails = () => {
 
   const onLoginConfirm = async () => {
     try {
-      let res = await instance.loginPopup({
-        ...loginRequest,
-        redirectUri: popupRedirectUri,
-      });
+      let res = await instance.loginPopup(loginRequest);
       setDialogIsOpen(true);
       console.log("Login successful", res);
     } catch (error) {

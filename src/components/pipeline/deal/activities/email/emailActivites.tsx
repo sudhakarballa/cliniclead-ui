@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { DeleteDialog } from "../../../../../common/deleteDialog";
 import { EmailCompose } from "../../../../../models/emailCompose";
 import Util from "../../../../../others/util";
-import { loginRequest } from "./authConfig";
+import { loginRequest, popupRedirectUri } from "./authConfig";
 import EmailComposeDialog from "./emailComposeDialog";
 import { deleteEmail, getSentEmails, sendEmail } from "./emailService"; // Assuming you have a function to fetch sent emails
 import SentEmailsList from "./sentEmailsList";
@@ -129,7 +129,10 @@ function EmailActivities(props: params) {
 
   const handleLogin = async () => {
     try {
-      let res = await instance.loginPopup(loginRequest);
+      let res = await instance.loginPopup({
+        ...loginRequest,
+        redirectUri: popupRedirectUri,
+      });
       console.log("Login successful", res);
     } catch (error) {
       console.error("Login failed", error);

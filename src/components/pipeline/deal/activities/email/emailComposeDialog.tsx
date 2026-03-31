@@ -3,9 +3,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import * as Yup from "yup";
 import Util from "../../../../../others/util";
 import { AddEditDialog } from "../../../../../common/addEditDialog";
-import { ElementType, IControl } from "../../../../../models/iControl";
-import GenerateElements from "../../../../../common/generateElements";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import LocalStorageUtil from "../../../../../others/LocalStorageUtil";
 import Constants from "../../../../../others/constants";
@@ -14,8 +12,45 @@ import {
   EmailTemplate,
 } from "../../../../../models/emailTemplate";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
-import CloseIcon from '@mui/icons-material/Close';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from "@mui/icons-material/Close";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+
+const fieldRowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  borderBottom: "1px solid #e0e0e0",
+  padding: "6px 0",
+  gap: 0,
+};
+
+const labelStyle: React.CSSProperties = {
+  width: 60,
+  minWidth: 60,
+  fontSize: 13,
+  color: "#555",
+  fontWeight: 500,
+  textAlign: "right",
+  paddingRight: 10,
+  flexShrink: 0,
+};
+
+const inputStyle: React.CSSProperties = {
+  flex: 1,
+  border: "none",
+  outline: "none",
+  fontSize: 13,
+  padding: "4px 0",
+  background: "transparent",
+  fontFamily: "inherit",
+};
+
+const errorStyle: React.CSSProperties = {
+  color: "#d32f2f",
+  fontSize: 11,
+  marginTop: 2,
+  paddingLeft: 60,
+};
 
 const EmailComposeDialog = (props: any) => {
   const {
@@ -36,188 +71,190 @@ const EmailComposeDialog = (props: any) => {
   const { instance, accounts } = useMsal();
 
   const [attachmentFiles, setAttachmentFiles] = useState<Array<any>>([]);
-  const [progress, setProgress] = useState<any>({}); // Progress for each file
+  const [progress, setProgress] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTemplateMenu, setShowTemplateMenu] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const templateMenuRef = useRef<HTMLDivElement>(null);
+
   const stripHtml = (s = "") =>
-  s.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+    s
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim();
 
-const emailListRegex =
-  /^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}(?:\s*[,;]\s*[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7})*$/;
-
-  const controlsList: Array<IControl> = [
-    {
-      key: "To",
-      value: "toAddress",
-      isRequired: true,
-      regex1:
-        /^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}(?:\s*[,;]\s*[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7})*$/,
-      errMsg1: "Please enter valid email addresses",
-    },
-    {
-      key: "CC",
-      value: "cc",
-    },
-    {
-      key: "Bcc",
-      value: "bcc",
-    },
-    {
-      key: "From",
-      value: "fromAddress",
-      disabled: true,
-      isRequired: true,
-    },
-    {
-      key: "Subject",
-      value: "subject",
-      isRequired: true,
-    },
-    {
-      key: "Body",
-      value: "body",
-      type: ElementType.ckeditor,
-      isRequired: true,
-      hideSpaceForEditor: true,
-    },
-  ];
-   const schema = Yup.object({
-  toAddress: Yup.string()
-    .required("To is required")
-    .matches(emailListRegex, "Please enter valid email addresses"),
-  fromAddress: Yup.string().required("From is required"),
-  subject: Yup.string()
-    .transform(v => (v ?? "").trim())
-    .min(1, "Subject is required")
-    .required("Subject is required"),
-  body: Yup.string()
-    .test("not-empty-html", "Body is required", v => stripHtml(v || "").length > 0)
-    .required("Body is required"),
-  cc: Yup.string().nullable(),
-  bcc: Yup.string().nullable(),
-});
-
-const methods = useForm({
-  resolver: yupResolver(schema),
-  mode: "onChange",          // live validation (optional, but nice UX)
-  reValidateMode: "onChange"
-});
-  
-  const { handleSubmit, unregister, register, resetField, setValue, setError } =
-    methods;
-
-  const oncloseDialog = () => {
-    setDialogIsOpen(false);
+  const extractBodyContent = (htmlString: string) => {
+    if (!htmlString) return "";
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, "text/html");
+      return doc.body?.innerHTML || htmlString;
+    } catch {
+      return htmlString;
+    }
   };
 
-  function addReToSubject(subject: any) {
-    // Trim whitespace from the beginning and end of the subject
-    subject = subject.trim();
+  const emailListRegex =
+    /^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}(?:\s*[,;]\s*[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7})*$/;
 
-    // Check if subject already starts with "Re:"
+  const schema = Yup.object({
+    toAddress: Yup.string()
+      .required("To is required")
+      .matches(emailListRegex, "Please enter valid email addresses"),
+    fromAddress: Yup.string().required("From is required"),
+    subject: Yup.string()
+      .transform((v) => (v ?? "").trim())
+      .min(1, "Subject is required")
+      .required("Subject is required"),
+    body: Yup.string()
+      .test(
+        "not-empty-html",
+        "Body is required",
+        (v) => stripHtml(v || "").length > 0
+      )
+      .required("Body is required"),
+    cc: Yup.string().nullable(),
+    bcc: Yup.string().nullable(),
+  });
+
+  const methods = useForm({
+    resolver: yupResolver(schema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+  });
+
+  const {
+    handleSubmit,
+    register,
+    setValue,
+    formState: { errors },
+  } = methods;
+
+  // Close template menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        templateMenuRef.current &&
+        !templateMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowTemplateMenu(false);
+      }
+    }
+    if (showTemplateMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showTemplateMenu]);
+
+  function addReToSubject(subject: any) {
+    subject = (subject || "").trim();
     if (!subject.startsWith("Re:")) {
-      // If not, prepend "Re:" to the subject
       subject = `Re: ${subject}`;
     }
-
     return subject;
   }
 
   const handleReplyClick = () => {
-    
     let senderName = selectedItem.sender.emailAddress.name;
     let senderEmail = selectedItem.sender.emailAddress.address;
-    let sentDate = formatEmailDate(new Date(selectedItem.sentDateTime).toLocaleString());
-    let message = selectedItem.bodyPreview.split("\r")[0];
-    let formattedReply =`<br/><br/><div dir=\"ltr\" class=\"gmail_attr\">${sentDate} ${senderName} &lt;<a href=${senderEmail}">${senderEmail}</a>&gt; wrote:<br></div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex; border-left:1px solid rgb(204,204,204); padding-left:1ex\"><div><p>${message}</p></div></blockquote></div>`;
-    return formattedReply;
+    let sentDate = formatEmailDate(
+      new Date(selectedItem.sentDateTime).toLocaleString()
+    );
+    let message = extractBodyContent(
+      selectedItem.body?.content ||
+        selectedItem.bodyPreview?.split("\r")[0] ||
+        ""
+    );
+    return `<br/><br/><div>${sentDate} ${senderName} &lt;<a href="mailto:${senderEmail}">${senderEmail}</a>&gt; wrote:</div><blockquote style="margin:0 0 0 .8ex;border-left:1px solid #ccc;padding-left:1ex"><div>${message}</div></blockquote>`;
   };
 
-  function formatEmailDate(dateString:any) {
-    // Convert the input string to a Date object
+  function formatEmailDate(dateString: any) {
     const date = new Date(dateString);
-  
-    // Format day of the week (e.g., Tue)
     const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
-  
-    // Format month name (e.g., Feb)
     const month = date.toLocaleDateString("en-US", { month: "short" });
-  
-    // Format day, year, and time
     const day = date.getDate();
     const year = date.getFullYear();
-    const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-  
-    // Construct the final formatted string
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
     return `On ${weekday}, ${month} ${day}, ${year} at ${time}`;
   }
 
+  // Initialize form
   useEffect(() => {
-    console.log("Received personEmail prop:", props.personEmail);
-  }, [props.personEmail]);
-  
-  useEffect(() => {
-    let toAddresses = selectedItem?.sender?.emailAddress?.address || props.personEmail || "default@example.com"; 
+    let toAddresses =
+      selectedItem?.sender?.emailAddress?.address ||
+      props.personEmail ||
+      "";
 
-    console.log("Contact Person Email:", toAddresses);
+    const isReply = !Util.isNullOrUndefinedOrEmpty(selectedItem.subject);
+    let bodyContent = "";
+    if (isReply) {
+      bodyContent = handleReplyClick();
+    } else if (selectedItem?.body?.content) {
+      bodyContent = extractBodyContent(selectedItem.body.content);
+    } else if (typeof selectedItem?.body === "string") {
+      bodyContent = selectedItem.body;
+    }
 
     let obj = {
       ...selectedItem,
-      fromAddress: fromAddress?.username, 
+      fromAddress: fromAddress?.username,
       toAddress: toAddresses,
-      body: selectedItem?.body?.content.replace(/<body>.*?<br>/, handleReplyClick()),
-      subject: selectedItem.subject
-        ? addReToSubject(selectedItem.subject)
-        : "",
-      isReply: !Util.isNullOrUndefinedOrEmpty(selectedItem.subject),
+      body: bodyContent,
+      subject: selectedItem.subject ? addReToSubject(selectedItem.subject) : "",
+      isReply: isReply,
     };
     setSelectedItem(obj);
-    controlsList.forEach((c) => {
-      resetValidationsOnLoad(c.value, obj[c.value]);
+
+    // Seed react-hook-form
+    setValue("toAddress" as never, (obj.toAddress ?? "") as never, {
+      shouldValidate: true,
     });
+    setValue("fromAddress" as never, (obj.fromAddress ?? "") as never, {
+      shouldValidate: true,
+    });
+    setValue("subject" as never, (obj.subject ?? "") as never, {
+      shouldValidate: true,
+    });
+    setValue("cc" as never, (obj.cc ?? "") as never);
+    setValue("bcc" as never, (obj.bcc ?? "") as never);
+    setValue("body" as never, (obj.body ?? "") as never, {
+      shouldValidate: true,
+    });
+
+    // Set contentEditable body
+    setTimeout(() => {
+      if (bodyRef.current) {
+        bodyRef.current.innerHTML = obj.body || "";
+      }
+    }, 0);
   }, []);
 
-  const resetValidationsOnLoad = (key: any, value: any) => {
-  setValue(key as never, (value ?? "") as never, {
-    shouldValidate: true,
-    shouldDirty: false,
-  });
-};
-
-  const onChange = (
-  value: any,
-  item: any,
-  itemName?: any,
-  isValidationOptional: boolean = false
-) => {
-  // Normalize BODY (Quill) and validate
-  if (item.key === "Body") {
-    const isEmpty =
-      !value ||
-      value === "<p><br></p>" ||
-      stripHtml(value).length === 0;
-
-    const normalized = isEmpty ? "" : value;
-
-    setSelectedItem({ ...selectedItem, body: normalized });
-    setValue(item.value as never, normalized as never, {
+  const handleFieldChange = (field: string, value: string) => {
+    setSelectedItem((prev: any) => ({ ...prev, [field]: value }));
+    setValue(field as never, value as never, {
       shouldValidate: true,
       shouldDirty: true,
     });
-    return;
-  }
+  };
 
-  // For ALL other fields (including Subject), push the value into RHF
-  const v = typeof value === "string" ? value : (value ?? "");
-  setSelectedItem((prev: any) => ({ ...prev, [item.value]: v }));
-  setValue(item.value as never, v as never, {
-    shouldValidate: true,
-    shouldDirty: true,
-  });
-};
-
+  const handleBodyInput = () => {
+    const html = bodyRef.current?.innerHTML || "";
+    const isEmpty =
+      !html || html === "<br>" || html === "<div><br></div>" || stripHtml(html).length === 0;
+    const normalized = isEmpty ? "" : html;
+    setSelectedItem((prev: any) => ({ ...prev, body: normalized }));
+    setValue("body" as never, normalized as never, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
 
   const onSubmit = async (item: any) => {
-    
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
@@ -233,48 +270,39 @@ const methods = useForm({
     let list: Array<EmailTemplate> = JSON.parse(
       LocalStorageUtil.getItemObject(Constants.EMAIL_TEMPLATES) as any
     );
-
     let itemList: Array<any> = [];
     list?.forEach((i) => {
-      let header: EmailItemProps = JSON.parse(i.header as any);
-      let body = JSON.parse(i.body as any);
-      let footer = JSON.parse(i.footer as any);
-      let content = `<div class="email-header" style="text-align: ${header.position}; background-color:${header.backGroundColor}">${header.content}</div>
-      <br/>
-      <hr>
-      <div class="email-body" style="text-align: ${body.position};background-color:${body.backGroundColor}">${body.content}</div>
-      <div class="email-footer" style="text-align: ${footer.position}; background-color:${footer.backGroundColor}">${footer.content}</div>`;
-      let value = content;
-
-      let obj = { name: i.name, value: value };
-      itemList.push(obj);
+      let h: EmailItemProps = JSON.parse(i.header as any);
+      let b = JSON.parse(i.body as any);
+      let f = JSON.parse(i.footer as any);
+      let content = `<div style="text-align:${h.position};background-color:${h.backGroundColor}">${h.content}</div><br/><hr><div style="text-align:${b.position};background-color:${b.backGroundColor}">${b.content}</div><div style="text-align:${f.position};background-color:${f.backGroundColor}">${f.content}</div>`;
+      itemList.push({ name: i.name, value: content });
     });
-
     return itemList;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const newFiles = selectedFiles.map((file) => ({
-      file,
-      progress: 0, // Initially set the progress to 0
-    }));
-
-    // Add new files to the current files list
-    setAttachmentFiles((prevFiles) => [...prevFiles, ...newFiles]);
-
-    // Immediately start uploading the files
-    selectedFiles.forEach((file) => {
-      uploadFile(file); // Start uploading the file
-    });
+  const insertTemplate = (html: string) => {
+    if (bodyRef.current) {
+      bodyRef.current.innerHTML = html;
+      handleBodyInput();
+    }
+    setShowTemplateMenu(false);
   };
 
-  // Function to handle file upload and track progress
+  // File handling
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const newFiles = selectedFiles.map((file) => ({ file, progress: 0 }));
+    setAttachmentFiles((prev) => [...prev, ...newFiles]);
+    selectedFiles.forEach((file) => uploadFile(file));
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+  };
+
   const uploadFile = async (file: any) => {
     const accessToken = await getAccessToken();
     const formData = new FormData();
     formData.append("file", file);
-
     const xhr = new XMLHttpRequest();
     xhr.open(
       "POST",
@@ -282,232 +310,346 @@ const methods = useForm({
       true
     );
     xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
-
-    // Progress tracking
     xhr.upload.onprogress = (event: any) => {
       if (event.lengthComputable) {
-        const percentage = Math.round((event.loaded / event.total) * 100);
-        setProgress((prevProgress: any) => ({
-          ...prevProgress,
-          [file.name]: percentage, // Update the progress for the current file
-        }));
+        const pct = Math.round((event.loaded / event.total) * 100);
+        setProgress((prev: any) => ({ ...prev, [file.name]: pct }));
       }
     };
-
-    // Upload complete
     xhr.onload = () => {
-      if (xhr.status === 200) {
-        console.log(`${file.name} uploaded successfully`);
-        // Handle success (e.g., show a message, store file URL, etc.)
-      } else {
-        console.error(`Upload failed for ${file.name}`);
-      }
+      if (xhr.status !== 200) console.error(`Upload failed for ${file.name}`);
     };
-
-    // Upload file
     xhr.send(formData);
   };
 
   const getAccessToken = async () => {
     try {
-      // Try to acquire token silently
-      const accessTokenResponse = await instance.acquireTokenSilent({
-        scopes: ["Files.ReadWrite", "Mail.Send"], // Adjust scopes as needed
+      const res = await instance.acquireTokenSilent({
+        scopes: ["Files.ReadWrite", "Mail.Send"],
         account: accounts[0],
       });
-      return accessTokenResponse.accessToken;
+      return res.accessToken;
     } catch (error) {
-      console.error("Silent token acquisition failed", error);
-
-      // Handle the error if it's due to consent or token expiration
       if (error instanceof InteractionRequiredAuthError) {
-        // Trigger an interactive login to acquire the token
-        try {
-          const accessTokenResponse = await instance.acquireTokenPopup({
-            scopes: ["Files.ReadWrite", "Mail.Send"], // Adjust scopes as needed
-          });
-          return accessTokenResponse.accessToken;
-        } catch (popupError) {
-          console.error("Interactive authentication failed", popupError);
-          throw popupError; // Rethrow error to handle it elsewhere in the app
-        }
-      } else {
-        throw error; // Rethrow any other errors
+        const res = await instance.acquireTokenPopup({
+          scopes: ["Files.ReadWrite", "Mail.Send"],
+        });
+        return res.accessToken;
       }
+      throw error;
     }
   };
 
-  // Handle deleting a file before upload
   const handleDelete = (fileName: string) => {
-    setAttachmentFiles((prevFiles) =>
-      prevFiles.filter((file) => file.file.name !== fileName)
+    setAttachmentFiles((prev) =>
+      prev.filter((f) => f.file.name !== fileName)
     );
-    setProgress((prevProgress: any) => {
-      const { [fileName]: _, ...rest } = prevProgress;
+    setProgress((prev: any) => {
+      const { [fileName]: _, ...rest } = prev;
       return rest;
     });
   };
 
-  const previewFiles = () => {
-    return attachmentFiles.map((file: any, index: any) => {
-      const fileURL = URL.createObjectURL(file);
-      return (
-        <div key={index}>
-          <img src={fileURL} alt="preview" width="100" height="100" />
-          <p>{file.name}</p>
-        </div>
-      );
-    });
-  };
+  const customFooter = () => (
+    <div className="modalfootbar" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div>
+        <input
+          type="file"
+          multiple
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+          id="file-upload-input"
+        />
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("file-upload-input")?.click();
+          }}
+          style={{ color: "#555" }}
+          title="Attach files"
+        >
+          <AttachFileIcon />
+        </a>
+      </div>
+      <button
+        onClick={() => setDialogIsOpen(false)}
+        className="btn btn-secondary btn-sm"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (!isSubmitting) handleSubmit(onSubmit)();
+        }}
+        className="btn btn-primary btn-sm"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Sending..." : "Send"}
+      </button>
+    </div>
+  );
 
-  const customFooter = () => {
-    return (
-      <>
-        <div className="modalfootbar">
-          <div className="pr-4" style={{ paddingRight: "15px" }}>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-              id="file-upload-input"
-            />
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault(); // Prevent default behavior
-                document.getElementById("file-upload-input")?.click();
-              }}
-              className="file-upload-link"
-            >
-              <AttachFileIcon />
-            </a>
-          </div>
-          <button
-            onClick={(e: any) => setDialogIsOpen(false)}
-            className="btn btn-secondary btn-sm me-2 pl-2"
-            id="closeDialog"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!isSubmitting) {
-                handleSubmit(onSubmit)();
-              }
-            }}
-            className="btn btn-primary btn-sm me-2"
-            id="closeDialog"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Sending...' : 'Send'}
-          </button>
-        </div>
-      </>
-    );
-  };
+  const templates = getAttachedData();
 
   return (
-    <>
-      {
-        <FormProvider {...methods}>
-          <AddEditDialog
-            dialogIsOpen={dialogIsOpen}
-            header={"Email"}
-            closeDialog={oncloseDialog}
-            customFooter={customFooter()}
-            onClose={oncloseDialog}
-          >
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (!isSubmitting) {
-                handleSubmit(onSubmit)();
-              }
-            }}>
-              <br />
+    <FormProvider {...methods}>
+      <AddEditDialog
+        dialogIsOpen={dialogIsOpen}
+        header={"Email"}
+        closeDialog={() => setDialogIsOpen(false)}
+        customFooter={customFooter()}
+        onClose={() => setDialogIsOpen(false)}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!isSubmitting) handleSubmit(onSubmit)();
+          }}
+        >
+          {/* To */}
+          <div style={fieldRowStyle}>
+            <span style={labelStyle}>To</span>
+            <input
+              style={inputStyle}
+              value={selectedItem?.toAddress || ""}
+              onChange={(e) => handleFieldChange("toAddress", e.target.value)}
+              placeholder="Recipients"
+            />
+          </div>
+          {errors.toAddress && (
+            <div style={errorStyle}>{(errors.toAddress as any)?.message}</div>
+          )}
 
-              <GenerateElements
-                controlsList={controlsList}
-                selectedItem={selectedItem}
-                onChange={(value: any, item: any) => onChange(value, item)}
-                getAttachedData={(e: any) => getAttachedData()}
-              />
+          {/* CC */}
+          <div style={fieldRowStyle}>
+            <span style={labelStyle}>CC</span>
+            <input
+              style={inputStyle}
+              value={selectedItem?.cc || ""}
+              onChange={(e) => handleFieldChange("cc", e.target.value)}
+            />
+          </div>
 
-            </form>
-            <div className="form-group row">
-              <div className="col-5"></div>
-              <div className="col-1" style={{alignItems:"center", alignContent:"center", paddingBottom:"10px"}} hidden={attachmentFiles.length==0}>Attachements:</div>
-              <div className="col-6">
-                {" "}
-                <div style={{paddingLeft:"40px"}}>
-                  {attachmentFiles.map(({ file }: any, index: number) => (
+          {/* Bcc */}
+          <div style={fieldRowStyle}>
+            <span style={labelStyle}>Bcc</span>
+            <input
+              style={inputStyle}
+              value={selectedItem?.bcc || ""}
+              onChange={(e) => handleFieldChange("bcc", e.target.value)}
+            />
+          </div>
+
+          {/* From */}
+          <div style={fieldRowStyle}>
+            <span style={labelStyle}>From</span>
+            <input
+              style={{ ...inputStyle, color: "#888", cursor: "not-allowed" }}
+              value={selectedItem?.fromAddress || ""}
+              disabled
+            />
+          </div>
+
+          {/* Subject */}
+          <div style={fieldRowStyle}>
+            <span style={labelStyle}>Subject</span>
+            <input
+              style={inputStyle}
+              value={selectedItem?.subject || ""}
+              onChange={(e) => handleFieldChange("subject", e.target.value)}
+              placeholder="Subject"
+            />
+          </div>
+          {errors.subject && (
+            <div style={errorStyle}>{(errors.subject as any)?.message}</div>
+          )}
+
+          {/* Body */}
+          <div style={{ marginTop: 8 }}>
+            <div
+              ref={bodyRef}
+              contentEditable
+              onInput={handleBodyInput}
+              onBlur={handleBodyInput}
+              style={{
+                minHeight: 180,
+                maxHeight: 320,
+                overflowY: "auto",
+                padding: 10,
+                border: "1px solid #e0e0e0",
+                borderRadius: 4,
+                fontSize: 13,
+                fontFamily: "inherit",
+                outline: "none",
+                lineHeight: 1.5,
+              }}
+              suppressContentEditableWarning
+            />
+            {errors.body && (
+              <div style={{ ...errorStyle, paddingLeft: 0 }}>
+                {(errors.body as any)?.message}
+              </div>
+            )}
+          </div>
+
+          {/* Template selector */}
+          {templates && templates.length > 0 && (
+            <div style={{ position: "relative", marginTop: 6 }}>
+              <span
+                style={{
+                  cursor: "pointer",
+                  fontSize: 12,
+                  color: "#1976d2",
+                  fontWeight: 500,
+                }}
+                onClick={() => setShowTemplateMenu(true)}
+              >
+                Select From Template @
+              </span>
+              {showTemplateMenu && (
+                <div
+                  ref={templateMenuRef}
+                  style={{
+                    position: "absolute",
+                    bottom: "100%",
+                    left: 0,
+                    background: "#fff",
+                    border: "1px solid #ccc",
+                    borderRadius: 4,
+                    width: 220,
+                    zIndex: 20000,
+                    boxShadow: "0 4px 12px rgba(0,0,0,.12)",
+                    maxHeight: 240,
+                    overflowY: "auto",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "6px 10px",
+                      fontSize: 11,
+                      color: "#888",
+                      borderBottom: "1px solid #eee",
+                    }}
+                  >
+                    Select a template
+                  </div>
+                  {templates.map((t: any, i: number) => (
                     <div
-                      key={index}
+                      key={i}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "15px",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "8px",
-                        backgroundColor: "#f9f9f9",
+                        padding: "8px 10px",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        borderBottom: "1px solid #f5f5f5",
                       }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "#f5f5f5")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "#fff")
+                      }
+                      onClick={() => insertTemplate(t.value)}
                     >
-                      {/* Truncated File Name */}
-                      <span
-                        style={{
-                          flex: 1,
-                          fontWeight: "500",
-                          color: "#333",
-                          whiteSpace: "nowrap", // Prevent text wrapping
-                          overflow: "hidden", // Hide overflowing text
-                          textOverflow: "ellipsis", // Show ellipsis when text overflows
-                          maxWidth: "200px", // Adjust the maximum width as needed
-                        }}
-                      >
-                        {file.name}
-                      </span>
-
-                      {/* Progress Bar Container */}
-                      <div
-                        style={{
-                          flex: 2,
-                          width: "100%",
-                          backgroundColor: "#f0f0f0",
-                          borderRadius: "5px",
-                          height: "10px",
-                          marginLeft: "15px",
-                          marginRight: "10px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${progress[file.name] || 0}%`,
-                            height: "100%",
-                            backgroundColor: "#4caf50",
-                            borderRadius: "5px",
-                            transition: "width 0.3s ease",
-                          }}
-                        />
-                      </div>
-
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDelete(file.name)}
-                      >
-                        <CloseIcon/>
-                      </button>
+                      {t.name}
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
-          </AddEditDialog>
-        </FormProvider>
-      }
-    </>
+          )}
+
+          {/* Hidden inputs for react-hook-form */}
+          <input type="hidden" {...register("toAddress")} />
+          <input type="hidden" {...register("fromAddress")} />
+          <input type="hidden" {...register("subject")} />
+          <input type="hidden" {...register("body")} />
+          <input type="hidden" {...register("cc")} />
+          <input type="hidden" {...register("bcc")} />
+        </form>
+
+        {/* Attachments */}
+        {attachmentFiles.length > 0 && (
+          <div
+            style={{
+              marginTop: 10,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+            }}
+          >
+            {attachmentFiles.map(({ file }: any, index: number) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 6,
+                  padding: "4px 8px",
+                  background: "#f9f9f9",
+                  maxWidth: 240,
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <InsertDriveFileIcon
+                  sx={{ fontSize: 16, color: "#1976d2", flexShrink: 0 }}
+                />
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: "#333",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                  title={file.name}
+                >
+                  {file.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(file.name)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    display: "flex",
+                    flexShrink: 0,
+                    color: "#999",
+                  }}
+                  title="Remove"
+                >
+                  <CloseIcon sx={{ fontSize: 16 }} />
+                </button>
+                {/* Progress bar overlay */}
+                {progress[file.name] > 0 && progress[file.name] < 100 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      height: 2,
+                      width: `${progress[file.name]}%`,
+                      background: "#4caf50",
+                      borderRadius: 2,
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </AddEditDialog>
+    </FormProvider>
   );
 };
 

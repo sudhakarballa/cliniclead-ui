@@ -222,7 +222,7 @@ const conditionSchema = Yup.object().shape({
   operator: Yup.string().required("Operator is required"),
   value: Yup.string().when(['operator', 'field'], {
     is: (operator: string, field: string) => {
-      if (operator === 'isEmpty' || operator === 'isNotEmpty' || operator === 'empty' || operator === 'not_empty' || operator === 'restrictedFromPipeline') {
+      if (operator === 'empty' || operator === 'not_empty' || operator === 'RESTRICTED_FROM_PIPELINE') {
         return false;
       }
       return true;
@@ -617,7 +617,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           />
         );
       case "creator":
-        if (selectedOperator === "belongsToTeam") {
+        if (selectedOperator === "BELONGS_TO_TEAM") {
           return (
             <input
               className="form-control form-control-sm"
@@ -635,7 +635,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
             />
           );
         }
-        if (selectedOperator === "restrictedFromPipeline") {
+        if (selectedOperator === "RESTRICTED_FROM_PIPELINE") {
           return null;
         }
         const creatorUserOptions = users.map((user: any) => ({
@@ -1393,7 +1393,7 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
       </div>
 
       <div>
-        {selectedOperator === "isEmpty" || selectedOperator === "isNotEmpty" || selectedOperator === "empty" || selectedOperator === "not_empty" || selectedOperator === "restrictedFromPipeline" ? null : valueJSX(getValues(`${conditionType}.${index}.field`), !selectedOperator)}
+        {selectedOperator === "empty" || selectedOperator === "not_empty" || selectedOperator === "RESTRICTED_FROM_PIPELINE" ? null : valueJSX(getValues(`${conditionType}.${index}.field`), !selectedOperator)}
         {valueError && (
           <div style={{ fontSize: "10px", color: "#dc3545", marginTop: "2px" }}>
             {valueError?.message}
@@ -1543,7 +1543,7 @@ const DealFilterAddEditDialog = (props: params) => {
 
   const isConditionComplete = (cond: Condition): boolean => {
     if (!cond.object || !cond.field || !cond.operator) return false;
-    const skipValue = ["isEmpty", "isNotEmpty", "empty", "not_empty", "restrictedFromPipeline"].includes(cond.operator);
+    const skipValue = ["empty", "not_empty", "RESTRICTED_FROM_PIPELINE"].includes(cond.operator);
     if (!skipValue && (!cond.value || (typeof cond.value === "string" && cond.value.trim() === ""))) return false;
     return true;
   };

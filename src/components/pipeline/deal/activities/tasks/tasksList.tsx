@@ -1,6 +1,6 @@
 import { useMsal } from "@azure/msal-react";
 import { AxiosError } from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Accordion, Spinner } from "react-bootstrap";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "react-toastify";
@@ -30,22 +30,43 @@ const TasksList = (props: params) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [tasksList, setTasksList] = useState<Array<Tasks>>([]);
   const [error, setError] = useState<AxiosError>();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number>(0);
   const [selectedTaskItem, setSelectedTaskItem] = useState<Tasks>();
   const [selectedIndex, setSelectedIndex] = useState<any>(null);
   const taskSvc = new TaskService(ErrorBoundary);
   const { instance, accounts } = useMsal();
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if(accounts.length==0){
-      handleLogin();
+    if (hasInitialized.current) return;
+
+    const init = async () => {
+      if (accounts.length > 0) {
+        hasInitialized.current = true;
+        await loadTasks();
+        return;
+      }
+
+      try {
+        await instance.ssoSilent({ scopes: loginRequest.scopes });
+        // accounts will update on next render, which will hit the accounts.length > 0 branch
+      } catch {
+        try {
+          await instance.loginPopup(loginRequest);
+          // accounts will update on next render
+        } catch (err) {
+          console.error("Login failed", err);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if ((instance as any)?.controller?.initialized) {
+      init();
     }
-    else{
-      loadTasks();
-    }
-  }, [accounts]);
+  }, [accounts.length]);
 
   const loadTasks = async () => {
     setIsLoading(true);
@@ -170,19 +191,10 @@ const TasksList = (props: params) => {
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      let res = await instance.loginPopup(loginRequest);
-      console.log("Login successful", res);
-    } catch (error) {
-      console.error("Login failed", error);
-    }
-  };
-
   return (
     <>
       {isLoading ? (
-        <div className="alignCenter">
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
           <Spinner />
         </div>
       ) : (

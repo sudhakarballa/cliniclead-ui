@@ -157,7 +157,7 @@ const FilterValueField: React.FC<FilterValueFieldProps> = ({
 
   // Creator special operators
   if (fieldName === "creator") {
-    if (operator === "belongsToTeam") {
+    if (operator === "BELONGS_TO_TEAM") {
       return (
         <input
           className="form-control form-control-sm"
@@ -170,7 +170,7 @@ const FilterValueField: React.FC<FilterValueFieldProps> = ({
         />
       );
     }
-    if (operator === "restrictedFromPipeline") return null;
+    if (operator === "RESTRICTED_FROM_PIPELINE") return null;
   }
 
   // Static options (electiva, currency, consent, status, treatment, etc.)

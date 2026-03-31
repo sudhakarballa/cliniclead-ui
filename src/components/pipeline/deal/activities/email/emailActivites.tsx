@@ -1,5 +1,5 @@
 import { useMsal } from "@azure/msal-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Spinner } from "react-bootstrap";
 import Accordion from "react-bootstrap/Accordion";
 import { toast } from "react-toastify";
@@ -36,25 +36,48 @@ function EmailActivities(props: params) {
   const dealEmailLogService = new DealEmailLogService(ErrorBoundary)
   const emailTemplateSvc = new EmailTemplateService(ErrorBoundary);
   const [personEmail, setPersonEmail] = useState("");
-  const [loginAttempted, setLoginAttempted] = useState(false);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (accounts.length === 0 && !loginAttempted) {
-      setLoginAttempted(true);
-      handleLogin();
-      return;
-    }
+    if (hasInitialized.current) return;
 
-    if (accounts.length > 0 && instance) {
-      emailTemplateSvc.getEmailTemplates().then((res) => {
-        LocalStorageUtil.setItemObject(
-          Constants.EMAIL_TEMPLATES,
-          JSON.stringify(res)
-        );
-        fetchData();
-      });
+    const init = async () => {
+      if (accounts.length > 0) {
+        hasInitialized.current = true;
+        await loadTemplatesAndFetch();
+        return;
+      }
+
+      try {
+        await instance.ssoSilent({ scopes: loginRequest.scopes });
+        // accounts will update on next render, which will hit the accounts.length > 0 branch
+      } catch {
+        try {
+          await instance.loginPopup(loginRequest);
+        } catch (err) {
+          console.error("Login failed", err);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if ((instance as any)?.controller?.initialized) {
+      init();
     }
   }, [accounts.length]);
+
+  const loadTemplatesAndFetch = async () => {
+    try {
+      const res = await emailTemplateSvc.getEmailTemplates();
+      LocalStorageUtil.setItemObject(
+        Constants.EMAIL_TEMPLATES,
+        JSON.stringify(res)
+      );
+    } catch (e) {
+      console.error("Error loading email templates:", e);
+    }
+    await fetchData();
+  };
 
   useEffect(() => {
     if (!dealId) return;
@@ -128,15 +151,6 @@ function EmailActivities(props: params) {
         console.error("Error fetching emails:", error);
         setIsLoading(false);
       }
-    }
-  };
-
-  const handleLogin = async () => {
-    try {
-      let res = await instance.loginPopup(loginRequest);
-      console.log("Login successful", res);
-    } catch (error) {
-      console.error("Login failed", error);
     }
   };
 
@@ -230,13 +244,20 @@ function EmailActivities(props: params) {
 
   return (
     <div>
-      <>
-        <div className="activityfilter-row pb-3">
-          {isLoading ? (
-            <div className="alignCenter">
-              <Spinner />
-            </div>
-          ) : (
+      {isLoading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: 300,
+          }}
+        >
+          <Spinner />
+        </div>
+      ) : (
+        <>
+          <div className="activityfilter-row pb-3">
             <div className="createnote-row">
               <div className="d-flex">
                 <div>
@@ -264,42 +285,41 @@ function EmailActivities(props: params) {
                 </div>
               </div>
             </div>
-          )}
-        </div>
-        <div hidden={accounts.length === 0 || isLoading}>
-          {/* <h3>April 2024</h3> */}
-          <div
-            className="activityfilter-accrow  mb-3"
-            hidden={emailsList.length == 0}
-          >
-            <Accordion className="activityfilter-acco">
-              {emailsList.map((email, index) => (
-                <SentEmailsList
-                  accounts={accounts}
-                  email={email}
-                  index={index}
-                  setShowDeleteDialog={setShowDeleteDialog}
-                  setDialogIsOpen={setDialogIsOpen}
-                  selectedIndex={selectedIndex}
-                  setSelectedEmail={setSelectedEmail}
-                  setSelectedIndex={(e: any) => {
-                    setSelectedIndex(e);
-                  }}
-                  emailsList={emailsList.filter(
-                    (i) => i.conversationId == email.conversationId
-                  )}
-                />
-              ))}
-            </Accordion>
           </div>
-          <div
-            style={{ textAlign: "center" }}
-            hidden={emailsList.length > 0 || accounts.length === 0}
-          >
-            No emails are available to show
+          <div hidden={accounts.length === 0}>
+            <div
+              className="activityfilter-accrow  mb-3"
+              hidden={emailsList.length == 0}
+            >
+              <Accordion className="activityfilter-acco">
+                {emailsList.map((email, index) => (
+                  <SentEmailsList
+                    accounts={accounts}
+                    email={email}
+                    index={index}
+                    setShowDeleteDialog={setShowDeleteDialog}
+                    setDialogIsOpen={setDialogIsOpen}
+                    selectedIndex={selectedIndex}
+                    setSelectedEmail={setSelectedEmail}
+                    setSelectedIndex={(e: any) => {
+                      setSelectedIndex(e);
+                    }}
+                    emailsList={emailsList.filter(
+                      (i) => i.conversationId == email.conversationId
+                    )}
+                  />
+                ))}
+              </Accordion>
+            </div>
+            <div
+              style={{ textAlign: "center" }}
+              hidden={emailsList.length > 0 || accounts.length === 0}
+            >
+              No emails are available to show
+            </div>
           </div>
-        </div>
-      </>
+        </>
+      )}
       {dialogIsOpen && (
         <EmailComposeDialog
           personEmail={personEmail}

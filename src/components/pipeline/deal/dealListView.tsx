@@ -82,14 +82,15 @@ const DealListView = (props: Params) => {
     const saved = localStorage.getItem('dealListView_paginationModel');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return { page: parsed.page || 0, pageSize: Math.min(parsed.pageSize || 8, 100) };
       } catch {
         // fallback if parsing fails
       }
     }
     return {
       page: 0,
-      pageSize: window.config?.Pagination?.defaultPageSize || 8,
+      pageSize: Math.min(window.config?.Pagination?.defaultPageSize || 8, 100),
     };
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -1370,6 +1371,15 @@ const handleExportToExcel = async () => {
         dataGridProps={{
           getRowId: (row: any) => row.id,
           sortingMode: 'client',
+          paginationMode: 'server',
+          rowCount: totalCount,
+          paginationModel: paginationModel,
+          onPaginationModelChange: (model: any) => {
+            const newSize = Math.min(model.pageSize, 100);
+            const pageSizeChanged = newSize !== paginationModel.pageSize;
+            setPaginationModel({ page: pageSizeChanged ? 0 : model.page, pageSize: newSize });
+          },
+          pageSizeOptions: (window.config?.Pagination?.pageSizeOptions || [10, 25, 50, 100]).filter((s: number) => s <= 100),
           initialState: {
             sorting: {
               sortModel: preferences.sortModel || []

@@ -25,14 +25,26 @@ const SentEmailsList = (props: params) => {
   const { subject, sender, toRecipients, sentDateTime, body } = email;
   const divRef = useRef<HTMLDivElement>(null);
   
-  const [attachments, setAttachments]=useState(email?.attachments);
+  const [attachments, setAttachments]=useState(email?.attachments ?? []);
   const accountEmail = accounts.length>0 ? accounts[0].username : null;
 
   useEffect(() => {
     if (divRef.current) {
-      divRef.current.innerHTML = body?.content;
+      const raw = body?.content || "";
+      if (!raw) {
+        divRef.current.textContent = email?.bodyPreview || "";
+      } else {
+        // Parse the full HTML document and extract only the <body> inner content
+        try {
+          const doc = new DOMParser().parseFromString(raw, "text/html");
+          divRef.current.innerHTML = doc.body?.innerHTML || raw;
+        } catch {
+          divRef.current.textContent = email?.bodyPreview || raw;
+        }
+      }
     }
-  }, [props]);
+    setAttachments(email?.attachments ?? []);
+  }, [email]);
 
   const generateDynamicThreadObj = (
     input: any,
@@ -71,40 +83,49 @@ const SentEmailsList = (props: params) => {
               ref={divRef}
               style={{ maxHeight: "200px", overflow: "auto" }}
             ></div>
-            <div>
             <EmailAttachments attachments={attachments}/>
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  props.setDialogIsOpen(true);
+                  props.setSelectedEmail(email as any);
+                }}
+                style={{
+                  fontSize: 12,
+                  padding: "4px 14px",
+                  borderRadius: 14,
+                  border: "1px solid #dadce0",
+                  background: "#fff",
+                  color: "#1a73e8",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                  lineHeight: "20px",
+                }}
+              >
+                ↩ Reply
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  props.setShowDeleteDialog(true);
+                  props.setSelectedEmail(email as any);
+                }}
+                style={{
+                  fontSize: 12,
+                  padding: "4px 14px",
+                  borderRadius: 14,
+                  border: "1px solid #dadce0",
+                  background: "#fff",
+                  color: "#d93025",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                  lineHeight: "20px",
+                }}
+              >
+                ✕ Delete
+              </button>
             </div>
-            <div className="form-group-row d-flex">
-              <div className="editstage-delete">
-                <button
-                  className="editstage-deletebtn"
-                  onClick={(e: any) => {
-                    props.setDialogIsOpen(true);
-                    props.setSelectedEmail(email as any);
-                  }}
-                >
-                  <strong>Reply</strong>
-                </button>
-              </div>
-              <div className="editstage-delete" style={{ paddingLeft: "10px" }}>
-                <button
-                  className="editstage-deletebtn"
-                  onClick={(e: any) => {
-                    props.setShowDeleteDialog(true);
-                    props.setSelectedEmail(email as any);
-                  }}
-                >
-                  <strong>Delete</strong>
-                </button>
-              </div>
-            </div>
-            <br />
-            {/* <div hidden={accountEmail && email.sender?.emailAddress?.address!=accountEmail}>
-              <EmailThread
-                emails={getNestedEmails()}
-                isFirstNestedEmail={true}
-              />
-            </div> */}
           </Accordion.Body>
           <div className="accofooter">
             <FontAwesomeIcon icon={faCircleCheck} /> {subject}

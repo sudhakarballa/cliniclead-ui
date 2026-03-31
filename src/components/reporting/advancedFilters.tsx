@@ -316,7 +316,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const renderValueInput = (condition: any, index: number) => {
     const { field, operator } = condition;
     
-    if (operator === "isEmpty" || operator === "isNotEmpty" || operator === "empty" || operator === "not_empty") {
+    if (operator === "empty" || operator === "not_empty") {
       return null;
     }
 
@@ -492,7 +492,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   const isConditionComplete = (cond: any): boolean => {
     if (!cond.field || !cond.operator) return false;
-    const skipValue = ["isEmpty", "isNotEmpty", "empty", "not_empty"].includes(cond.operator);
+    const skipValue = ["empty", "not_empty"].includes(cond.operator);
     if (!skipValue && (!cond.value || (typeof cond.value === "string" && cond.value.trim() === ""))) return false;
     return true;
   };

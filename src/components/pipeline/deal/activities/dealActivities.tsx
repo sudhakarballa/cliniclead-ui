@@ -326,11 +326,6 @@ extractedSubject = "Email Activity";
 
   return (
     <>
-      {isLoading ? (
-        <div className="alignCenter">
-          <Spinner />
-        </div>
-      ) : null}
       <div className="timeline-tabscontent">
         <Tabs
           defaultActiveKey={defaultActiveKey}
@@ -348,7 +343,11 @@ extractedSubject = "Email Activity";
           <Tab eventKey="activity_sub" title="Activity">
   {defaultActiveKey === "activity_sub" && (
     <AuthProvider>
-      {dealTimeLines.length > 0 ? (
+      {isLoading ? (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
+          <Spinner />
+        </div>
+      ) : dealTimeLines.length > 0 ? (
         dealTimeLines.map((item, index) => {
           const isBasicLog =
             item.eventTypeId === EntitType.Deal ||

@@ -380,20 +380,28 @@ const Table: React.FC<TableListProps> = (props) => {
       }
     }
   };
+const isServerPagination = props.dataGridProps?.paginationMode === 'server';
 const clientPaginationDefaults: Partial<DataGridProps> = props.hidePagination
   ? {} // ⛔️ don't pass `pagination: false` — just omit it
-  : {
-      pagination: true, // ✅ must be true (or omitted)
-      pageSizeOptions: window.config?.Pagination?.pageSizeOptions || [8, 16, 32, 64],
-      initialState: {
-        pagination: { paginationModel: { pageSize: window.config?.Pagination?.defaultPageSize || 8, page: 0 } },
-        // Merge with preferences from dataGridProps
-        ...props.dataGridProps?.initialState
-      },
-      slotProps: {
-        pagination: { showFirstButton: true, showLastButton: true },
-      },
-    };
+  : isServerPagination
+    ? {
+        pagination: true,
+        slotProps: {
+          pagination: { showFirstButton: true, showLastButton: true },
+        },
+      }
+    : {
+        pagination: true, // ✅ must be true (or omitted)
+        pageSizeOptions: (window.config?.Pagination?.pageSizeOptions || [8, 16, 32, 64]).filter((s: number) => s <= 100),
+        initialState: {
+          pagination: { paginationModel: { pageSize: Math.min(window.config?.Pagination?.defaultPageSize || 8, 100), page: 0 } },
+          // Merge with preferences from dataGridProps
+          ...props.dataGridProps?.initialState
+        },
+        slotProps: {
+          pagination: { showFirstButton: true, showLastButton: true },
+        },
+      };
   const generateGridColDef = (): GridColDef[] => {
     let index = 0;
     let columnDefs: GridColDef[] = columnMetaData.map(

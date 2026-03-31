@@ -69,7 +69,7 @@ const NotesList = (props: params) => {
 
   return (
     <>
-      {isLoading ? <div className="alignCenter"><Spinner /></div> :
+      {isLoading ? <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}><Spinner /></div> :
         <>
           <div className='text-end'>
             <button 

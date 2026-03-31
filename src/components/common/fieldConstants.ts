@@ -145,66 +145,66 @@ export const operators1 = [
 ];
 
 export const operators2 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "containsAny", label: "contains any of" },
-  { value: "containsAll", label: "contains" },
-  { value: "notContains", label: "does not contain" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "empty", label: "is empty" },
+  { value: "not_empty", label: "is not empty" },
+  { value: "LIKE_ANY", label: "contains any of" },
+  { value: "LIKE", label: "contains" },
+  { value: "NOT_LIKE", label: "does not contain" }
 ];
 
 export const operators3 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "contains", label: "contains" },
-  { value: "startsWith", label: "starts with" },
-  { value: "notStartsWith", label: "does not start with" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "empty", label: "is empty" },
+  { value: "not_empty", label: "is not empty" },
+  { value: "LIKE", label: "contains" },
+  { value: "STARTS_WITH", label: "starts with" },
+  { value: "NOT_STARTS_WITH", label: "does not start with" }
 ];
 
 export const operators4 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "onOrBefore", label: "is exactly on or before" },
-  { value: "before", label: "is before" },
-  { value: "onOrAfter", label: "is exactly on or after" },
-  { value: "after", label: "is after" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "empty", label: "is empty" },
+  { value: "not_empty", label: "is not empty" },
+  { value: "<=", label: "is exactly on or before" },
+  { value: "<", label: "is before" },
+  { value: ">=", label: "is exactly on or after" },
+  { value: ">", label: "is after" }
 ];
 
 export const operators5 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "empty", label: "is empty" },
+  { value: "not_empty", label: "is not empty" }
 ];
 
 export const operators6 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "belongsToTeam", label: "belongs to team" },
-  { value: "restrictedFromPipeline", label: "is restricted from pipeline" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "empty", label: "is empty" },
+  { value: "not_empty", label: "is not empty" },
+  { value: "BELONGS_TO_TEAM", label: "belongs to team" },
+  { value: "RESTRICTED_FROM_PIPELINE", label: "is restricted from pipeline" }
 ];
 
 export const operators7 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isAnyOf", label: "is any of" },
-  { value: "isNotAnyOf", label: "is not any of" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "IN", label: "is any of" },
+  { value: "NOT_IN", label: "is not any of" }
 ];
 
 export const operators8 = [
-  { value: "equals", label: "is" },
-  { value: "notEquals", label: "is not" },
-  { value: "isEmpty", label: "is empty" },
-  { value: "isNotEmpty", label: "is not empty" },
-  { value: "isFirstInPipeline", label: "is first in pipeline" },
-  { value: "hasBeen", label: "has been" }
+  { value: "=", label: "is" },
+  { value: "!=", label: "is not" },
+  { value: "empty", label: "is empty" },
+  { value: "not_empty", label: "is not empty" },
+  { value: "FIRST_IN_PIPELINE", label: "is first in pipeline" },
+  { value: "HAS_BEEN", label: "has been" }
 ];
 
 export const operatorsForNumberType = [

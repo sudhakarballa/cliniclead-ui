@@ -382,30 +382,29 @@ export const prepareEmailBody = async (
   dealId?: number,
   attachments?:any
 ) => {
-  return JSON.stringify({
-    message: {
-      subject: emailObj.subject,
-      categories: ["dealId: " + dealId],
-      body: {
-        contentType: "HTML",
-        content: emailObj.body,
-      },
-      toRecipients: prepareToRecipients(emailObj),
-      attachments: attachments
-      // ccRecipients: [
-      //   {
-      //     emailAddress: {
-      //       address: emailObj.cc,
-      //     },
-      //   },
-      // ],
-      // bccRecipients: [
-      //   {
-      //     emailAddress: {
-      //       address: emailObj.bcc,
-      //     },
-      //   },
-      // ]
+  const buildRecipients = (field: string | undefined) => {
+    if (!field || !field.trim()) return [];
+    return field.split(/[;,]/).map((e: string) => e.trim()).filter(Boolean).map((addr: string) => ({
+      emailAddress: { address: addr },
+    }));
+  };
+
+  const message: any = {
+    subject: emailObj.subject,
+    categories: ["dealId: " + dealId],
+    body: {
+      contentType: "HTML",
+      content: emailObj.body,
     },
-  });
+    toRecipients: prepareToRecipients(emailObj),
+    attachments: attachments,
+  };
+
+  const cc = buildRecipients(emailObj.cc);
+  if (cc.length > 0) message.ccRecipients = cc;
+
+  const bcc = buildRecipients(emailObj.bcc);
+  if (bcc.length > 0) message.bccRecipients = bcc;
+
+  return JSON.stringify({ message });
 };

@@ -3977,6 +3977,14 @@ select {
   top: -20px;
   position: relative;
   transform: none !important;
+  pointer-events: auto !important;
+}
+.modal-top {
+  pointer-events: none !important;
+}
+.modal-top + .modal-backdrop {
+  opacity: 0.15 !important;
+  pointer-events: none !important;
 }
 /* Boxed appearance for Notes, Tasks, Emails, Calls */
 .highlight-box {

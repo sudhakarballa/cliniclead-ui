@@ -1692,24 +1692,39 @@ const handleExportToExcel = async () => {
     onTemplateSelect={(t) => setSelectedTemplate(t)}
   />
 )}
-      {dealFilterDialogIsOpen && (
-        <DealFilterAddEditDialog
-          dialogIsOpen={dealFilterDialogIsOpen}
-          setDialogIsOpen={setDealFilterDialogIsOpen}
-          onSaveChanges={(newFilter: DealFilter | null) => {
-            dealFiltersSvc.getDealFilters().then((res) => {
-              if (res && Array.isArray(res)) {
-                LocalStorageUtil.setItemObject(Constants.Deal_FILTERS, JSON.stringify(res));
-                setFilterRefreshTrigger(k => k + 1);
-              }
-            });
+      <DealFilterAddEditDialog
+        dialogIsOpen={dealFilterDialogIsOpen}
+        setDialogIsOpen={(open: boolean) => {
+          setDealFilterDialogIsOpen(open);
+          if (!open && selectedFilterObj?.isPreview) {
+            setSelectedFilterObj(null);
             loadDeals();
-          }}
-          selectedFilter={selectedFilterForEdit || new DealFilter()}
-          setSelectedFilter={setSelectedFilterForEdit}
-          onPreview={() => {}}
-        />
-      )}
+          }
+        }}
+        onSaveChanges={(newFilter: DealFilter | null) => {
+          dealFiltersSvc.getDealFilters().then((res) => {
+            if (res && Array.isArray(res)) {
+              LocalStorageUtil.setItemObject(Constants.Deal_FILTERS, JSON.stringify(res));
+              setFilterRefreshTrigger(k => k + 1);
+            }
+          });
+          setDealFilterDialogIsOpen(false);
+          setSelectedFilterObj(null);
+          loadDeals();
+        }}
+        selectedFilter={selectedFilterForEdit || new DealFilter()}
+        setSelectedFilter={(filter: any) => {
+          setSelectedFilterForEdit(filter);
+        }}
+        onPreview={(previewFilter: any) => {
+          console.log('onPreview called with:', previewFilter?.id, previewFilter);
+          setShowPipeLineFilters(false);
+          if (previewFilter?.id) {
+            setSelectedFilterForEdit(previewFilter);
+            setSelectedFilterObj({ ...previewFilter, isPreview: true });
+          }
+        }}
+      />
     </>
   );
 };

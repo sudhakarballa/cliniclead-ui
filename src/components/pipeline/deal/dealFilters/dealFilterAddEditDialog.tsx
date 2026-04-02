@@ -1,6 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Picker from "react-datepicker";
 import { ErrorBoundary } from "react-error-boundary";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
@@ -1480,9 +1480,8 @@ const DealFilterAddEditDialog = (props: params) => {
   const [selectedFilter, setSelectedFilter] = useState(
     props.selectedFilter ?? new DealFilter(),
   );
-  const [showPreview, setShowPreview] = useState(
-    selectedFilter.isPreview ?? false,
-  );
+  const [showPreview, setShowPreview] = useState(false);
+  const prevDialogOpen = useRef(false);
   const [isDotDigitalSelected, setIsDotDigitalSelected] = useState(false);
   const [isJustCallSelected, setisJustCallSelected] = useState(false);
   const [previewResponse, setPreviewResponse] = useState<any>();
@@ -1551,26 +1550,42 @@ const DealFilterAddEditDialog = (props: params) => {
   const allConditionsComplete = (watchedAllConditions || []).every(isConditionComplete);
   const anyConditionsComplete = (watchedAnyConditions || []).length === 0 || (watchedAnyConditions || []).every(isConditionComplete);
 
+  // Sync selectedFilter from props when dialog opens or filter prop changes
   useEffect(() => {
-    if (!dialogIsOpen) return;
+    if (props.selectedFilter) {
+      setSelectedFilter(props.selectedFilter);
+    }
+  }, [props.selectedFilter]);
+
+  useEffect(() => {
+    // Only initialize form when dialog transitions from closed to open
+    const justOpened = dialogIsOpen && !prevDialogOpen.current;
+    prevDialogOpen.current = dialogIsOpen;
+    if (!justOpened) return;
+
+    // Read from props directly — internal state may not be updated yet in this render
+    const filter = props.selectedFilter ?? new DealFilter();
+    if (filter.isPreview) {
+      setShowPreview(true);
+    }
 
     let obj: any = {
-      name: selectedFilter.name || "",
-      visibility: Util.isNullOrUndefinedOrEmpty(selectedFilter.isPublic)
+      name: filter.name || "",
+      visibility: Util.isNullOrUndefinedOrEmpty(filter.isPublic)
         ? "Private"
-        : selectedFilter.isPublic
+        : filter.isPublic
           ? "Public"
           : "Private",
-      filterType: selectedFilter.filterType || "",
-      filterAction: selectedFilter.filterAction || "",
+      filterType: filter.filterType || "",
+      filterAction: filter.filterAction || "",
       allConditions: [],
       anyConditions: [],
     };
 
-    if (selectedFilter.id > 0) {
-      const allConds = selectedFilter.conditions?.find((i) => i.glue === "AND")
+    if (filter.id > 0) {
+      const allConds = filter.conditions?.find((i: any) => i.glue === "AND")
         ?.conditionList || [];
-      const anyConds = selectedFilter.conditions?.find((i) => i.glue === "OR")
+      const anyConds = filter.conditions?.find((i: any) => i.glue === "OR")
         ?.conditionList || [];
 
       obj.allConditions = allConds.map((cond: any) => {
@@ -1613,7 +1628,7 @@ const DealFilterAddEditDialog = (props: params) => {
 
       setAllConditions(obj.allConditions.length > 0 ? obj.allConditions : [{ object: "", field: "", operator: "", value: "" }]);
       setAnyConditions(obj.anyConditions);
-      onFilterTypeChange(selectedFilter.filterType);
+      onFilterTypeChange(filter.filterType);
     } else {
       obj.allConditions = [{ object: "", field: "", operator: "", value: "" }];
       setAllConditions(obj.allConditions);
@@ -1621,7 +1636,9 @@ const DealFilterAddEditDialog = (props: params) => {
     }
 
     reset(obj);
-  }, [dialogIsOpen, selectedFilter, reset]);
+  // Only re-run when dialog opens or a genuinely different filter is loaded (by ID)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialogIsOpen]);
 
   const [filterName, setFilterName] = useState<string>("");
   const [visibility, setVisibility] = useState<string>("");
@@ -1657,6 +1674,7 @@ const DealFilterAddEditDialog = (props: params) => {
 
   const oncloseDialog = () => {
     setDialogIsOpen(false);
+    setShowPreview(false);
     setSelectedFilter(new DealFilter());
     props.setSelectedFilter(null);
   };
@@ -1715,21 +1733,32 @@ const DealFilterAddEditDialog = (props: params) => {
     }
 
     dealFiltersSvc.saveDealFilters(dealFilter).then((res) => {
-      if (res?.result) {
-        setSelectedFilter({ ...res.result, actulFilterId: actulFilterId });
+      console.log('saveDealFilters response:', JSON.stringify(res));
+      const saved = res?.result || res;
+      const savedId = saved?.id || saved?.dealFilterId;
+      if (savedId) {
+        setSelectedFilter({ ...saved, id: savedId, actulFilterId: actulFilterId });
         props.setSelectedFilter({
-          ...res.result,
+          ...saved,
+          id: savedId,
           actulFilterId: actulFilterId,
         });
+
+        if (isPreview) {
+          props.onPreview({ ...saved, id: savedId, conditions: dealFilter.conditions, isPreview: true });
+        }
+      } else if (isPreview) {
+        // If save didn't return an ID, revert preview state
+        setShowPreview(false);
+        toast.error("Failed to create preview filter");
       }
 
-      if (res?.result && !isPreview) {
+      if (savedId && !isPreview) {
         toast.success(
           `Deal filter ${
             dealFilter.id > 0 ? "updated" : "created"
           } successfully`,
         );
-        // Refresh the filters list after save
         dealFiltersSvc.getDealFilters().then((filters) => {
           if (filters && Array.isArray(filters)) {
             LocalStorageUtil.setItemObject(
@@ -1738,8 +1767,14 @@ const DealFilterAddEditDialog = (props: params) => {
             );
           }
         });
-        props.onSaveChanges(res.result);
+        props.onSaveChanges(saved);
       }
+    }).catch((err) => {
+      console.error("Error saving deal filter:", err);
+      if (isPreview) {
+        setShowPreview(false);
+      }
+      toast.error("Failed to save filter");
     });
   };
 
@@ -1827,7 +1862,6 @@ const DealFilterAddEditDialog = (props: params) => {
   const handlePreview = (item: any) => {
     setShowPreview(true);
     continueToSave(item, true);
-    props.onPreview();
   };
 
   const customFooter = () => {
@@ -1838,9 +1872,9 @@ const DealFilterAddEditDialog = (props: params) => {
             className="btn btn-secondary btn-sm me-2"
             onClick={(e: any) => {
               setDialogIsOpen(false);
+              setShowPreview(false);
               props.setSelectedFilter(null);
             }}
-            id="closeDialog"
           >
             Cancel
           </button>
@@ -1860,7 +1894,6 @@ const DealFilterAddEditDialog = (props: params) => {
               handleSubmit(handlePreview)(e);
             }}
             className="btn btn-success btn-sm me-2"
-            id="closeDialog"
             hidden={showPreview}
           >
             Preview
@@ -1869,22 +1902,14 @@ const DealFilterAddEditDialog = (props: params) => {
           <button
             onClick={(e: any) => setShowPreview(false)}
             className="btn btn-success btn-sm me-2"
-            id="closeDialog"
             hidden={!showPreview}
           >
             ContinueEditing
           </button>
           <button
             onClick={(e) => {
-              console.log("Save button clicked");
-              console.log("Form errors:", errors);
-              console.log("Form values:", getValues());
               handleSubmit(
                 (data) => {
-                  console.log(
-                    "Form validation passed, calling onSubmit with:",
-                    data,
-                  );
                   onSubmit(data);
                 },
                 (errors) => {
@@ -1893,7 +1918,6 @@ const DealFilterAddEditDialog = (props: params) => {
               )(e);
             }}
             className="btn btn-primary btn-sm me-2"
-            id="closeDialog"
           >
             Save
           </button>
@@ -1917,7 +1941,7 @@ const DealFilterAddEditDialog = (props: params) => {
         closeDialog={oncloseDialog}
         onClose={oncloseDialog}
         customFooter={customFooter()}
-        hideBody={false}
+        hideBody={showPreview}
         position={showPreview ? "top" : ""}
       >
         {

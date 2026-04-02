@@ -318,12 +318,23 @@ const [usernameError, setUsernameError] = useState<string | undefined>();
     }
 
   } catch (err: any) {
-  const msg =
+  const backendMsg =
+    err?.response?.data?.error?.message ||
     err?.response?.data?.message ||
-    err?.message ||
-    "Something went wrong.";
+    null;
 
-  // Popup
+  let msg: string;
+  if (backendMsg) {
+    // Make common backend errors more user-friendly
+    if (backendMsg.includes("DbUpdateException") || backendMsg.includes("entity changes")) {
+      msg = "Unable to save user. Please check for duplicate email or username and try again.";
+    } else {
+      msg = backendMsg;
+    }
+  } else {
+    msg = "Something went wrong while saving the user. Please try again.";
+  }
+
   toast.error(msg);
   }
 };

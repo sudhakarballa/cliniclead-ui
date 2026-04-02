@@ -615,19 +615,30 @@ export const DealHeader = (props: params) => {
         />
       )}
 
-      {dealFilterDialogIsOpen && (
-        <DealFilterAddEditDialog
-          dialogIsOpen={dealFilterDialogIsOpen}
-          setDialogIsOpen={setDealFilterDialogIsOpen}
-          onPreview={(e:any)=>setShowPipeLineFilters(false)}
-          onSaveChanges={(e: any) => {
-            setDealFilterDialogIsOpen(false);
+      <DealFilterAddEditDialog
+        dialogIsOpen={dealFilterDialogIsOpen}
+        setDialogIsOpen={(open: boolean) => {
+          setDealFilterDialogIsOpen(open);
+          if (!open && selectedFilterObj?.isPreview) {
+            setSelectedFilterObj(null);
             props.onSaveChanges();
-          }}
-          selectedFilter={selectedFilterForEdit as any}
-          setSelectedFilter={setSelectedFilterObj}
-        />
-      )}
+          }
+        }}
+        onPreview={(previewFilter: any) => {
+          setShowPipeLineFilters(false);
+          if (previewFilter?.id) {
+            setSelectedFilterForEdit(previewFilter);
+            setSelectedFilterObj({ ...previewFilter, isPreview: true });
+          }
+        }}
+        onSaveChanges={(e: any) => {
+          setDealFilterDialogIsOpen(false);
+          setSelectedFilterObj(null);
+          props.onSaveChanges();
+        }}
+        selectedFilter={selectedFilterForEdit as any}
+        setSelectedFilter={setSelectedFilterForEdit}
+      />
     </>
   );
 };

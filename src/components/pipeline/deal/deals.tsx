@@ -434,11 +434,12 @@ export const Deals = (props: params) => {
       setSelectedUserId(null as any);
     }
 
-    if (selectedFilterObj && selectedFilterObj.isPreview) {
-      setDealFilterDialogIsOpen(true);
-    }
-
     loadDealsByFilter();
+  } else {
+    // No filter/user selected — reload default stages
+    if (selectedItem?.pipelineID) {
+      loadStages(selectedItem.pipelineID);
+    }
   }
 }, [selectedFilterObj, selectedUserId]);
 
@@ -485,7 +486,7 @@ export const Deals = (props: params) => {
 
   return (
     <>
-      {isLoading ? (
+      {isLoading && !dealFilterDialogIsOpen ? (
         <div className="alignCenter">
           <Spinner />
         </div>
@@ -517,8 +518,14 @@ export const Deals = (props: params) => {
             {viewType === "kanban" ? (
               <div className="pdstage-area" ref={scrollContainerRef}>
                 <div className="pdstagearea-inner">
-                  {/* Show no deals message when filter is applied but no deals found */}
-                  {(selectedFilterObj || selectedUserId) && stages.length === 0 && !isLoading ? (
+                  {/* Show loading spinner when loading with dialog open */}
+                  {isLoading && dealFilterDialogIsOpen ? (
+                    <div className="alignCenter" style={{ minHeight: 300, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                      <Spinner />
+                    </div>
+                  ) :
+                  /* Show no deals message when filter is applied but no deals found */
+                  (selectedFilterObj || selectedUserId) && stages.length === 0 && !isLoading ? (
                     <div style={{
                       display: 'flex',
                       flexDirection: 'column',

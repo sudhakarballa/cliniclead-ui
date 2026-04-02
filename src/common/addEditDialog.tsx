@@ -83,7 +83,7 @@ export const AddEditDialog: React.FC<Props> = (props) => {
         aria-labelledby="contained-modal-title-vcenter"
         size={dialogSize as any}
         fullscreen={fullScreen}
-        backdrop="static"
+        backdrop={position === "top" ? false : "static"}
         keyboard={false} // this was added to disable click outside of Modal window
         centered={position !== "top"} // only center if not top
       >

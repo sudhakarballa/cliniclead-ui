@@ -15,23 +15,29 @@ import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import CloseIcon from "@mui/icons-material/Close";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatItalicIcon from "@mui/icons-material/FormatItalic";
+import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import LinkIcon from "@mui/icons-material/Link";
 
 const fieldRowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   borderBottom: "1px solid #e0e0e0",
-  padding: "6px 0",
+  padding: "4px 0",
   gap: 0,
 };
 
 const labelStyle: React.CSSProperties = {
-  width: 60,
-  minWidth: 60,
-  fontSize: 13,
+  width: 50,
+  minWidth: 50,
+  fontSize: 12,
   color: "#555",
   fontWeight: 500,
   textAlign: "right",
-  paddingRight: 10,
+  paddingRight: 8,
   flexShrink: 0,
 };
 
@@ -40,7 +46,7 @@ const inputStyle: React.CSSProperties = {
   border: "none",
   outline: "none",
   fontSize: 13,
-  padding: "4px 0",
+  padding: "3px 0",
   background: "transparent",
   fontFamily: "inherit",
 };
@@ -48,8 +54,8 @@ const inputStyle: React.CSSProperties = {
 const errorStyle: React.CSSProperties = {
   color: "#d32f2f",
   fontSize: 11,
-  marginTop: 2,
-  paddingLeft: 60,
+  marginTop: 1,
+  paddingLeft: 50,
 };
 
 const EmailComposeDialog = (props: any) => {
@@ -76,6 +82,17 @@ const EmailComposeDialog = (props: any) => {
   const [showTemplateMenu, setShowTemplateMenu] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
   const templateMenuRef = useRef<HTMLDivElement>(null);
+
+  const execCmd = (cmd: string, value?: string) => {
+    document.execCommand(cmd, false, value);
+    bodyRef.current?.focus();
+    handleBodyInput();
+  };
+
+  const insertLink = () => {
+    const url = prompt("Enter URL:");
+    if (url) execCmd("createLink", url);
+  };
 
   const stripHtml = (s = "") =>
     s
@@ -119,8 +136,7 @@ const EmailComposeDialog = (props: any) => {
 
   const methods = useForm({
     resolver: yupResolver(schema),
-    mode: "onChange",
-    reValidateMode: "onChange",
+    mode: "onSubmit",
   });
 
   const {
@@ -211,20 +227,12 @@ const EmailComposeDialog = (props: any) => {
     setSelectedItem(obj);
 
     // Seed react-hook-form
-    setValue("toAddress" as never, (obj.toAddress ?? "") as never, {
-      shouldValidate: true,
-    });
-    setValue("fromAddress" as never, (obj.fromAddress ?? "") as never, {
-      shouldValidate: true,
-    });
-    setValue("subject" as never, (obj.subject ?? "") as never, {
-      shouldValidate: true,
-    });
+    setValue("toAddress" as never, (obj.toAddress ?? "") as never);
+    setValue("fromAddress" as never, (obj.fromAddress ?? "") as never);
+    setValue("subject" as never, (obj.subject ?? "") as never);
     setValue("cc" as never, (obj.cc ?? "") as never);
     setValue("bcc" as never, (obj.bcc ?? "") as never);
-    setValue("body" as never, (obj.body ?? "") as never, {
-      shouldValidate: true,
-    });
+    setValue("body" as never, (obj.body ?? "") as never);
 
     // Set contentEditable body
     setTimeout(() => {
@@ -401,12 +409,14 @@ const EmailComposeDialog = (props: any) => {
         closeDialog={() => setDialogIsOpen(false)}
         customFooter={customFooter()}
         onClose={() => setDialogIsOpen(false)}
+        dialogSize={"lg"}
       >
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (!isSubmitting) handleSubmit(onSubmit)();
           }}
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
           {/* To */}
           <div style={fieldRowStyle}>
@@ -467,23 +477,83 @@ const EmailComposeDialog = (props: any) => {
           )}
 
           {/* Body */}
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 4, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+            <div style={{
+              display: "flex",
+              gap: 2,
+              padding: "3px 6px",
+              border: "1px solid #e0e0e0",
+              borderBottom: "none",
+              borderRadius: "4px 4px 0 0",
+              background: "#f5f5f5",
+              flexWrap: "wrap",
+            }}>
+              {[
+                { cmd: "bold", icon: <FormatBoldIcon sx={{ fontSize: 18 }} />, title: "Bold" },
+                { cmd: "italic", icon: <FormatItalicIcon sx={{ fontSize: 18 }} />, title: "Italic" },
+                { cmd: "underline", icon: <FormatUnderlinedIcon sx={{ fontSize: 18 }} />, title: "Underline" },
+                { cmd: "insertUnorderedList", icon: <FormatListBulletedIcon sx={{ fontSize: 18 }} />, title: "Bullet list" },
+                { cmd: "insertOrderedList", icon: <FormatListNumberedIcon sx={{ fontSize: 18 }} />, title: "Numbered list" },
+              ].map((btn) => (
+                <button
+                  key={btn.cmd}
+                  type="button"
+                  title={btn.title}
+                  onMouseDown={(e) => { e.preventDefault(); execCmd(btn.cmd); }}
+                  style={{
+                    background: "none", border: "1px solid transparent", borderRadius: 3,
+                    cursor: "pointer", padding: "3px 5px", display: "flex", alignItems: "center",
+                    color: "#555",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#e0e0e0")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                >
+                  {btn.icon}
+                </button>
+              ))}
+              <button
+                type="button"
+                title="Insert link"
+                onMouseDown={(e) => { e.preventDefault(); insertLink(); }}
+                style={{
+                  background: "none", border: "1px solid transparent", borderRadius: 3,
+                  cursor: "pointer", padding: "3px 5px", display: "flex", alignItems: "center",
+                  color: "#555",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#e0e0e0")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+              >
+                <LinkIcon sx={{ fontSize: 18 }} />
+              </button>
+              <select
+                onChange={(e) => { execCmd("fontSize", e.target.value); e.target.value = ""; }}
+                style={{ border: "1px solid #ccc", borderRadius: 3, fontSize: 11, padding: "2px 4px", background: "#fff", cursor: "pointer", marginLeft: 4 }}
+                defaultValue=""
+              >
+                <option value="" disabled>Size</option>
+                <option value="1">Small</option>
+                <option value="3">Normal</option>
+                <option value="5">Large</option>
+                <option value="7">Huge</option>
+              </select>
+            </div>
             <div
               ref={bodyRef}
               contentEditable
               onInput={handleBodyInput}
               onBlur={handleBodyInput}
               style={{
-                minHeight: 180,
-                maxHeight: 320,
+                flex: 1,
+                minHeight: 120,
                 overflowY: "auto",
-                padding: 10,
+                padding: 8,
                 border: "1px solid #e0e0e0",
-                borderRadius: 4,
+                borderTop: "none",
+                borderRadius: "0 0 4px 4px",
                 fontSize: 13,
                 fontFamily: "inherit",
                 outline: "none",
-                lineHeight: 1.5,
+                lineHeight: 1.4,
               }}
               suppressContentEditableWarning
             />

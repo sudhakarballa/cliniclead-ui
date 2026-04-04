@@ -328,7 +328,7 @@ extractedSubject = "Email Activity";
     <>
       <div className="timeline-tabscontent">
         <Tabs
-          defaultActiveKey={defaultActiveKey}
+          activeKey={defaultActiveKey}
           transition={false}
           onSelect={(e: any) => {
             // Only re-fetch if the active key is 'activity_sub' as that's where timelines are displayed

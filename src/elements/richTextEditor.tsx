@@ -1,7 +1,11 @@
-import { padding } from "@xstyled/styled-components";
 import React, { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import "react-quill/dist/quill.snow.css";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatItalicIcon from "@mui/icons-material/FormatItalic";
+import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import LinkIcon from "@mui/icons-material/Link";
 
 type params = {
   onChange: any;
@@ -13,53 +17,121 @@ type params = {
   attachedData?: Array<any>;
 };
 
-const RitechTextEditorWithValidation = (props: params) => {
-  
-  const {
-    value,
-    onChange,
-    hideSpace,
-    item,
-    selectedItem,
-    isValidationOptional,
-    attachedData,
-    ...others
-  } = props;
+const toolbarBtnStyle: React.CSSProperties = {
+  background: "none",
+  border: "1px solid transparent",
+  borderRadius: 3,
+  cursor: "pointer",
+  padding: "3px 5px",
+  display: "flex",
+  alignItems: "center",
+  color: "#555",
+};
 
+const Toolbar = ({ onExecCmd, onInsertLink }: { onExecCmd: (cmd: string, val?: string) => void; onInsertLink: () => void }) => (
+  <div
+    style={{
+      display: "flex",
+      gap: 2,
+      padding: "3px 6px",
+      border: "1px solid #ccc",
+      borderBottom: "none",
+      borderRadius: "4px 4px 0 0",
+      background: "#f5f5f5",
+      flexWrap: "wrap",
+    }}
+  >
+    {[
+      { cmd: "bold", icon: <FormatBoldIcon sx={{ fontSize: 18 }} />, title: "Bold" },
+      { cmd: "italic", icon: <FormatItalicIcon sx={{ fontSize: 18 }} />, title: "Italic" },
+      { cmd: "underline", icon: <FormatUnderlinedIcon sx={{ fontSize: 18 }} />, title: "Underline" },
+      { cmd: "insertUnorderedList", icon: <FormatListBulletedIcon sx={{ fontSize: 18 }} />, title: "Bullet list" },
+      { cmd: "insertOrderedList", icon: <FormatListNumberedIcon sx={{ fontSize: 18 }} />, title: "Numbered list" },
+    ].map((btn) => (
+      <button
+        key={btn.cmd}
+        type="button"
+        title={btn.title}
+        onMouseDown={(e) => { e.preventDefault(); onExecCmd(btn.cmd); }}
+        style={toolbarBtnStyle}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "#e0e0e0")}
+        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+      >
+        {btn.icon}
+      </button>
+    ))}
+    <button
+      type="button"
+      title="Insert link"
+      onMouseDown={(e) => { e.preventDefault(); onInsertLink(); }}
+      style={toolbarBtnStyle}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#e0e0e0")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+    >
+      <LinkIcon sx={{ fontSize: 18 }} />
+    </button>
+    <select
+      onChange={(e) => { onExecCmd("fontSize", e.target.value); e.target.value = ""; }}
+      style={{ border: "1px solid #ccc", borderRadius: 3, fontSize: 11, padding: "2px 4px", background: "#fff", cursor: "pointer", marginLeft: 4 }}
+      defaultValue=""
+    >
+      <option value="" disabled>Size</option>
+      <option value="1">Small</option>
+      <option value="3">Normal</option>
+      <option value="5">Large</option>
+      <option value="7">Huge</option>
+    </select>
+  </div>
+);
+
+const RitechTextEditorWithValidation = (props: params) => {
+  const { value, onChange, hideSpace, item, attachedData } = props;
+  const editorRef = useRef<HTMLDivElement>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-  const menuWrapperRef = useRef<HTMLDivElement>(null);
   const {
     register,
     formState: { errors },
   } = useFormContext();
 
   useEffect(() => {
-  function handleClickOutside(e: MouseEvent) {
-    if (menuWrapperRef.current && !menuWrapperRef.current.contains(e.target as Node)) {
-      setShowDropdown(false);
+    if (editorRef.current && value && !editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = value;
     }
-  }
-  if (showDropdown) {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }
-}, [showDropdown]);
+  }, [value]);
 
-  const handleAtClick = () => {
-    if (textareaRef.current) {
-      setCursorPosition(textareaRef.current.selectionStart);
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
     }
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showDropdown]);
+
+  const execCmd = (cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+    editorRef.current?.focus();
+    syncValue();
   };
 
-  const insertTextAtCursor = (text: string) => {
-    if (textareaRef.current && cursorPosition !== null) {
-      const currentValue = textareaRef.current.value;
-      const newValue = currentValue.slice(0, cursorPosition) + text + " " + currentValue.slice(cursorPosition);
-      onChange(newValue);
-      setCursorPosition(null);
+  const insertLink = () => {
+    const url = prompt("Enter URL:");
+    if (url) execCmd("createLink", url);
+  };
+
+  const syncValue = () => {
+    const html = editorRef.current?.innerHTML || "";
+    onChange(html);
+  };
+
+  const insertTemplate = (html: string) => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = html;
+      syncValue();
     }
     setShowDropdown(false);
   };
@@ -67,78 +139,78 @@ const RitechTextEditorWithValidation = (props: params) => {
   return (
     <>
       <br hidden={hideSpace} />
-      <div style={{ position: 'relative' }}>
-        <textarea
-          ref={textareaRef}
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={handleAtClick}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        <Toolbar onExecCmd={execCmd} onInsertLink={insertLink} />
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={syncValue}
+          onBlur={syncValue}
           style={{
-            width: '100%',
-            minHeight: '120px',
-            padding: '12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontFamily: 'inherit',
-            fontSize: '14px',
-            resize: 'vertical'
+            flex: 1,
+            minHeight: 80,
+            overflowY: "auto",
+            padding: 8,
+            border: "1px solid #ccc",
+            borderTop: "none",
+            borderRadius: "0 0 4px 4px",
+            fontSize: 14,
+            fontFamily: "inherit",
+            outline: "none",
+            lineHeight: 1.5,
           }}
-          placeholder="Enter note details..."
+          suppressContentEditableWarning
         />
       </div>
 
-      <div className="selectformtemplatebox"
-        hidden={!attachedData || attachedData?.length == 0}
-        style={{
-          cursor: "pointer",
-          fontSize: "14px",
-          marginTop: "10px",
-          display: "inline-block", marginLeft:"-74px",
-        }}
-        onClick={(e: any) => setShowDropdown(true)}
+      <div
+        hidden={!attachedData || attachedData?.length === 0}
+        style={{ position: "relative", marginTop: 6, display: "inline-block" }}
       >
-      <b>Select From Template</b>  @
-      </div>
-
-      {showDropdown && (
-        <div className="selectformtemplate"
-          ref={dropdownRef}
-          style={{
-            position: "absolute", bottom:"0", marginLeft:"0",
-            background: "white",
-            border: "1px solid #ccc",
-            marginTop: "5px",
-            width: "200px",
-            zIndex: 10,
-            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-          }}
+        <span
+          style={{ cursor: "pointer", fontSize: 12, color: "#1976d2", fontWeight: 500 }}
+          onClick={() => setShowDropdown(true)}
         >
-          <option disabled style={{padding: "8px", cursor: "pointer", borderBottom: "1px solid #eee", color: "#000000"}}>Select From Template</option>
-          {attachedData?.map((option, index) => (
-            <div
-              key={index}
-              style={{
-                padding: "8px",
-                cursor: "pointer",
-                borderBottom: "1px solid #eee",
-              }}
-              onClick={(e) => {
-                insertTextAtCursor(option.value);
-              }}
-            >
-              {option.name}
+          Select From Template @
+        </span>
+        {showDropdown && (
+          <div
+            ref={dropdownRef}
+            style={{
+              position: "absolute",
+              bottom: "100%",
+              left: 0,
+              background: "#fff",
+              border: "1px solid #ccc",
+              borderRadius: 4,
+              width: 220,
+              zIndex: 20000,
+              boxShadow: "0 4px 12px rgba(0,0,0,.12)",
+              maxHeight: 240,
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ padding: "6px 10px", fontSize: 11, color: "#888", borderBottom: "1px solid #eee" }}>
+              Select a template
             </div>
-          ))}
-        </div>
-      )}
+            {attachedData?.map((option, index) => (
+              <div
+                key={index}
+                style={{ padding: "8px 10px", cursor: "pointer", fontSize: 12, borderBottom: "1px solid #f5f5f5" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
+                onClick={() => insertTemplate(option.value)}
+              >
+                {option.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {item?.value && (
         <>
-          <input
-            type="text"
-            {...register(item.value)}
-            style={{ display: "none" }}
-          />
+          <input type="text" {...register(item.value)} style={{ display: "none" }} />
           <p className="text-danger" id={`validationMsgfor_${item.value}`}>
             {(errors as any)?.[item.value]?.message}
           </p>
@@ -149,52 +221,49 @@ const RitechTextEditorWithValidation = (props: params) => {
 };
 
 const RichTextEditor = (props: params) => {
-  
-  const {
-    onChange,
-    value,
-    hideSpace,
-    isValidationOptional,
-    attachedData,
-    ...others
-  } = props;
+  const { onChange, value, hideSpace, isValidationOptional, attachedData } = props;
+  const editorRef = useRef<HTMLDivElement>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-  const menuWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (editorRef.current && value && !editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
     }
-
     if (showDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showDropdown]);
 
-  const handleAtClick = () => {
-    if (textareaRef.current) {
-      setCursorPosition(textareaRef.current.selectionStart);
-    }
+  const execCmd = (cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+    editorRef.current?.focus();
+    syncValue();
   };
 
-  const insertTextAtCursor = (text: string) => {
-    if (textareaRef.current && cursorPosition !== null) {
-      const currentValue = textareaRef.current.value;
-      const newValue = currentValue.slice(0, cursorPosition) + text + " " + currentValue.slice(cursorPosition);
-      onChange(newValue);
-      setCursorPosition(null);
+  const insertLink = () => {
+    const url = prompt("Enter URL:");
+    if (url) execCmd("createLink", url);
+  };
+
+  const syncValue = () => {
+    const html = editorRef.current?.innerHTML || "";
+    onChange(html);
+  };
+
+  const insertTemplate = (html: string) => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = html;
+      syncValue();
     }
     setShowDropdown(false);
   };
@@ -204,76 +273,74 @@ const RichTextEditor = (props: params) => {
       {isValidationOptional ? (
         <>
           <br hidden={hideSpace} />
-          <div style={{ position: 'relative' }}>
-            <textarea
-              ref={textareaRef}
-              value={value || ''}
-              onChange={(e) => onChange(e.target.value)}
-              onFocus={handleAtClick}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+            <Toolbar onExecCmd={execCmd} onInsertLink={insertLink} />
+            <div
+              ref={editorRef}
+              contentEditable
+              onInput={syncValue}
+              onBlur={syncValue}
               style={{
-                width: '100%',
-                minHeight: '120px',
-                padding: '12px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                fontFamily: 'inherit',
-                fontSize: '14px',
-                resize: 'vertical'
+                flex: 1,
+                minHeight: 80,
+                overflowY: "auto",
+                padding: 8,
+                border: "1px solid #ccc",
+                borderTop: "none",
+                borderRadius: "0 0 4px 4px",
+                fontSize: 14,
+                fontFamily: "inherit",
+                outline: "none",
+                lineHeight: 1.5,
               }}
-              placeholder="Enter note details..."
+              suppressContentEditableWarning
             />
           </div>
-          <br hidden={hideSpace} />
-          <div ref={menuWrapperRef} style={{ position: 'relative', display: 'inline-block' }}>
-          <div className="selectformtemplatebox"
-            hidden={!attachedData || attachedData?.length == 0}
-            style={{
-              cursor: "pointer",
-              fontSize: "14px",
-              marginTop: "10px",
-              display: "inline-block",
-            }}
-            onClick={(e: any) => setShowDropdown(true)}
-          >
-           <b>Select From Template</b>  @
-          </div>
 
-          {showDropdown && (
-            <div className="selectformtemplate"
-              ref={dropdownRef}
-              style={{
-                position: "absolute",
-                background: "white",
-                border: "1px solid #ccc",
-                marginTop: "5px",
-                width: "150px",
-                zIndex: 20000,
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                maxHeight: 280,
-                overflowY: 'auto',
-                overscrollBehavior: 'contain',
-                WebkitOverflowScrolling: 'touch',
-              }}
+          <div
+            hidden={!attachedData || attachedData?.length === 0}
+            style={{ position: "relative", marginTop: 6, display: "inline-block" }}
+          >
+            <span
+              style={{ cursor: "pointer", fontSize: 12, color: "#1976d2", fontWeight: 500 }}
+              onClick={() => setShowDropdown(true)}
             >
-              <option disabled style={{padding:"8px", cursor: "pointer", borderBottom: "1px solid #eee"}}>Select From Template</option>
-              {attachedData?.map((option, index) => (
-                <div
-                  key={index}
-                  style={{
-                    padding: "8px",
-                    cursor: "pointer",
-                    borderBottom: "1px solid #eee",
-                  }}
-                  onClick={(e) => {
-                    insertTextAtCursor(option?.value);
-                  }}
-                >
-                  {option?.name}
+              Select From Template @
+            </span>
+            {showDropdown && (
+              <div
+                ref={dropdownRef}
+                style={{
+                  position: "absolute",
+                  bottom: "100%",
+                  left: 0,
+                  background: "#fff",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  width: 220,
+                  zIndex: 20000,
+                  boxShadow: "0 4px 12px rgba(0,0,0,.12)",
+                  maxHeight: 240,
+                  overflowY: "auto",
+                }}
+              >
+                <div style={{ padding: "6px 10px", fontSize: 11, color: "#888", borderBottom: "1px solid #eee" }}>
+                  Select a template
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                {attachedData?.map((option, index) => (
+                  <div
+                    key={index}
+                    style={{ padding: "8px 10px", cursor: "pointer", fontSize: 12, borderBottom: "1px solid #f5f5f5" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
+                    onClick={() => insertTemplate(option?.value)}
+                  >
+                    {option?.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <RitechTextEditorWithValidation {...props} />

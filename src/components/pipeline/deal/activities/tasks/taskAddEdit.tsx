@@ -106,8 +106,10 @@ export const TaskAddEdit = (props: params) => {
       value: "taskDetails",
       type: ElementType.ckeditor,
       isRequired: true,
+      isControlInNewLine: true,
       elementSize: 12,
-      hideLabel: true,
+      labelSize: 12,
+      hideSpaceForEditor: true,
     },
   ];
 
@@ -532,40 +534,28 @@ export const TaskAddEdit = (props: params) => {
             onSave={handleSubmit(onSubmit)}
             closeDialog={oncloseDialog}
             onClose={oncloseDialog}
+            dialogSize={"lg"}
           >
             <>
               {isLoading && (
-                <div className="alignCenter">
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 100 }}>
                   <Spinner />
                 </div>
               )}
-              <div className="modelformfiledrow row">
-                <div>
-                  <div className="modelformbox ps-2 pe-2">
-                    {
-                      <GenerateElements
-                        controlsList={controlsList}
-                        selectedItem={selectedItem}
-                        onChange={(value: any, item: any) =>
-                          onChange(value, item)
-                        }
-                        getListofItemsForDropdown={(e: any) =>
-                          getDropdownvalues(e) as any
-                        }
-                      />
-                    }
-                    
-                  </div>
-                </div>
+              <div>
+                <GenerateElements
+                  controlsList={controlsList}
+                  selectedItem={selectedItem}
+                  onChange={(value: any, item: any) =>
+                    onChange(value, item)
+                  }
+                  getListofItemsForDropdown={(e: any) =>
+                    getDropdownvalues(e) as any
+                  }
+                  forceHideTimeSelect={false}
+                />
               </div>
             </>
-            {/* <SelectDropdown isValidationOptional={true} 
-                                item={selectedItem} 
-                                selectedItem={selectedItem} 
-                                list={getDueDates()}/> */}
-            {/* <RichTextEditor onChange={(e: any) => setSelectedItem({ ...selectedItem, noteDetails: e })}
-                    value={selectedItem.noteDetails} /> */}
-            <br />
           </AddEditDialog>
         </FormProvider>
       }

@@ -610,22 +610,50 @@ export const DealDetails = () => {
               <div className="app-dealblock">
                 <div className="app-dealblock-inner">
                   <div className="appdealblock-title">
-                    <h3>{dealItem?.treatmentName}</h3>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <h3 style={{ margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{dealItem?.treatmentName}</h3>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                       <Tooltip title="Edit Deal" placement="top">
                         <button
-                          className="btn btn-outline-secondary btn-sm"
                           onClick={() => setEditDealDialogOpen(true)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: "4px 10px",
+                            fontSize: 12,
+                            fontWeight: 500,
+                            border: "1px solid #dadce0",
+                            borderRadius: 14,
+                            background: "#fff",
+                            color: "#3c4043",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
                         >
-                          <FontAwesomeIcon icon={faPencil} />
+                          <FontAwesomeIcon icon={faPencil} style={{ fontSize: 10 }} /> Edit
                         </button>
                       </Tooltip>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={(e: any) => onDealModified()}
-                      >
-                        Save
-                      </button>
+                      <Tooltip title="Save changes" placement="top">
+                        <button
+                          onClick={(e: any) => onDealModified()}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: "4px 12px",
+                            fontSize: 12,
+                            fontWeight: 500,
+                            border: "none",
+                            borderRadius: 14,
+                            background: "#1a73e8",
+                            color: "#fff",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ✓ Save
+                        </button>
+                      </Tooltip>
                     </div>
                   </div>
                   <div className="appdealblock-data">

@@ -73,7 +73,8 @@ const NotesAddEdit = (props: params) => {
                         header={(selectedItem.noteID > 0 ? "Edit" : "Add") + " Note"}
                         onSave={onSave}
                         closeDialog={oncloseDialog}
-                        onClose={oncloseDialog}>
+                        onClose={oncloseDialog}
+                        dialogSize={"lg"}>
                         <RichTextEditor onChange={(e: any) => setSelectedItem({ ...selectedItem, noteDetails: e })}
                                         value={selectedItem.noteDetails} />
                     </AddEditDialog>

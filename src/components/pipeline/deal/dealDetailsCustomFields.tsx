@@ -299,29 +299,50 @@ const DealDetailsCustomFields = ({ dealItem }: Params) => {
 
             <div>
               {customFields.length === 0 && (
-                <p>Add custom fields to include more deal information.</p>
+                <p style={{ color: "#888", fontSize: 13, margin: "8px 0" }}>Add custom fields to include more deal information.</p>
               )}
-              <div className="d-flex">
-                <div className="col-sm-10 pt-4">
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => {
-                      setSelectedFieldIndex(-1); // <== Ensure it's reset for 'Add'
-                      setDialogIsOpen(true);
-                    }}
-                  >
-                    + Custom Field
-                  </button>
-                </div>
-                <div className="col-sm-2 pt-4">
-                  <button
-                    disabled={customFields.length === 0}
-                    className="btn btn-primary btn-sm"
-                    onClick={saveCustomFields}
-                  >
-                    Save
-                  </button>
-                </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button
+                  onClick={() => {
+                    setSelectedFieldIndex(-1);
+                    setDialogIsOpen(true);
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "4px 14px",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    border: "1px solid #dadce0",
+                    borderRadius: 6,
+                    background: "#fff",
+                    color: "#3c4043",
+                    cursor: "pointer",
+                  }}
+                >
+                  + Custom Field
+                </button>
+                <button
+                  disabled={customFields.length === 0}
+                  onClick={saveCustomFields}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "4px 14px",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    border: "none",
+                    borderRadius: 6,
+                    background: customFields.length === 0 ? "#c0c0c0" : "#1a73e8",
+                    color: "#fff",
+                    cursor: customFields.length === 0 ? "not-allowed" : "pointer",
+                    opacity: customFields.length === 0 ? 0.6 : 1,
+                  }}
+                >
+                  ✓ Save
+                </button>
               </div>
             </div>
           </>

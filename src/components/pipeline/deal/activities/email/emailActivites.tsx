@@ -257,34 +257,48 @@ function EmailActivities(props: params) {
         </div>
       ) : (
         <>
-          <div className="activityfilter-row pb-3">
-            <div className="createnote-row">
-              <div className="d-flex">
-                <div>
-                  <button
-                    type="button"
-                    onClick={(e: any) => {
-                      setSelectedEmail(new EmailCompose());
-                      setDialogIsOpen(true);
-                    }}
-                    className="btn btn-y1app"
-                  >
-                    Send Email
-                  </button>
-                </div>
-                <div style={{ paddingLeft: "10px" }}>
-                  <button
-                    type="button"
-                    onClick={(e: any) => {
-                      fetchData();
-                    }}
-                    className="btn btn-secondary"
-                  >
-                    Refresh
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedEmail(new EmailCompose());
+                setDialogIsOpen(true);
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 16px",
+                fontSize: 13,
+                fontWeight: 500,
+                border: "none",
+                borderRadius: 6,
+                background: "#1a73e8",
+                color: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              ✉ Compose
+            </button>
+            <button
+              type="button"
+              onClick={() => fetchData()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 16px",
+                fontSize: 13,
+                fontWeight: 500,
+                border: "1px solid #dadce0",
+                borderRadius: 6,
+                background: "#fff",
+                color: "#3c4043",
+                cursor: "pointer",
+              }}
+            >
+              ↻ Refresh
+            </button>
           </div>
           <div hidden={accounts.length === 0}>
             <div

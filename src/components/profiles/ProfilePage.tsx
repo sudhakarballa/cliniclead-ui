@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { UserService } from "../../services/UserService";
+import { AccountService } from "../../services/accountService";
 import { ErrorBoundary } from "react-error-boundary";
 import ToggleSwitch from "../../elements/ToggleSwitch"; 
 
@@ -22,6 +23,7 @@ export const ProfilePage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const userService = new UserService(ErrorBoundary);
+  const accountService = new AccountService(ErrorBoundary);
 
   const getBackPath = () => userRole === 0 ? "/Tenant" : "/pipeline";
 
@@ -67,14 +69,19 @@ export const ProfilePage = () => {
     return () => clearInterval(interval);
   }, [userDetails]);
 
-  const handleMFAToggle = (newMFAStatus: boolean) => {
+  const handleMFAToggle = async (newMFAStatus: boolean) => {
+    const previousStatus = isTwoFactorEnabled;
     setIsTwoFactorEnabled(newMFAStatus);
-    
-    // Update the profile in localStorage
-    if (userProfile) {
+
+    try {
+      await accountService.enableTwoFactorAuthentication(userProfile!.userId, newMFAStatus);
       const updatedProfile = { ...userProfile, twoFactorEnabled: newMFAStatus };
       localStorage.setItem('UserProfile', JSON.stringify(updatedProfile));
       toast.success(`Two-Factor Authentication ${newMFAStatus ? 'enabled' : 'disabled'} successfully!`);
+    } catch (error) {
+      console.error('Failed to update 2FA:', error);
+      setIsTwoFactorEnabled(previousStatus);
+      toast.error('Failed to update Two-Factor Authentication. Please try again.');
     }
   };
 

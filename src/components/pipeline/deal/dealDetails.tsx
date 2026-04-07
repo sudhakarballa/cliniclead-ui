@@ -313,6 +313,16 @@ export const DealDetails = () => {
     const updatedDealItem = {
       ...dealItem,
       value: valueToSend,
+      pipelineName: dealItem.pipelineName || "",
+      stageName: dealItem.stageName || "",
+      labelName: dealItem.labelName || "",
+      clinicName: dealItem.clinicName || "",
+      personName: dealItem.personName || "",
+      sourceName: dealItem.sourceName || "",
+      treatmentName: dealItem.treatmentName || "",
+      pipelineTypeName: dealItem.pipelineTypeName || "",
+      visibilityGroupName: dealItem.visibilityGroupName || "",
+      paName: dealItem.paName || "",
       operationDate: dealItem.operationDate
         ? new Date(dealItem.operationDate)
         : null,
@@ -386,7 +396,7 @@ export const DealDetails = () => {
       .putItemBySubURL(updatedDealItem, "" + dealItem.dealID)
       .then((res) => {
         console.log("API Response:", res);
-        toast.success("Deal updated successfully.");
+        toast.success("Deal updated successfully.", { toastId: "deal-save-success" });
         loadDealItem();
       })
       .catch((err) => {
@@ -407,7 +417,7 @@ export const DealDetails = () => {
         +dealItem.dealID + "/stage"
       )
       .then((res) => {
-        toast.success("Deal updated successfully.");
+        toast.success("Deal updated successfully.", { toastId: "deal-stage-success" });
         loadDealItem();
       })
       .catch((err) => {

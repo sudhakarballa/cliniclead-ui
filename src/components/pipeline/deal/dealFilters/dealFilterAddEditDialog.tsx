@@ -7,6 +7,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import Select, { components } from "react-select";
+import AsyncSelect from "react-select/async";
 import { AddEditDialog } from "../../../../common/addEditDialog";
 import { ConditionCSV, DealFilter, Rule } from "../../../../models/dealFilters";
 import { DotdigitalCampagin } from "../../../../models/dotdigitalCampagin";
@@ -700,26 +701,46 @@ const FilterCondition: React.FC<FilterConditionProps> = ({
           />
         );
       case "contactPerson":
-        const personOptions = persons.map((person: any) => ({
-          value: String(person.personID || person.id),
-          label: `👤 ${person.personName || person.name}`,
-        }));
         const selectedPersonValue = getValues(`${conditionType}.${index}.value`);
         const selectedPersonArray = selectedPersonValue ? selectedPersonValue.split(',').map((v: string) => v.trim()) : [];
+        const selectedPersonOptions = persons
+          .filter((p: any) => selectedPersonArray.includes(String(p.personID || p.id)))
+          .map((p: any) => ({ value: String(p.personID || p.id), label: `👤 ${p.personName || p.name}` }));
+        const loadPersonOptions = async (inputValue: string) => {
+          if (!inputValue || inputValue.trim().length === 0) return [];
+          try {
+            const personSvc = new personService(null);
+            const response = await personSvc.searchPersons(inputValue);
+            return (Array.isArray(response) ? response : []).map((p: any) => ({
+              value: String(p.personID || p.id),
+              label: `👤 ${p.personName || p.name} (${p.email || 'No Email'})`,
+            }));
+          } catch {
+            return [];
+          }
+        };
         return (
-          <Select
+          <AsyncSelect
             isMulti
-            options={personOptions}
-            value={personOptions.filter((opt: any) => selectedPersonArray.includes(opt.value))}
+            loadOptions={loadPersonOptions}
+            defaultOptions={false}
+            value={selectedPersonOptions}
             onChange={(selected: any) => {
               const values = selected ? selected.map((item: any) => item.value).join(',') : '';
               setValue(`${conditionType}.${index}.value`, values, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
+              // Keep track of selected persons for re-rendering
+              const newPersons = selected?.map((s: any) => ({ personID: s.value, personName: s.label.replace('👤 ', '').split(' (')[0] })) || [];
+              setPersons((prev: any[]) => {
+                const existing = prev.filter((p: any) => !newPersons.some((n: any) => String(n.personID) === String(p.personID || p.id)));
+                return [...existing, ...newPersons];
+              });
             }}
             isDisabled={isDisabled}
-            placeholder="Select persons..."
+            placeholder="Type to search contacts..."
+            noOptionsMessage={() => "Type to search contacts"}
             menuPortalTarget={document.body}
             components={{ MultiValue: CompactMultiValue }}
             styles={compactMultiSelectStyles}

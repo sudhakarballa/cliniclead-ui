@@ -133,6 +133,16 @@ prevStateRef.current = {
     const updatedDeal: Deal = {
       ...dealItem,
       ...extraFields,               // e.g., comments for Lost, specific stageID on reopen, etc.
+      pipelineName: dealItem.pipelineName || "",
+      stageName: dealItem.stageName || "",
+      labelName: dealItem.labelName || "",
+      clinicName: dealItem.clinicName || "",
+      personName: dealItem.personName || "",
+      sourceName: dealItem.sourceName || "",
+      treatmentName: dealItem.treatmentName || "",
+      pipelineTypeName: dealItem.pipelineTypeName || "",
+      visibilityGroupName: dealItem.visibilityGroupName || "",
+      paName: dealItem.paName || "",
       statusID: statusIdMap[status],
       isClosed,
       modifiedDate: new Date() as any,

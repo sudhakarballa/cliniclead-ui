@@ -415,6 +415,20 @@ export const DealAddEditDialog = (props: params) => {
     
         console.log("Payload being sent: ", payload);
     
+        // Resolve name fields for edit mode from loaded dropdown data
+        if (isEditMode && editDeal) {
+            addUpdateItem.pipelineName = pipeLinesList.find(p => p.pipelineID === addUpdateItem.pipelineID)?.pipelineName || editDeal.pipelineName || "";
+            addUpdateItem.stageName = stages.find(s => s.stageID === addUpdateItem.stageID)?.stageName || editDeal.stageName || "";
+            addUpdateItem.clinicName = clinics.find(c => c.value === +addUpdateItem.clinicID)?.name || editDeal.clinicName || "";
+            addUpdateItem.treatmentName = treatments.find(t => t.value === +addUpdateItem.treatmentID)?.name || editDeal.treatmentName || "";
+            addUpdateItem.sourceName = sources.find(s => s.value === +addUpdateItem.sourceID)?.name || editDeal.sourceName || "";
+            addUpdateItem.pipelineTypeName = pipelineTypes.find(p => p.value === +addUpdateItem.pipelineTypeID)?.name || editDeal.pipelineTypeName || "";
+            addUpdateItem.personName = editDeal.personName || "";
+            addUpdateItem.labelName = editDeal.labelName || "";
+            addUpdateItem.visibilityGroupName = editDeal.visibilityGroupName || "";
+            addUpdateItem.paName = editDeal.paName || "";
+        }
+
         // Send the payload to the API
         const apiCall = isEditMode
             ? dealsSvc.putItemBySubURL({ ...addUpdateItem, dealID: editDeal!.dealID }, "" + editDeal!.dealID)
@@ -422,7 +436,7 @@ export const DealAddEditDialog = (props: params) => {
 
         apiCall.then((res) => {
             if (isEditMode || (res.success && res.dealID > 0)) {
-                toast.success(isEditMode ? "Deal updated successfully" : "Deal added successfully");
+                toast.success(isEditMode ? "Deal updated successfully" : "Deal added successfully", { toastId: "deal-save-success" });
                 setTimeout(() => {
                     setDialogIsOpen(false);
                     props.onSaveChanges();

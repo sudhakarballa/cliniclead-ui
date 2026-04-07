@@ -258,11 +258,7 @@ export const Deals = (props: params) => {
           setOriginalStages(sortedStages);
           setIsLoading(false);
           setIsLoadingMore(false);
-          setTimeout(() => {
-            if (skipLoading && fromDealModify) {
-              toast.success("Deal updated successfully.");
-            }
-          }, 100);
+
         })
         .catch((err) => {
           setError(err);

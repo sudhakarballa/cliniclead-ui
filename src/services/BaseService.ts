@@ -218,13 +218,13 @@ export class BaseService<TItem extends AuditItem>{
         item = this.updateAuditDetails(item);
         let isItemasCollection = Array.isArray(item); // checking if item has been passed as array
         var promise = new Promise<any>((resolve, reject) => {
-
+            waitForAuth().then(() => {
             axios({
                 method: 'POST',
                 url:  `${baseURL}/${this.urlSuffix}/${urlSuffix2}`,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': IsMockService()? null : `Bearer ${getActiveUserToken()}`
+                    'Authorization': `Bearer ${getActiveUserToken()}`
                 },
                 data: JSON.stringify(item),
                 cancelToken: axiosCancel?.token
@@ -243,6 +243,7 @@ export class BaseService<TItem extends AuditItem>{
                 reject(err);
 
             });
+            }).catch(reject);
         });
         return promise;
     }

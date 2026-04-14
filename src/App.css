@@ -3921,15 +3921,17 @@ select {
 /* Dialer Pop-up */
 .dialer-popup {
   position: fixed;
-  bottom: 0px;
+  top: 60px;
   right: 0px;
+  bottom: 0px;
   width: 350px;
-  height: 650px;
   background: white;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  border-radius: 8px 0 0 0;
   z-index: 1000;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Dialer Header */
@@ -3950,6 +3952,11 @@ select {
   color: white;
   font-size: 18px;
   cursor: pointer;
+}
+
+#justcall-dialer-container {
+  flex: 1;
+  overflow: hidden;
 }
 
 .hover-person-name {

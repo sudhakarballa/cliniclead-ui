@@ -493,39 +493,42 @@ export const DealAddEditDialog = (props: params) => {
                 },
               } as any}
               onChange={(newValue: any) => {
-                
-                let value = +newValue?.value > 0 ? +newValue?.value : null;
-                setSelectedItem({ ...selectedItem, "contactPersonID": value as any });
-                setValue("contactPersonID" as never, value as never);
-                if (!newValue) return;
-
-                if (newValue.isNew) {
-                  // Handle new contact creation
-                  setSelectedContact(null); // Clear selected contact
+                if (!newValue) {
+                  setSelectedContact(null);
                   setSelectedItem((prev: SelectedItem) => ({
                     ...prev,
-                    contactPersonID: -1, // Temporary ID for new contact
+                    contactPersonID: null as any,
+                    newContact: { personName: "", email: "", phone: "" },
+                  }));
+                  setValue("contactPersonID" as never, null as never);
+                  setValue("phone" as never, "" as never);
+                  setValue("email" as never, "" as never);
+                  return;
+                }
+
+                if (newValue.isNew) {
+                  setSelectedContact({ personName: newValue.inputValue, contactPersonID: -1, isNew: true });
+                  setSelectedItem((prev: SelectedItem) => ({
+                    ...prev,
+                    contactPersonID: -1,
                     newContact: {
                       personName: newValue.inputValue || "",
                       email: "",
                       phone: "",
                     },
                   }));
-
-                  // Clear phone and email for new contacts
+                  setValue("contactPersonID" as never, -1 as never);
                   setValue("phone" as never, "" as never);
                   setValue("email" as never, "" as never);
                 } else {
-                  // Handle selecting an existing contact
-                  setSelectedContact(newValue.details); // Save selected contact
+                  setSelectedContact(newValue.details);
                   setSelectedItem((prev: SelectedItem) => ({
                     ...prev,
-                    contactPersonID: newValue.value, // Save contact ID
+                    contactPersonID: newValue.value,
                     phone: newValue.details?.phone || "",
                     email: newValue.details?.email || "",
                   }));
-
-                  // Update form fields with existing contact details
+                  setValue("contactPersonID" as never, newValue.value as never);
                   setValue(
                     "phone" as never,
                     (newValue.details?.phone || "") as never
@@ -541,7 +544,6 @@ export const DealAddEditDialog = (props: params) => {
                 actionMeta: { action: string }
               ) => {
                 if (actionMeta.action === "input-change") {
-                  // Update the typed input in the state
                   setSelectedItem((prev: SelectedItem) => ({
                     ...prev,
                     newContact: {
@@ -549,12 +551,8 @@ export const DealAddEditDialog = (props: params) => {
                       personName: inputValue,
                     },
                   }));
-
-                  // Clear phone and email when typing a new contact name
                   setValue("phone" as never, "" as never);
                   setValue("email" as never, "" as never);
-
-                  // Clear selectedContact to avoid conflicts
                   setSelectedContact(null);
                 }
               }}
@@ -562,11 +560,11 @@ export const DealAddEditDialog = (props: params) => {
               value={
                 selectedContact
                   ? {
-                      label: selectedContact.personName,
-                      value: selectedContact.contactPersonID,
+                      label: (selectedContact as any).isNew
+                        ? `+ New: ${selectedContact.personName}`
+                        : selectedContact.personName,
+                      value: selectedContact.contactPersonID ?? "new",
                     }
-                  : selectedItem.newContact?.personName
-                  ? { label: selectedItem.newContact.personName, value: "new" }
                   : null
               }
               noOptionsMessage={() => "Type to search or add a new contact"}
